@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prose for blog/content */
+.prose h2 { margin-top: 2em; margin-bottom: 0.5em; }
+.prose h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
+.prose p { margin-bottom: 1em; line-height: 1.75; }
+.prose ul, .prose ol { margin-bottom: 1em; padding-left: 1.5em; }
+.prose li { margin-bottom: 0.25em; }
+.prose blockquote { border-left: 3px solid #e5e7eb; padding-left: 1em; color: #6b7280; font-style: italic; }
+.prose a { color: #111827; text-decoration: underline; text-underline-offset: 2px; }
+.prose img { border-radius: 12px; margin: 1.5em 0; }
+.prose pre { background: #f9fafb; border-radius: 12px; padding: 1em; overflow-x: auto; font-size: 0.875em; }
+.prose code { font-size: 0.875em; background: #f3f4f6; padding: 0.125em 0.375em; border-radius: 4px; }
+
+/* TipTap editor placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  color: #d1d5db;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Marquee animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+.animate-marquee-reverse {
+  animation: marquee 30s linear infinite reverse;
+}
+
+/* Smooth scroll */
+html { scroll-behavior: smooth; }
+
+/* Hide scrollbar on marquee */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Grid dot pattern */
+.dot-pattern {
+  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 24px 24px;
+}
