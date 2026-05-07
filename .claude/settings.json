@@ -30,7 +30,8 @@
       "Bash(node scripts/get-r2-public-url.mjs)",
       "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64'\\)\\)\")",
       "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")",
-      "Bash(node scripts/create-stripe-webhook.mjs https://viji-ouibo.netlify.app)"
+      "Bash(node scripts/create-stripe-webhook.mjs https://viji-ouibo.netlify.app)",
+      "Bash(node scripts/check-users.mjs)"
     ],
     "additionalDirectories": [
       "c:\\Users\\conta\\OneDrive\\Desktop\\Cursor\\Viji\\src\\app\\(shop)\\box"

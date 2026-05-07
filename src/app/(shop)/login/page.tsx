@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Shield, User } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(loginEmail: string, loginPassword: string) {
+  async function handleLogin(
+    loginEmail: string,
+    loginPassword: string,
+    forceDestination?: string
+  ) {
     setError("");
     setLoading(true);
 
@@ -30,19 +32,30 @@ export default function LoginPage() {
         return;
       }
 
-      // Determine destination based on the freshly-issued session role.
-      let destination = "/";
-      try {
-        const sessionRes = await fetch("/api/auth/session");
-        const session = await sessionRes.json();
-        if (session?.user?.role === "admin") destination = "/admin";
-      } catch {
-        // fall through to "/"
+      // If the caller knows the destination (admin button vs client button),
+      // use it directly to avoid a race condition with /api/auth/session in production.
+      let destination = forceDestination || "/";
+
+      // Manual form submit (no forced destination) → poll /api/auth/session
+      // briefly to determine the role.
+      if (!forceDestination) {
+        for (let i = 0; i < 5; i++) {
+          try {
+            const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+            const session = await sessionRes.json();
+            if (session?.user?.role) {
+              destination = session.user.role === "admin" ? "/admin" : "/";
+              break;
+            }
+          } catch {
+            // ignore, retry
+          }
+          await new Promise((r) => setTimeout(r, 200));
+        }
       }
 
       setLoading(false);
-      router.push(destination);
-      router.refresh();
+      window.location.href = destination;
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : "Erreur de connexion");
@@ -80,7 +93,7 @@ export default function LoginPage() {
           <div className="space-y-3 mb-10">
             <button
               type="button"
-              onClick={() => handleLogin("admin@demo.com", "demo1234")}
+              onClick={() => handleLogin("admin@demo.com", "demo1234", "/admin")}
               disabled={loading}
               className="group w-full flex items-center gap-4 px-4 py-3.5 bg-[var(--brand-gold)] text-white hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-50"
             >
@@ -96,7 +109,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => handleLogin("client@demo.com", "demo1234")}
+              onClick={() => handleLogin("client@demo.com", "demo1234", "/")}
               disabled={loading}
               className="group w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] hover:bg-[var(--brand-cream)] transition disabled:opacity-50"
             >
