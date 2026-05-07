@@ -24,10 +24,12 @@ export async function sendEmail({
   to,
   subject,
   html,
+  replyTo,
 }: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }) {
   const client = await getResend();
   if (!client) return null;
@@ -39,5 +41,6 @@ export async function sendEmail({
     to,
     subject,
     html,
+    ...(replyTo ? { replyTo } : {}),
   });
 }

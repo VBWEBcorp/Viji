@@ -4,8 +4,6 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ArrowRight } from "lucide-react";
 
-const FORMSPREE_ID = process.env.NEXT_PUBLIC_FORMSPREE_FORM_ID || "";
-
 export default function ContactFormClient() {
   const [busy, setBusy] = useState(false);
 
@@ -15,24 +13,18 @@ export default function ContactFormClient() {
     const form = e.currentTarget;
     const data = new FormData(form);
 
-    if (!FORMSPREE_ID) {
-      // Fallback mailto si Formspree n'est pas configuré
-      const body = encodeURIComponent(
-        `Nom : ${data.get("name")}\nEmail : ${data.get("email")}\n\n${data.get("message")}`
-      );
-      const subject = encodeURIComponent(String(data.get("subject") || "Contact site"));
-      window.location.href = `mailto:entremamanetmoicook@gmail.com?subject=${subject}&body=${body}`;
-      toast.success("Votre client mail va s'ouvrir");
-      setBusy(false);
-      form.reset();
-      return;
-    }
-
     try {
-      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { Accept: "application/json" },
-        body: data,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          subject: data.get("subject"),
+          message: data.get("message"),
+          _gotcha: data.get("_gotcha"),
+          formType: "contact",
+        }),
       });
 
       if (res.ok) {
@@ -40,8 +32,7 @@ export default function ContactFormClient() {
         form.reset();
       } else {
         const json = await res.json().catch(() => null);
-        const msg = json?.errors?.[0]?.message || "Erreur lors de l'envoi";
-        toast.error(msg);
+        toast.error(json?.error || "Erreur lors de l'envoi");
       }
     } catch {
       toast.error("Impossible d'envoyer le message");
@@ -74,8 +65,14 @@ export default function ContactFormClient() {
         />
       </div>
 
-      {/* Honeypot anti-spam */}
-      <input type="text" name="_gotcha" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+      {/* Honeypot anti-spam (caché aux humains, rempli par les bots) */}
+      <input
+        type="text"
+        name="_gotcha"
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
 
       <button
         type="submit"

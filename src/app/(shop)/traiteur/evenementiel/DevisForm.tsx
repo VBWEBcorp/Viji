@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Send } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function DevisForm() {
   const [busy, setBusy] = useState(false);
@@ -10,44 +10,57 @@ export default function DevisForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
-    // Mailto fallback for now — can wire to Resend/Formspree later
     const form = e.currentTarget;
     const data = new FormData(form);
-    const name = data.get("name");
-    const email = data.get("email");
-    const phone = data.get("phone");
-    const date = data.get("date");
-    const guests = data.get("guests");
-    const message = data.get("message");
 
-    const body = encodeURIComponent(
-      `Nom : ${name}\nEmail : ${email}\nTéléphone : ${phone}\nDate : ${date}\nNombre de convives : ${guests}\n\n${message}`
-    );
-    const subject = encodeURIComponent(`Demande de devis traiteur · ${name}`);
-    window.location.href = `mailto:contact@entre-maman-et-moi.fr?subject=${subject}&body=${body}`;
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          phone: data.get("phone"),
+          date: data.get("date"),
+          guests: data.get("guests"),
+          message: data.get("message"),
+          _gotcha: data.get("_gotcha"),
+          formType: "devis",
+        }),
+      });
 
-    setTimeout(() => {
-      toast.success("Votre client mail va s'ouvrir");
-      setBusy(false);
-      form.reset();
-    }, 500);
+      if (res.ok) {
+        toast.success("Demande envoyée. Réponse sous 48h.");
+        form.reset();
+      } else {
+        const json = await res.json().catch(() => null);
+        toast.error(json?.error || "Erreur lors de l'envoi");
+      }
+    } catch {
+      toast.error("Impossible d'envoyer la demande");
+    }
+
+    setBusy(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-7">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
         <Field name="name" label="Nom" required />
         <Field name="email" label="Email" type="email" required />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field name="phone" label="Téléphone" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
+        <Field name="phone" label="Téléphone" type="tel" />
         <Field name="date" label="Date envisagée" type="date" />
       </div>
       <Field name="guests" label="Nombre de convives" type="number" />
 
       <div>
-        <label htmlFor="message" className="block text-[13px] text-gray-700 mb-2">
-          Votre projet
+        <label
+          htmlFor="message"
+          className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2"
+        >
+          Votre projet <span className="text-[var(--brand-gold)]">*</span>
         </label>
         <textarea
           id="message"
@@ -55,17 +68,25 @@ export default function DevisForm() {
           required
           rows={5}
           placeholder="Décrivez votre événement, vos préférences, vos contraintes alimentaires…"
-          className="w-full px-4 py-3 border border-gray-200 text-[13px] focus:border-[var(--brand-gold)] focus:ring-1 focus:ring-[var(--brand-gold)] outline-none transition resize-none"
+          className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition resize-none placeholder:text-gray-300"
         />
       </div>
+
+      {/* Honeypot */}
+      <input
+        type="text"
+        name="_gotcha"
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
 
       <button
         type="submit"
         disabled={busy}
-        className="inline-flex items-center gap-2 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[12px] uppercase tracking-widest font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-50"
+        className="mt-2 inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-8 py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
       >
-        <Send size={14} />
-        {busy ? "Envoi..." : "Envoyer la demande"}
+        {busy ? "Envoi en cours…" : <>Envoyer la demande <ArrowRight size={13} /></>}
       </button>
     </form>
   );
@@ -84,16 +105,19 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="block text-[13px] text-gray-700 mb-2">
+      <label
+        htmlFor={name}
+        className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2"
+      >
         {label}
-        {required && <span className="text-[var(--brand-gold)]">&nbsp;*</span>}
+        {required && <span className="text-[var(--brand-gold)] ml-1">*</span>}
       </label>
       <input
         id={name}
         name={name}
         type={type}
         required={required}
-        className="w-full px-4 py-3 border border-gray-200 text-[13px] focus:border-[var(--brand-gold)] focus:ring-1 focus:ring-[var(--brand-gold)] outline-none transition"
+        className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
       />
     </div>
   );
