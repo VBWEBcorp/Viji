@@ -153,7 +153,7 @@ export default function ProductClientSection({
       {/* Stock indicator */}
       {stock > 0 && stock <= 5 && (
         <p className="mt-3 text-sm text-amber-600 font-medium">
-          Plus que {stock} en stock — Commandez vite !
+          Plus que {stock} en stock. Commandez vite !
         </p>
       )}
 

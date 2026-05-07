@@ -328,7 +328,7 @@ export default function AdminMarketingPage() {
                 type="text"
                 value={data.banner.text}
                 onChange={(e) => setData({ ...data, banner: { ...data.banner, text: e.target.value } })}
-                placeholder="Ex: 🔥 SOLDES -30% avec le code PROMO30 — Livraison offerte dès 50€"
+                placeholder="Ex: 🔥 SOLDES -30% avec le code PROMO30 · Livraison offerte dès 50€"
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
               />
             </div>

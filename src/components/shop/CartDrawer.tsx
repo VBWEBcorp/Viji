@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
-import { X, Minus, Plus, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -35,7 +35,7 @@ export default function CartDrawer() {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={closeCart}
@@ -43,18 +43,29 @@ export default function CartDrawer() {
 
       {/* Drawer */}
       <div
-        className={`fixed right-0 top-0 z-[70] h-full w-full max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 z-[70] h-full w-full max-w-md bg-white flex flex-col transition-transform duration-500 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">
-            Mon panier {itemCount > 0 && <span className="text-gray-400 text-sm font-normal">({itemCount})</span>}
-          </h2>
+        <div className="px-6 sm:px-8 pt-8 pb-6 border-b border-[var(--brand-gold)]/15 flex items-start justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-2">
+              Votre sélection
+            </p>
+            <h2 className="font-serif text-3xl text-gray-900 leading-none">
+              Panier
+              {itemCount > 0 && (
+                <span className="ml-3 font-serif italic text-2xl text-[var(--brand-gold)]/60">
+                  {itemCount}
+                </span>
+              )}
+            </h2>
+          </div>
           <button
             onClick={closeCart}
-            className="p-2 -mr-2 text-gray-400 hover:text-gray-600 transition"
+            className="p-2 -mr-2 -mt-1 text-gray-400 hover:text-[var(--brand-gold)] transition"
+            aria-label="Fermer"
           >
             <X size={20} />
           </button>
@@ -62,109 +73,126 @@ export default function CartDrawer() {
 
         {/* Items */}
         {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-            <ShoppingCart size={48} className="text-gray-200 mb-4" />
-            <p className="text-gray-500 font-medium mb-1">Votre panier est vide</p>
-            <p className="text-sm text-gray-400 mb-6">
-              Découvrez nos produits et ajoutez-les a votre panier.
+          <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+            {/* Halo or derrière le bol qui tourne */}
+            <div className="relative w-40 h-40 md:w-44 md:h-44 mb-6 flex items-center justify-center">
+              <span className="absolute inset-2 rounded-full border border-[var(--brand-gold)]/15" />
+              <span className="absolute inset-6 rounded-full border border-[var(--brand-gold)]/20" />
+              <div className="relative w-32 h-32 md:w-36 md:h-36 animate-spin-slow opacity-90 drop-shadow-md">
+                <Image
+                  src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+                  alt=""
+                  fill
+                  className="object-contain"
+                  sizes="144px"
+                />
+              </div>
+            </div>
+            <p className="font-serif italic text-2xl text-gray-900 mb-2">
+              Encore rien ici…
+            </p>
+            <p className="text-[13px] text-gray-500 mb-8 leading-relaxed max-w-xs">
+              Découvrez les kits, ateliers et plats à emporter.
             </p>
             <button
               onClick={closeCart}
-              className="text-sm text-gray-900 font-medium hover:underline"
+              className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
-              Continuer mes achats
+              Continuer la visite
             </button>
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 divide-y divide-[var(--brand-gold)]/10">
               {items.map((item) => (
-                <div key={item._id} className="flex gap-3">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                <div key={item._id} className="flex gap-4 py-5 first:pt-0">
+                  <div className="block w-20 h-24 bg-[var(--brand-cream)] overflow-hidden shrink-0">
                     {item.product.image ? (
                       <Image
                         src={item.product.image}
                         alt={item.product.name}
-                        width={64}
-                        height={64}
+                        width={80}
+                        height={96}
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <ShoppingCart size={20} />
+                      <div className="w-full h-full flex items-center justify-center text-[var(--brand-gold)]/40">
+                        <ShoppingBag size={20} />
                       </div>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/products/${item.product.slug}`}
-                      onClick={closeCart}
-                      className="text-sm font-medium hover:underline line-clamp-1"
-                    >
+                    <p className="font-serif text-[16px] text-gray-900 leading-tight line-clamp-2">
                       {item.product.name}
-                    </Link>
-                    {item.variant && (
-                      <p className="text-xs text-gray-400 mt-0.5">{item.variant}</p>
-                    )}
-                    <p className="text-sm font-semibold mt-1">
-                      {formatPrice(item.product.price)}
                     </p>
+                    {item.variant && (
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-[var(--brand-gold)]">
+                        {item.variant}
+                      </p>
+                    )}
 
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center border border-gray-200 rounded-lg">
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center border border-gray-200">
                         <button
                           onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          className="w-7 h-8 flex items-center justify-center text-gray-500 hover:text-[var(--brand-gold)] transition"
+                          aria-label="Diminuer"
                         >
-                          <Minus size={12} />
+                          <Minus size={11} />
                         </button>
-                        <span className="w-7 text-center text-xs font-medium">
+                        <span className="w-7 text-center text-[12px] text-gray-900">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          className="w-7 h-8 flex items-center justify-center text-gray-500 hover:text-[var(--brand-gold)] transition"
+                          aria-label="Augmenter"
                         >
-                          <Plus size={12} />
+                          <Plus size={11} />
                         </button>
                       </div>
-                      <button
-                        onClick={() => removeItem(item._id)}
-                        className="p-1 text-gray-300 hover:text-red-500 transition"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <p className="text-[14px] text-gray-900">
+                        {formatPrice(item.product.price * item.quantity)}
+                      </p>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => removeItem(item._id)}
+                    className="self-start p-1 text-gray-300 hover:text-[var(--brand-gold)] transition"
+                    aria-label="Retirer"
+                  >
+                    <Trash2 size={14} strokeWidth={1.5} />
+                  </button>
                 </div>
               ))}
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-100 px-6 py-4 space-y-3">
-              {/* Free shipping progress */}
+            <div className="border-t border-[var(--brand-gold)]/15 px-6 sm:px-8 py-6 space-y-5">
               <FreeShippingProgress total={total} />
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Sous-total</span>
-                <span className="text-lg font-bold">{formatPrice(total)}</span>
+              <div className="flex items-end justify-between pt-2">
+                <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400">
+                  Sous-total
+                </span>
+                <span className="font-serif text-2xl text-gray-900">
+                  {formatPrice(total)}
+                </span>
               </div>
+
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                Frais de livraison & remises calculés à l'étape suivante.
+              </p>
 
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
+                className="w-full flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
               >
-                Commander <ArrowRight size={16} />
-              </Link>
-
-              <Link
-                href="/cart"
-                onClick={closeCart}
-                className="w-full flex items-center justify-center text-sm text-gray-500 hover:text-gray-700 transition py-1"
-              >
-                Voir le panier complet
+                Passer commande
+                <ArrowRight size={13} />
               </Link>
             </div>
           </>
@@ -175,27 +203,29 @@ export default function CartDrawer() {
 }
 
 function FreeShippingProgress({ total }: { total: number }) {
-  const threshold = 5000; // 50 euros en centimes
+  const threshold = 5000; // 50€ en centimes
   const progress = Math.min((total / threshold) * 100, 100);
   const remaining = threshold - total;
 
   if (total >= threshold) {
     return (
-      <div className="bg-emerald-50 text-emerald-700 text-xs font-medium px-3 py-2 rounded-lg text-center">
-        Livraison gratuite !
+      <div className="text-center py-3 px-4 bg-[var(--brand-cream)] border border-[var(--brand-gold)]/30">
+        <p className="font-serif italic text-[14px] text-[var(--brand-gold)]">
+          Livraison offerte ✦
+        </p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-        <span>Plus que {formatPrice(remaining)} pour la livraison gratuite</span>
-      </div>
-      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <p className="text-[11px] text-gray-500 mb-2 text-center">
+        Plus que <span className="text-[var(--brand-gold)]">{formatPrice(remaining)}</span> pour la livraison offerte
+      </p>
+      <div className="w-full h-px bg-gray-100 overflow-hidden">
         <div
-          className="h-full bg-gray-900 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
+          className="h-full bg-[var(--brand-gold)] transition-all duration-500"
+          style={{ width: `${progress}%`, height: "1.5px" }}
         />
       </div>
     </div>

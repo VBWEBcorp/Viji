@@ -145,7 +145,7 @@ export default function TrackPage() {
           {order.tracking?.trackingNumber && (
             <div className="p-4 bg-blue-50 rounded-xl mb-6">
               <p className="text-sm font-medium">
-                {order.tracking.carrier} — {order.tracking.trackingNumber}
+                {order.tracking.carrier} · {order.tracking.trackingNumber}
               </p>
               {order.tracking.trackingUrl && (
                 <a

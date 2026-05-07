@@ -146,7 +146,7 @@ export default function AdminBlogPage() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Blog</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {posts.length} article{posts.length > 1 ? "s" : ""} — {publishedCount} publie{publishedCount > 1 ? "s" : ""}, {draftCount} brouillon{draftCount > 1 ? "s" : ""}
+            {posts.length} article{posts.length > 1 ? "s" : ""} · {publishedCount} publié{publishedCount > 1 ? "s" : ""}, {draftCount} brouillon{draftCount > 1 ? "s" : ""}
           </p>
         </div>
         <Link

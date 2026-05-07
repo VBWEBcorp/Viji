@@ -3,11 +3,13 @@ import BlogPost from "@/models/BlogPost";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog",
-  description: "Actualites et conseils de notre boutique",
+  title: "Blog · Recettes & guides de cuisine indienne",
+  description:
+    "Recettes traditionnelles, guides d'épices et conseils pour cuisiner indien à la maison. Le carnet de cuisine d'Entre Maman et Moi.",
 };
 
 export default async function BlogPage() {
@@ -19,50 +21,74 @@ export default async function BlogPage() {
     .lean();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">Blog</h1>
+    <div className="bg-white">
+      {/* Hero */}
+      <section className="bg-[var(--brand-cream)]/40 py-14 md:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-5">
+            Le carnet
+          </p>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.05] mb-7">
+            Recettes &{" "}
+            <span className="italic text-[var(--brand-gold)]">conseils</span>
+          </h1>
+          <div className="w-12 h-px bg-[var(--brand-gold)]/50 mx-auto mb-7" />
+          <p className="font-serif italic text-[15px] md:text-lg text-gray-600 leading-relaxed max-w-xl mx-auto">
+            Recettes traditionnelles, guides d&apos;épices et conseils pour faire entrer l&apos;Inde dans votre cuisine.
+          </p>
+        </div>
+      </section>
 
-      {posts.length === 0 ? (
-        <p className="text-gray-500 text-center py-20">Aucun article pour le moment.</p>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <Link
-              key={String(post._id)}
-              href={`/blog/${post.slug}`}
-              className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-            >
-              {post.coverImage && (
-                <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden">
-                  <Image
-                    src={post.coverImage}
-                    alt={post.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-              )}
-              <div className="p-5">
-                {post.category && (
-                  <span className="text-xs text-gray-500 uppercase tracking-wide">
-                    {post.category}
-                  </span>
+      {/* Posts */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-20">
+        {posts.length === 0 ? (
+          <p className="font-serif italic text-gray-500 text-center py-20">
+            Aucun article pour le moment.
+          </p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14">
+            {posts.map((post) => (
+              <Link
+                key={String(post._id)}
+                href={`/blog/${post.slug}`}
+                className="group block"
+              >
+                {post.coverImage && (
+                  <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)] mb-6">
+                    <Image
+                      src={post.coverImage}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
                 )}
-                <h2 className="text-lg font-semibold text-gray-900 mt-1 group-hover:text-gray-600 transition line-clamp-2">
+                {post.category && (
+                  <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-3">
+                    {post.category}
+                  </p>
+                )}
+                <h2 className="font-serif text-2xl md:text-[26px] text-gray-900 leading-tight mb-3 group-hover:text-[var(--brand-gold)] transition">
                   {post.title}
                 </h2>
-                <p className="text-sm text-gray-500 mt-2 line-clamp-3">{post.excerpt}</p>
-                <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
-                  <span>{(post.author as unknown as { name: string })?.name}</span>
-                  <span>·</span>
-                  <span>{post.publishedAt ? formatDate(post.publishedAt) : ""}</span>
+                <div className="w-8 h-px bg-[var(--brand-gold)]/40 mb-4" />
+                <p className="font-serif italic text-[14px] text-gray-600 leading-relaxed mb-5 line-clamp-3">
+                  {post.excerpt}
+                </p>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-serif italic text-gray-500">
+                    {post.publishedAt ? formatDate(post.publishedAt) : ""}
+                  </span>
+                  <span className="uppercase tracking-[0.3em] text-[var(--brand-gold)] inline-flex items-center gap-2 group-hover:gap-3 transition-all">
+                    Lire l&apos;article <ArrowRight size={11} />
+                  </span>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

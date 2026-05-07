@@ -26,9 +26,9 @@ export function generateWelcomeEmail({ customerName, shopName = "Ma Boutique" }:
       suivre vos livraisons et gerer vos informations personnelles.
     </p>
 
-    <a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/products"
+    <a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/kits/decouverte"
        style="display: inline-block; background: #000; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 20px;">
-      Découvrir nos produits
+      Découvrir nos kits
     </a>
   </div>
 

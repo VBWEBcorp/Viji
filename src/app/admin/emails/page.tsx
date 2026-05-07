@@ -189,7 +189,7 @@ export default function AdminEmailsPage() {
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Emails</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Personnalisez les emails envoyés à vos clients — {activeCount} actif{activeCount > 1 ? "s" : ""} sur {templates.length}
+          Personnalisez les emails envoyés à vos clients · {activeCount} actif{activeCount > 1 ? "s" : ""} sur {templates.length}
         </p>
       </div>
 

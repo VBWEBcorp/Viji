@@ -82,10 +82,16 @@ export default function AddressesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4 flex-wrap mb-12">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mes adresses</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gérez vos adresses de livraison</p>
+          <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+            Livraison
+          </p>
+          <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+            Mes <span className="italic text-[var(--brand-gold)]">adresses</span>
+          </h1>
+          <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
         </div>
         {!showForm && (
           <button
@@ -94,63 +100,80 @@ export default function AddressesPage() {
               setEditId(null);
               setShowForm(true);
             }}
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-4 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition"
+            className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-6 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
           >
-            <Plus size={16} /> Ajouter
+            <Plus size={13} /> Ajouter une adresse
           </button>
         )}
       </div>
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4">
-          <h3 className="text-[15px] font-semibold text-gray-900">
-            {editId ? "Modifier l'adresse" : "Nouvelle adresse"}
-          </h3>
+        <form
+          onSubmit={handleSave}
+          className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-8 py-8 mb-8 space-y-6"
+        >
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Adresse</label>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+              Formulaire
+            </p>
+            <h3 className="font-serif text-2xl text-gray-900">
+              {editId ? "Modifier l'adresse" : "Nouvelle adresse"}
+            </h3>
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Adresse
+            </label>
             <input
               type="text"
               value={form.street}
               onChange={(e) => setForm({ ...form, street: e.target.value })}
               required
               placeholder="123 rue de la Paix"
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Code postal</label>
+              <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+                Code postal
+              </label>
               <input
                 type="text"
                 value={form.zip}
                 onChange={(e) => setForm({ ...form, zip: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+                className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Ville</label>
+              <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+                Ville
+              </label>
               <input
                 type="text"
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+                className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
               />
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-5 pt-2">
             <button
               type="submit"
-              className="bg-gray-900 text-white text-sm px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition"
+              className="bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
             >
               {editId ? "Enregistrer" : "Ajouter"}
             </button>
             <button
               type="button"
-              onClick={() => { setShowForm(false); setEditId(null); }}
-              className="text-sm text-gray-500 px-4 py-2.5 hover:text-gray-700 transition"
+              onClick={() => {
+                setShowForm(false);
+                setEditId(null);
+              }}
+              className="text-[11px] uppercase tracking-[0.3em] text-gray-500 border-b border-gray-300 pb-1 hover:text-[var(--brand-gold)] hover:border-[var(--brand-gold)] transition"
             >
               Annuler
             </button>
@@ -160,57 +183,74 @@ export default function AddressesPage() {
 
       {/* Addresses list */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="grid sm:grid-cols-2 gap-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-white border border-[var(--brand-gold)]/15 animate-pulse" />
           ))}
         </div>
       ) : addresses.length === 0 && !showForm ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <MapPin size={40} className="mx-auto text-gray-200 mb-3" />
-          <p className="text-sm text-gray-500 mb-1">Aucune adresse enregistree</p>
-          <p className="text-xs text-gray-400">Ajoutez une adresse pour accelerer vos commandes</p>
+        <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-16 text-center">
+          <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+            <MapPin size={18} strokeWidth={1.5} />
+          </div>
+          <p className="font-serif italic text-2xl text-gray-900 mb-2">
+            Aucune adresse enregistrée
+          </p>
+          <p className="text-[13px] text-gray-500 max-w-xs mx-auto leading-relaxed">
+            Ajoutez une adresse pour accélérer vos prochaines commandes.
+          </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-2 gap-4">
           {addresses.map((addr) => (
             <div
               key={addr._id}
-              className={`bg-white rounded-2xl border p-5 relative transition ${
-                addr.isDefault ? "border-gray-900" : "border-gray-100"
+              className={`relative bg-white border px-6 py-6 transition ${
+                addr.isDefault
+                  ? "border-[var(--brand-gold)]"
+                  : "border-[var(--brand-gold)]/15"
               }`}
             >
               {addr.isDefault && (
-                <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">
-                  <Check size={10} /> Par defaut
+                <span className="absolute top-4 right-4 inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.3em] text-[var(--brand-gold)]">
+                  <Check size={10} /> Par défaut
                 </span>
               )}
-              <div className="text-sm text-gray-600 space-y-0.5 mb-4">
-                <p className="font-medium text-gray-900">{addr.street}</p>
-                <p>{addr.zip} {addr.city}</p>
-                <p>{addr.country}</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-3">
+                Adresse
+              </p>
+              <div className="font-serif text-[15px] text-gray-900 leading-relaxed mb-5 space-y-0.5">
+                <p>{addr.street}</p>
+                <p>
+                  {addr.zip} {addr.city}
+                </p>
+                <p className="text-gray-500 italic">{addr.country}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4 pt-4 border-t border-[var(--brand-gold)]/10">
                 {!addr.isDefault && (
                   <button
                     onClick={() => setDefault(addr._id)}
-                    className="text-[12px] text-gray-500 hover:text-gray-700 transition"
+                    className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
                   >
                     Définir par défaut
                   </button>
                 )}
-                <button
-                  onClick={() => startEdit(addr)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={() => deleteAddress(addr._id)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    onClick={() => startEdit(addr)}
+                    className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[var(--brand-gold)] transition"
+                    title="Modifier"
+                  >
+                    <Pencil size={13} strokeWidth={1.5} />
+                  </button>
+                  <button
+                    onClick={() => deleteAddress(addr._id)}
+                    className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={13} strokeWidth={1.5} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -58,41 +58,50 @@ export default function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "relative bg-[#1a1a2e] text-white min-h-screen shrink-0 flex flex-col sticky top-0 self-start h-screen transition-[width] duration-200 ease-out",
+        "relative bg-white border-r border-[var(--brand-gold)]/15 min-h-screen shrink-0 flex flex-col sticky top-0 self-start h-screen transition-[width] duration-200 ease-out",
         collapsed ? "w-16" : "w-[240px]"
       )}
     >
-      {/* Logo + collapse toggle */}
-      <div className="px-3 py-4 border-b border-white/5 flex items-center justify-between gap-2">
+      {/* Brand + toggle */}
+      <div className="px-4 py-6 border-b border-[var(--brand-gold)]/15 flex items-center justify-between gap-2">
         <Link
           href="/admin"
-          className="flex items-center gap-2.5 min-w-0"
-          title="Ma Boutique"
+          className="block min-w-0"
+          title="Entre Maman et Moi"
         >
-          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
-            <Store size={16} className="text-white" />
-          </div>
-          {!collapsed && (
-            <span className="text-[14px] font-semibold tracking-tight truncate">
-              Ma Boutique
+          {collapsed ? (
+            <span className="font-serif text-xl text-[var(--brand-gold)] tracking-[0.05em]">
+              EM
+            </span>
+          ) : (
+            <span className="block font-serif text-[13px] tracking-[0.18em] text-[var(--brand-gold)] uppercase leading-tight">
+              Entre Maman<br />et Moi
             </span>
           )}
         </Link>
         <button
           onClick={toggle}
-          aria-label={collapsed ? "Deplier le menu" : "Replier le menu"}
-          title={collapsed ? "Deplier" : "Replier"}
+          aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
+          title={collapsed ? "Déplier" : "Replier"}
           className={cn(
-            "p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.08] transition shrink-0",
-            collapsed && "absolute -right-3 top-5 z-10 bg-[#1a1a2e] border border-white/10 shadow-lg"
+            "p-1.5 text-gray-400 hover:text-[var(--brand-gold)] transition shrink-0",
+            collapsed &&
+              "absolute -right-3 top-7 z-10 bg-white border border-[var(--brand-gold)]/20 shadow-sm w-6 h-6 flex items-center justify-center"
           )}
         >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
       </div>
 
+      {/* Navigation label */}
+      {!collapsed && (
+        <div className="px-4 pt-5 pb-2 text-[9px] uppercase tracking-[0.35em] text-gray-400">
+          Administration
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 px-3 pb-4 space-y-0.5 overflow-y-auto scrollbar-hide">
         {menuItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -104,77 +113,79 @@ export default function AdminSidebar() {
               href={item.href}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 group",
-                collapsed && "justify-center",
+                "flex items-center gap-3 px-3 py-2.5 text-[12px] tracking-wide transition-all duration-150 group relative",
+                collapsed && "justify-center px-2",
                 isActive
-                  ? "bg-white/10 text-white"
-                  : "text-white/55 hover:text-white hover:bg-white/[0.04]"
+                  ? "text-[var(--brand-gold)] bg-[var(--brand-cream)]/60"
+                  : "text-gray-600 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40"
               )}
             >
-              <item.icon size={18} strokeWidth={isActive ? 2 : 1.5} className="shrink-0" />
-              {!collapsed && (
-                <span className="flex-1 truncate">{item.label}</span>
+              {isActive && !collapsed && (
+                <span className="absolute left-0 top-2.5 bottom-2.5 w-px bg-[var(--brand-gold)]" />
               )}
-              {!collapsed && isActive && (
-                <ChevronRight size={14} className="text-white/30" />
-              )}
+              <item.icon
+                size={16}
+                strokeWidth={isActive ? 1.75 : 1.5}
+                className="shrink-0"
+              />
+              {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom */}
-      <div className="px-2 pb-3 space-y-1 border-t border-white/5 pt-3">
+      <div className="border-t border-[var(--brand-gold)]/15 px-3 py-3 space-y-1">
         <Link
           href="/"
           title={collapsed ? "Voir la boutique" : undefined}
           className={cn(
-            "flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition",
-            collapsed && "justify-center"
+            "flex items-center gap-3 px-3 py-2 text-[12px] text-gray-500 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40 transition",
+            collapsed && "justify-center px-2"
           )}
         >
-          <Store size={18} strokeWidth={1.5} className="shrink-0" />
+          <Store size={16} strokeWidth={1.5} className="shrink-0" />
           {!collapsed && <span className="truncate">Voir la boutique</span>}
         </Link>
 
         {/* User */}
         {!collapsed ? (
-          <div className="flex items-center gap-2.5 px-2.5 py-2.5 mt-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
+          <div className="flex items-center gap-3 px-3 py-3 mt-1 border-t border-[var(--brand-gold)]/10">
+            <div className="w-8 h-8 rounded-full bg-[var(--brand-cream)] text-[var(--brand-gold)] flex items-center justify-center text-[12px] font-medium shrink-0">
               {session?.user?.name?.charAt(0)?.toUpperCase() || "A"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white/80 truncate">
+              <p className="text-[12px] font-medium text-gray-900 truncate">
                 {session?.user?.name || "Admin"}
               </p>
-              <p className="text-[11px] text-white/30 truncate">
+              <p className="text-[10px] text-gray-400 truncate">
                 {session?.user?.email}
               </p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              title="Se deconnecter"
-              className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/5 transition shrink-0"
+              title="Se déconnecter"
+              className="p-1.5 text-gray-400 hover:text-[var(--brand-gold)] transition shrink-0"
             >
-              <LogOut size={14} />
+              <LogOut size={13} />
             </button>
           </div>
         ) : (
           <>
             <div
-              className="flex items-center justify-center px-2.5 py-2.5 mt-1"
+              className="flex items-center justify-center px-2 py-2 mt-1"
               title={session?.user?.name || "Admin"}
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[var(--brand-cream)] text-[var(--brand-gold)] flex items-center justify-center text-[12px] font-medium shrink-0">
                 {session?.user?.name?.charAt(0)?.toUpperCase() || "A"}
               </div>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              title="Se deconnecter"
-              className="w-full flex items-center justify-center px-2 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition"
+              title="Se déconnecter"
+              className="w-full flex items-center justify-center px-2 py-2 text-gray-400 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40 transition"
             >
-              <LogOut size={18} strokeWidth={1.5} />
+              <LogOut size={16} strokeWidth={1.5} />
             </button>
           </>
         )}

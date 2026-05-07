@@ -1,5 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import type { DocumentProps } from "@react-pdf/renderer";
+import type { ReactElement } from "react";
 import type { IOrder } from "@/models/Order";
 import type { ISiteSettings } from "@/models/SiteSettings";
 
@@ -137,7 +139,10 @@ interface Props {
   settings: ISiteSettings;
 }
 
-export default function InvoiceDocument({ order, settings }: Props) {
+export default function InvoiceDocument({
+  order,
+  settings,
+}: Props): ReactElement<DocumentProps> {
   const taxRate = settings.tax?.rate ?? 20;
   const taxLabel = settings.tax?.label || "TVA";
   const showTax = taxRate > 0;
@@ -294,8 +299,8 @@ export default function InvoiceDocument({ order, settings }: Props) {
           )}
           <Text>
             {settings.shopName}
-            {settings.legal?.siret ? ` — SIRET ${settings.legal.siret}` : ""}
-            {settings.legal?.tva ? ` — TVA ${settings.legal.tva}` : ""}
+            {settings.legal?.siret ? ` · SIRET ${settings.legal.siret}` : ""}
+            {settings.legal?.tva ? ` · TVA ${settings.legal.tva}` : ""}
           </Text>
         </View>
       </Page>

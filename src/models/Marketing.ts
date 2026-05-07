@@ -29,7 +29,7 @@ const MarketingSchema = new Schema<IMarketing>(
       title: { type: String, default: "" },
       description: { type: String, default: "" },
       buttonText: { type: String, default: "En profiter" },
-      buttonUrl: { type: String, default: "/products" },
+      buttonUrl: { type: String, default: "/kits/decouverte" },
       delay: { type: Number, default: 5 },
     },
     banner: {

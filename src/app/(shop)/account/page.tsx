@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { Package, Heart, MapPin, Truck, ArrowRight, ShoppingCart } from "lucide-react";
+import { Package, Heart, MapPin, Truck, ArrowRight, Wallet } from "lucide-react";
 import Link from "next/link";
 
 interface Order {
@@ -21,7 +21,6 @@ interface AccountStats {
   totalOrders: number;
   totalSpent: number;
   wishlistCount: number;
-  addressCount: number;
 }
 
 export default function AccountDashboard() {
@@ -31,7 +30,6 @@ export default function AccountDashboard() {
     totalOrders: 0,
     totalSpent: 0,
     wishlistCount: 0,
-    addressCount: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -51,29 +49,31 @@ export default function AccountDashboard() {
         totalOrders: orderData.pagination?.total || orderList.length,
         totalSpent,
         wishlistCount: wishlistData.products?.length || 0,
-        addressCount: 0,
       });
       setLoading(false);
     });
   }, []);
 
-  const statusLabels: Record<string, { label: string; cls: string }> = {
-    pending: { label: "En attente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-    paid: { label: "Paye", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    failed: { label: "Échoué", cls: "bg-red-50 text-red-700 border-red-200" },
-    refunded: { label: "Remboursé", cls: "bg-gray-50 text-gray-600 border-gray-200" },
-    processing: { label: "En preparation", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-    shipped: { label: "Expédié", cls: "bg-purple-50 text-purple-700 border-purple-200" },
-    delivered: { label: "Livre", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  const statusLabels: Record<string, string> = {
+    pending: "En attente",
+    paid: "Payée",
+    failed: "Échouée",
+    refunded: "Remboursée",
+    processing: "En préparation",
+    shipped: "Expédiée",
+    delivered: "Livrée",
   };
 
   if (loading) {
     return (
-      <div>
-        <div className="h-8 bg-gray-100 rounded-lg w-48 animate-pulse mb-6" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+      <div className="space-y-10">
+        <div className="space-y-3">
+          <div className="h-3 w-32 bg-[var(--brand-gold)]/10 animate-pulse" />
+          <div className="h-10 w-64 bg-gray-100 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-28 border border-[var(--brand-gold)]/15 bg-white animate-pulse" />
           ))}
         </div>
       </div>
@@ -81,165 +81,293 @@ export default function AccountDashboard() {
   }
 
   const firstName = session?.user?.name?.split(" ")[0] || "Client";
+  const activeOrders = orders.filter((o) =>
+    ["processing", "shipped"].includes(o.fulfillmentStatus)
+  );
 
   return (
     <div>
       {/* Welcome */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Bonjour, {firstName}
+      <div className="mb-12 md:mb-16">
+        <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+          Tableau de bord
+        </p>
+        <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+          Bonjour,{" "}
+          <span className="italic text-[var(--brand-gold)]">{firstName}</span>
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Gérez vos commandes, adresses et informations personnelles
+        <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
+        <p className="font-serif italic text-[15px] text-gray-600 mt-7 max-w-md">
+          Retrouvez vos commandes, vos favoris et vos informations en un coup d&apos;œil.
         </p>
       </div>
 
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        <Link
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14">
+        <StatCard
           href="/account/orders"
-          className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm hover:border-gray-200 transition-all group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-              <Package size={16} className="text-blue-600" />
-            </div>
-            <ArrowRight size={14} className="text-gray-300 group-hover:text-gray-500 transition" />
-          </div>
-          <p className="text-xl font-bold text-gray-900">{stats.totalOrders}</p>
-          <p className="text-[12px] text-gray-500">Commande{stats.totalOrders > 1 ? "s" : ""}</p>
-        </Link>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center mb-2">
-            <ShoppingCart size={16} className="text-emerald-600" />
-          </div>
-          <p className="text-xl font-bold text-gray-900">{formatPrice(stats.totalSpent)}</p>
-          <p className="text-[12px] text-gray-500">Total dépensé</p>
-        </div>
-
-        <Link
+          icon={<Package size={16} strokeWidth={1.5} />}
+          label="Commandes"
+          value={String(stats.totalOrders)}
+          hint={stats.totalOrders > 1 ? "passées" : "passée"}
+        />
+        <StatCard
+          icon={<Wallet size={16} strokeWidth={1.5} />}
+          label="Total dépensé"
+          value={formatPrice(stats.totalSpent)}
+          hint="depuis l'ouverture du compte"
+        />
+        <StatCard
           href="/account/wishlist"
-          className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm hover:border-gray-200 transition-all group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-9 h-9 rounded-xl bg-pink-50 flex items-center justify-center">
-              <Heart size={16} className="text-pink-600" />
-            </div>
-            <ArrowRight size={14} className="text-gray-300 group-hover:text-gray-500 transition" />
-          </div>
-          <p className="text-xl font-bold text-gray-900">{stats.wishlistCount}</p>
-          <p className="text-[12px] text-gray-500">Favori{stats.wishlistCount > 1 ? "s" : ""}</p>
-        </Link>
-
-        <Link
-          href="/account/addresses"
-          className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm hover:border-gray-200 transition-all group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-              <MapPin size={16} className="text-violet-600" />
-            </div>
-            <ArrowRight size={14} className="text-gray-300 group-hover:text-gray-500 transition" />
-          </div>
-          <p className="text-xl font-bold text-gray-900">Adresses</p>
-          <p className="text-[12px] text-gray-500">Livraison & facturation</p>
-        </Link>
+          icon={<Heart size={16} strokeWidth={1.5} />}
+          label="Favoris"
+          value={String(stats.wishlistCount)}
+          hint={stats.wishlistCount > 1 ? "produits enregistrés" : "produit enregistré"}
+        />
       </div>
 
-      {/* Active orders (shipped, processing) */}
-      {orders.some((o) => ["processing", "shipped"].includes(o.fulfillmentStatus)) && (
-        <div className="mb-8">
-          <h2 className="text-[15px] font-semibold text-gray-900 mb-3">Commandes en cours</h2>
+      {/* Active orders */}
+      {activeOrders.length > 0 && (
+        <section className="mb-14">
+          <SectionHeader eyebrow="Suivi" title="En cours" />
           <div className="space-y-3">
-            {orders
-              .filter((o) => ["processing", "shipped"].includes(o.fulfillmentStatus))
-              .map((order) => (
-                <Link
-                  key={order._id}
-                  href={`/account/orders/${order._id}`}
-                  className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm hover:border-gray-200 transition-all"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <Truck size={18} className="text-blue-600" />
+            {activeOrders.map((order) => (
+              <Link
+                key={order._id}
+                href={`/account/orders/${order._id}`}
+                className="group flex items-center gap-5 bg-white border border-[var(--brand-gold)]/15 px-5 py-5 hover:border-[var(--brand-gold)]/40 transition"
+              >
+                <div className="w-11 h-11 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center shrink-0">
+                  <Truck size={16} strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="font-serif text-[16px] text-gray-900">
+                      {order.orderNumber}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)]">
+                      {statusLabels[order.fulfillmentStatus] || order.fulfillmentStatus}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-900">{order.orderNumber}</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${statusLabels[order.fulfillmentStatus]?.cls || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                        {statusLabels[order.fulfillmentStatus]?.label || order.fulfillmentStatus}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {order.items.map((i) => i.name).join(", ")}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-semibold">{formatPrice(order.total)}</p>
-                    <p className="text-[11px] text-gray-400">{formatDate(order.createdAt)}</p>
-                  </div>
-                </Link>
-              ))}
+                  <p className="text-[12px] text-gray-500 truncate font-serif italic">
+                    {order.items.map((i) => i.name).join(" · ")}
+                  </p>
+                </div>
+                <div className="text-right shrink-0 hidden sm:block">
+                  <p className="font-serif text-[16px] text-gray-900">
+                    {formatPrice(order.total)}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mt-1">
+                    {formatDate(order.createdAt)}
+                  </p>
+                </div>
+                <ArrowRight
+                  size={14}
+                  className="text-[var(--brand-gold)]/40 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all shrink-0"
+                />
+              </Link>
+            ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Recent orders */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[15px] font-semibold text-gray-900">Dernières commandes</h2>
-          {stats.totalOrders > 5 && (
-            <Link
-              href="/account/orders"
-              className="text-[13px] text-gray-400 hover:text-gray-600 transition flex items-center gap-1"
-            >
-              Tout voir <ArrowRight size={12} />
-            </Link>
-          )}
-        </div>
+      <section>
+        <SectionHeader
+          eyebrow="Historique"
+          title="Dernières commandes"
+          right={
+            stats.totalOrders > 5 ? (
+              <Link
+                href="/account/orders"
+                className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
+              >
+                Tout voir
+              </Link>
+            ) : undefined
+          }
+        />
 
         {orders.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-            <Package size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-500 mb-1">Aucune commande</p>
-            <p className="text-xs text-gray-400 mb-4">Votre historique apparaitra ici</p>
+          <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-16 text-center">
+            <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+              <Package size={18} strokeWidth={1.5} />
+            </div>
+            <p className="font-serif italic text-2xl text-gray-900 mb-2">
+              Pas encore de commande…
+            </p>
+            <p className="text-[13px] text-gray-500 mb-7 max-w-xs mx-auto leading-relaxed">
+              Votre historique apparaîtra ici dès votre première commande.
+            </p>
             <Link
-              href="/products"
-              className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition"
+              href="/kits/decouverte"
+              className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
             >
-              Découvrir nos produits <ArrowRight size={14} />
+              Découvrir les kits
+              <ArrowRight size={13} />
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="divide-y divide-gray-50">
-              {orders.map((order) => (
-                <Link
-                  key={order._id}
-                  href={`/account/orders/${order._id}`}
-                  className="flex items-center px-5 py-4 hover:bg-gray-50/50 transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[13px] font-semibold text-gray-900">{order.orderNumber}</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${statusLabels[order.paymentStatus]?.cls || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                        {statusLabels[order.paymentStatus]?.label || order.paymentStatus}
-                      </span>
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${statusLabels[order.fulfillmentStatus]?.cls || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                        {statusLabels[order.fulfillmentStatus]?.label || order.fulfillmentStatus}
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-gray-400">{formatDate(order.createdAt)}</p>
+          <div className="bg-white border border-[var(--brand-gold)]/15 divide-y divide-[var(--brand-gold)]/10">
+            {orders.map((order) => (
+              <Link
+                key={order._id}
+                href={`/account/orders/${order._id}`}
+                className="group flex items-center gap-4 px-5 sm:px-6 py-5 hover:bg-[var(--brand-cream)]/50 transition"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                    <span className="font-serif text-[16px] text-gray-900">
+                      {order.orderNumber}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)]">
+                      {statusLabels[order.paymentStatus] || order.paymentStatus}
+                    </span>
+                    <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-gray-400">
+                      {statusLabels[order.fulfillmentStatus] || order.fulfillmentStatus}
+                    </span>
                   </div>
-                  <span className="text-[14px] font-semibold text-gray-900 group-hover:text-gray-700 shrink-0">
-                    {formatPrice(order.total)}
-                  </span>
-                </Link>
-              ))}
-            </div>
+                  <p className="font-serif italic text-[12px] text-gray-500">
+                    {formatDate(order.createdAt)}
+                  </p>
+                </div>
+                <span className="font-serif text-[16px] text-gray-900 shrink-0">
+                  {formatPrice(order.total)}
+                </span>
+                <ArrowRight
+                  size={14}
+                  className="text-[var(--brand-gold)]/30 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all shrink-0"
+                />
+              </Link>
+            ))}
           </div>
         )}
-      </div>
+      </section>
+
+      {/* Quick links */}
+      <section className="mt-14">
+        <SectionHeader eyebrow="Raccourcis" title="Mon espace" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <QuickLink
+            href="/account/addresses"
+            icon={<MapPin size={15} strokeWidth={1.5} />}
+            label="Mes adresses"
+            hint="Livraison & facturation"
+          />
+          <QuickLink
+            href="/account/profile"
+            icon={<Heart size={15} strokeWidth={1.5} />}
+            label="Mes informations"
+            hint="Nom, email, téléphone"
+          />
+        </div>
+      </section>
     </div>
+  );
+}
+
+function StatCard({
+  href,
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  href?: string;
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  const inner = (
+    <>
+      <div className="flex items-center justify-between mb-5">
+        <div className="w-10 h-10 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center">
+          {icon}
+        </div>
+        {href && (
+          <ArrowRight
+            size={14}
+            className="text-[var(--brand-gold)]/30 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all"
+          />
+        )}
+      </div>
+      <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">
+        {label}
+      </p>
+      <p className="font-serif text-2xl text-gray-900 leading-none">{value}</p>
+      <p className="font-serif italic text-[12px] text-gray-500 mt-2">{hint}</p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group block bg-white border border-[var(--brand-gold)]/15 px-6 py-6 hover:border-[var(--brand-gold)]/40 transition"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-6">{inner}</div>
+  );
+}
+
+function SectionHeader({
+  eyebrow,
+  title,
+  right,
+}: {
+  eyebrow: string;
+  title: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-end justify-between mb-6">
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+          {eyebrow}
+        </p>
+        <h2 className="font-serif text-2xl text-gray-900 leading-none">{title}</h2>
+      </div>
+      {right}
+    </div>
+  );
+}
+
+function QuickLink({
+  href,
+  icon,
+  label,
+  hint,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-4 bg-white border border-[var(--brand-gold)]/15 px-5 py-4 hover:border-[var(--brand-gold)]/40 transition"
+    >
+      <div className="w-10 h-10 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] uppercase tracking-[0.25em] font-medium text-gray-900">
+          {label}
+        </p>
+        <p className="font-serif italic text-[12px] text-gray-500 mt-1">{hint}</p>
+      </div>
+      <ArrowRight
+        size={14}
+        className="text-[var(--brand-gold)]/30 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all"
+      />
+    </Link>
   );
 }

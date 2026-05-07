@@ -8,12 +8,21 @@ const nextConfig: NextConfig = {
         hostname: "pub-64f8c999b05945dbb589cf704882488c.r2.dev",
       },
       {
+        // Cloudflare R2 public URLs (pattern: pub-<hash>.r2.dev) — couvre tous les buckets
+        protocol: "https",
+        hostname: "**.r2.dev",
+      },
+      {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
         protocol: "https",
         hostname: "**.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
       },
     ],
   },

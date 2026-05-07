@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { formatPrice } from "@/lib/utils";
-import { CreditCard, ArrowLeft, ArrowRight, Check, Home, MapPin } from "lucide-react";
+import { CreditCard, ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import MondialRelayWidget, { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
@@ -43,7 +43,7 @@ export default function CheckoutPage() {
   });
 
   const [sameAsBilling, setSameAsBilling] = useState(true);
-  const [billingAddress, setBillingAddress] = useState({
+  const [billingAddress] = useState({
     name: "",
     street: "",
     city: "",
@@ -52,38 +52,26 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">(
-    "stripe"
+  const [pickupPoint, setPickupPoint] = useState<MondialRelayPoint | null>(null);
+  // Code Client Mondial Relay (utilisé uniquement par le widget de carte côté client).
+  // Lu depuis NEXT_PUBLIC_MONDIAL_RELAY_BRAND, ou fallback sur le code de Viji,
+  // ou écrasé par les réglages admin si configurés.
+  const [mondialRelayBrandCode, setMondialRelayBrandCode] = useState<string>(
+    process.env.NEXT_PUBLIC_MONDIAL_RELAY_BRAND || "CC23RXDD"
   );
 
-  const [shippingMethod, setShippingMethod] = useState<"home" | "pickup">("home");
-  const [pickupPoint, setPickupPoint] = useState<MondialRelayPoint | null>(null);
-  const [mondialRelayBrandCode, setMondialRelayBrandCode] = useState<string>("");
-  const [homeEnabled, setHomeEnabled] = useState(true);
-  const [pickupEnabled, setPickupEnabled] = useState(false);
-
-  // Tarifs de livraison (chargés depuis settings)
   const [shippingRates, setShippingRates] = useState({
-    homeRate: 499,
     pickupRate: 399,
-    homeFreeThreshold: 5000,
     pickupFreeThreshold: 5000,
   });
   const [taxConfig, setTaxConfig] = useState({ rate: 20, pricesIncludeTax: true, label: "TVA" });
 
-  // Calcul des frais de port selon le mode et le seuil
-  function computeShipping(method: "home" | "pickup"): number {
-    const rate = method === "pickup" ? shippingRates.pickupRate : shippingRates.homeRate;
-    const threshold = method === "pickup" ? shippingRates.pickupFreeThreshold : shippingRates.homeFreeThreshold;
-    if (threshold > 0 && cartTotal >= threshold) return 0;
-    return rate;
-  }
+  // Mondial Relay only.
+  const shippingCost =
+    shippingRates.pickupFreeThreshold > 0 && cartTotal >= shippingRates.pickupFreeThreshold
+      ? 0
+      : shippingRates.pickupRate;
 
-  const shippingCost = computeShipping(shippingMethod);
-
-  // Calcul TVA
-  // pricesIncludeTax = true : cartTotal est TTC → on extrait la part TVA
-  // pricesIncludeTax = false : cartTotal est HT → on ajoute la TVA
   const taxableBase = cartTotal + shippingCost;
   const taxAmount = taxConfig.pricesIncludeTax
     ? Math.round(taxableBase - taxableBase / (1 + taxConfig.rate / 100))
@@ -106,19 +94,12 @@ export default function CheckoutPage() {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => {
-        const home = data?.shipping?.homeDeliveryEnabled ?? true;
-        const pickup =
-          (data?.shipping?.mondialRelayEnabled ?? false) &&
-          !!data?.apiKeys?.mondialRelayBrandCode;
-        setHomeEnabled(home);
-        setPickupEnabled(pickup);
+        // Use the merchant's brand code if configured, otherwise stay on the test code.
         if (data?.apiKeys?.mondialRelayBrandCode) {
           setMondialRelayBrandCode(data.apiKeys.mondialRelayBrandCode);
         }
         setShippingRates({
-          homeRate: data?.shipping?.homeRate ?? 499,
           pickupRate: data?.shipping?.pickupRate ?? 399,
-          homeFreeThreshold: data?.shipping?.homeFreeThreshold ?? 5000,
           pickupFreeThreshold: data?.shipping?.pickupFreeThreshold ?? 5000,
         });
         setTaxConfig({
@@ -126,9 +107,6 @@ export default function CheckoutPage() {
           pricesIncludeTax: data?.tax?.pricesIncludeTax ?? true,
           label: data?.tax?.label || "TVA",
         });
-        // Si seul pickup actif, le selectionner par defaut
-        if (!home && pickup) setShippingMethod("pickup");
-        else setShippingMethod("home");
       })
       .catch(() => {});
   }, [status, router]);
@@ -143,23 +121,20 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           shippingAddress,
           billingAddress: sameAsBilling ? shippingAddress : billingAddress,
-          paymentMethod,
+          paymentMethod: "stripe",
           shippingCost,
-          shippingMethod,
-          pickupPoint:
-            shippingMethod === "pickup" && pickupPoint
-              ? {
-                  id: pickupPoint.ID,
-                  name: pickupPoint.Nom,
-                  street: [pickupPoint.Adresse1, pickupPoint.Adresse2]
-                    .filter(Boolean)
-                    .join(" "),
-                  city: pickupPoint.Ville,
-                  zip: pickupPoint.CP,
-                  country: pickupPoint.Pays || "FR",
-                  carrier: "mondialrelay",
-                }
-              : undefined,
+          shippingMethod: "pickup",
+          pickupPoint: pickupPoint
+            ? {
+                id: pickupPoint.ID,
+                name: pickupPoint.Nom,
+                street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
+                city: pickupPoint.Ville,
+                zip: pickupPoint.CP,
+                country: pickupPoint.Pays || "FR",
+                carrier: "mondialrelay",
+              }
+            : undefined,
           promoCode: promoCode || undefined,
         }),
       });
@@ -172,30 +147,11 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (data.paymentMethod === "stripe" && data.clientSecret) {
-        // Rediriger vers la page de paiement Stripe
-        // En production, utiliser Stripe Elements ici
+      if (data.clientSecret) {
         setStep("confirmation");
-        toast.success(
-          `Commande ${data.orderNumber} créée ! Paiement Stripe à finaliser.`
-        );
-      } else if (data.paymentMethod === "paypal" && data.paypalOrderId) {
-        // Capture PayPal
-        const captureRes = await fetch("/api/webhooks/paypal", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paypalOrderId: data.paypalOrderId,
-            orderId: data.orderId,
-          }),
-        });
-
-        if (captureRes.ok) {
-          setStep("confirmation");
-          toast.success(`Commande ${data.orderNumber} confirmée !`);
-        } else {
-          toast.error("Erreur lors du paiement PayPal");
-        }
+        toast.success(`Commande ${data.orderNumber} créée. Paiement Stripe à finaliser.`);
+      } else {
+        toast.error("Erreur lors de l'initialisation du paiement");
       }
     } catch {
       toast.error("Erreur serveur");
@@ -204,288 +160,154 @@ export default function CheckoutPage() {
     setLoading(false);
   }
 
+  // ── Loading state ─────────────────────────────────────────────
   if (status === "loading") {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="h-96 flex items-center justify-center text-gray-500">
-          Chargement...
-        </div>
+      <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] flex items-center justify-center">
+        <p className="font-serif italic text-gray-500">Chargement…</p>
       </div>
     );
   }
 
+  // ── Confirmation state ────────────────────────────────────────
   if (step === "confirmation") {
     return (
-      <div className="max-w-lg mx-auto px-4 sm:px-6 py-20 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Check size={32} className="text-green-600" />
-        </div>
-        <h1 className="text-2xl font-bold mb-2">Commande confirmée !</h1>
-        <p className="text-gray-500 mb-8">
-          Vous recevrez un email de confirmation avec les détails de votre
-          commande.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/account"
-            className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition"
-          >
-            Mes commandes
-          </Link>
-          <Link
-            href="/products"
-            className="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition"
-          >
-            Continuer mes achats
-          </Link>
+      <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] py-20 md:py-28 px-4">
+        <div className="max-w-lg mx-auto text-center">
+          <div className="w-16 h-16 rounded-full border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-7">
+            <Check size={22} strokeWidth={1.5} />
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-4">
+            Merci
+          </p>
+          <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05] mb-6">
+            Commande{" "}
+            <span className="italic text-[var(--brand-gold)]">confirmée</span>
+          </h1>
+          <div className="w-12 h-px bg-[var(--brand-gold)]/40 mx-auto mb-7" />
+          <p className="font-serif italic text-[15px] text-gray-600 leading-relaxed mb-10 max-w-md mx-auto">
+            Vous recevrez un email avec les détails de votre commande dans quelques instants.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/account/orders"
+              className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
+            >
+              Mes commandes
+              <ArrowRight size={13} />
+            </Link>
+            <Link
+              href="/kits/decouverte"
+              className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
+            >
+              Découvrir les kits
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
+  // ── Main checkout flow ────────────────────────────────────────
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <Link
-        href="/cart"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-black mb-6"
-      >
-        <ArrowLeft size={16} /> Retour au panier
-      </Link>
-
-      <h1 className="text-3xl font-bold mb-8">Passer commande</h1>
-
-      {/* Steps indicator */}
-      <div className="flex items-center gap-4 mb-8">
-        <div
-          className={`flex items-center gap-2 text-sm font-medium ${
-            step === "shipping" ? "text-black" : "text-gray-400"
-          }`}
+    <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] py-12 md:py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* Back link */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-10"
         >
-          <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs">
-            1
-          </span>
-          Livraison
-        </div>
-        <div className="flex-1 h-px bg-gray-200" />
-        <div
-          className={`flex items-center gap-2 text-sm font-medium ${
-            step === "payment" ? "text-black" : "text-gray-400"
-          }`}
-        >
-          <span
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-              step === "payment"
-                ? "bg-black text-white"
-                : "bg-gray-200 text-gray-500"
-            }`}
-          >
-            2
-          </span>
-          Paiement
-        </div>
-      </div>
+          <ArrowLeft size={13} /> Continuer mes achats
+        </Link>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          {step === "shipping" && (
-            <div className="space-y-4">
-              {/* Mode de livraison - uniquement si choix entre les 2 */}
-              {homeEnabled && pickupEnabled && (
-                <div className="bg-white rounded-xl border p-6 space-y-3">
-                  <h2 className="text-lg font-semibold">Mode de livraison</h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setShippingMethod("home")}
-                      className={`flex items-center gap-3 p-4 border rounded-lg text-left transition ${
-                        shippingMethod === "home"
-                          ? "border-black bg-gray-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Home size={20} className="text-gray-600" />
-                      <div>
-                        <p className="font-medium text-sm">Domicile</p>
-                        <p className="text-xs text-gray-500">Livraison standard</p>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShippingMethod("pickup")}
-                      className={`flex items-center gap-3 p-4 border rounded-lg text-left transition ${
-                        shippingMethod === "pickup"
-                          ? "border-black bg-gray-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <MapPin size={20} className="text-gray-600" />
-                      <div>
-                        <p className="font-medium text-sm">Point Relais</p>
-                        <p className="text-xs text-gray-500">Mondial Relay</p>
-                      </div>
-                    </button>
+        {/* Header */}
+        <div className="mb-12">
+          <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+            Finalisation
+          </p>
+          <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+            Votre <span className="italic text-[var(--brand-gold)]">commande</span>
+          </h1>
+          <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
+        </div>
+
+        {/* Steps indicator */}
+        <div className="flex items-center gap-5 mb-12 max-w-md">
+          <StepDot label="Livraison" active={step === "shipping"} done={step === "payment"} number={1} />
+          <span className={`flex-1 h-px transition-colors ${step === "payment" ? "bg-[var(--brand-gold)]/40" : "bg-gray-200"}`} />
+          <StepDot label="Paiement" active={step === "payment"} done={false} number={2} />
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* Main column */}
+          <div className="lg:col-span-2 space-y-6">
+            {step === "shipping" && (
+              <>
+                {/* Coordonnées */}
+                <Card eyebrow="Vous concernant" title="Vos coordonnées">
+                  <div className="space-y-6">
+                    <Field
+                      label="Nom complet"
+                      required
+                      value={shippingAddress.name}
+                      onChange={(v) => setShippingAddress({ ...shippingAddress, name: v })}
+                    />
+                    <Field
+                      label="Code postal pour rechercher un point"
+                      required
+                      placeholder="35000"
+                      value={shippingAddress.zip}
+                      onChange={(v) => setShippingAddress({ ...shippingAddress, zip: v })}
+                    />
+                    <Field
+                      label="Téléphone (requis par Mondial Relay)"
+                      type="tel"
+                      required
+                      value={shippingAddress.phone}
+                      onChange={(v) => setShippingAddress({ ...shippingAddress, phone: v })}
+                    />
+                    <label className="flex items-center gap-3 pt-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sameAsBilling}
+                        onChange={(e) => setSameAsBilling(e.target.checked)}
+                        className="w-4 h-4 accent-[var(--brand-gold)]"
+                      />
+                      <span className="font-serif italic text-[13px] text-gray-600">
+                        Adresse de facturation identique au point relais
+                      </span>
+                    </label>
                   </div>
-                </div>
-              )}
+                </Card>
 
-              {/* Selecteur point relais */}
-              {shippingMethod === "pickup" && pickupEnabled && mondialRelayBrandCode && (
-                <div className="bg-white rounded-xl border p-6 space-y-4">
-                  <h2 className="text-lg font-semibold">Choisir un point relais</h2>
+                {/* Sélecteur point relais Mondial Relay (gratuit) */}
+                <Card eyebrow="Retrait" title="Choisissez votre point relais">
+                  <p className="font-serif italic text-[13px] text-gray-500 mb-6">
+                    Toutes les commandes sont expédiées via Mondial Relay. Sélectionnez le point de retrait le plus proche sur la carte.
+                  </p>
+
                   {pickupPoint && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
-                      <Check size={16} className="text-green-600 mt-0.5 shrink-0" />
-                      <div className="text-sm">
-                        <p className="font-medium text-green-900">{pickupPoint.Nom}</p>
-                        <p className="text-green-700">
+                    <div className="flex items-start gap-3 px-4 py-3 mb-5 border border-[var(--brand-gold)] bg-[var(--brand-cream)]/50">
+                      <Check size={14} strokeWidth={1.5} className="text-[var(--brand-gold)] mt-1 shrink-0" />
+                      <div className="text-[13px] leading-relaxed flex-1 min-w-0">
+                        <p className="font-serif text-gray-900">{pickupPoint.Nom}</p>
+                        <p className="text-gray-600">
                           {pickupPoint.Adresse1}
-                          {pickupPoint.Adresse2 ? `, ${pickupPoint.Adresse2}` : ""},{" "}
-                          {pickupPoint.CP} {pickupPoint.Ville}
+                          {pickupPoint.Adresse2 ? `, ${pickupPoint.Adresse2}` : ""}, {pickupPoint.CP} {pickupPoint.Ville}
                         </p>
                       </div>
+                      <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] shrink-0">
+                        Sélectionné
+                      </span>
                     </div>
                   )}
+
                   <MondialRelayWidget
                     brandCode={mondialRelayBrandCode}
                     postCode={shippingAddress.zip}
                     onSelect={(p) => setPickupPoint(p)}
                   />
-                </div>
-              )}
-
-              {/* Coordonnees */}
-              <div className="bg-white rounded-xl border p-6 space-y-4">
-                <h2 className="text-lg font-semibold">
-                  {shippingMethod === "pickup" ? "Vos coordonnees" : "Adresse de livraison"}
-                </h2>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom complet *
-                  </label>
-                  <input
-                    type="text"
-                    value={shippingAddress.name}
-                    onChange={(e) =>
-                      setShippingAddress({
-                        ...shippingAddress,
-                        name: e.target.value,
-                      })
-                    }
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  />
-                </div>
-
-                {shippingMethod === "home" && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Adresse *
-                      </label>
-                      <input
-                        type="text"
-                        value={shippingAddress.street}
-                        onChange={(e) =>
-                          setShippingAddress({
-                            ...shippingAddress,
-                            street: e.target.value,
-                          })
-                        }
-                        required
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Code postal *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingAddress.zip}
-                          onChange={(e) =>
-                            setShippingAddress({
-                              ...shippingAddress,
-                              zip: e.target.value,
-                            })
-                          }
-                          required
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Ville *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingAddress.city}
-                          onChange={(e) =>
-                            setShippingAddress({
-                              ...shippingAddress,
-                              city: e.target.value,
-                            })
-                          }
-                          required
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {shippingMethod === "pickup" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Code postal (pour rechercher un point) *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.zip}
-                      onChange={(e) =>
-                        setShippingAddress({
-                          ...shippingAddress,
-                          zip: e.target.value,
-                        })
-                      }
-                      required
-                      placeholder="75001"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telephone {shippingMethod === "pickup" ? "*" : ""}
-                  </label>
-                  <input
-                    type="tel"
-                    value={shippingAddress.phone}
-                    onChange={(e) =>
-                      setShippingAddress({
-                        ...shippingAddress,
-                        phone: e.target.value,
-                      })
-                    }
-                    required={shippingMethod === "pickup"}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  />
-                </div>
-
-                <label className="flex items-center gap-2 mt-4">
-                  <input
-                    type="checkbox"
-                    checked={sameAsBilling}
-                    onChange={(e) => setSameAsBilling(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm">
-                    Adresse de facturation identique
-                  </span>
-                </label>
+                </Card>
 
                 <button
                   onClick={() => {
@@ -493,189 +315,297 @@ export default function CheckoutPage() {
                       toast.error("Veuillez renseigner votre nom");
                       return;
                     }
-                    if (shippingMethod === "home") {
-                      if (!shippingAddress.street || !shippingAddress.zip || !shippingAddress.city) {
-                        toast.error("Veuillez remplir l'adresse de livraison");
-                        return;
-                      }
-                    } else {
-                      if (!pickupPoint) {
-                        toast.error("Veuillez choisir un point relais");
-                        return;
-                      }
-                      if (!shippingAddress.phone) {
-                        toast.error("Le telephone est obligatoire pour la livraison en point relais");
-                        return;
-                      }
-                      setShippingAddress({
-                        ...shippingAddress,
-                        street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
-                        city: pickupPoint.Ville,
-                        zip: pickupPoint.CP,
-                        country: pickupPoint.Pays || "FR",
-                      });
+                    if (!shippingAddress.phone) {
+                      toast.error("Le téléphone est obligatoire pour Mondial Relay");
+                      return;
                     }
+                    if (!pickupPoint) {
+                      toast.error("Veuillez choisir un point relais sur la carte");
+                      return;
+                    }
+                    setShippingAddress({
+                      ...shippingAddress,
+                      street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
+                      city: pickupPoint.Ville,
+                      zip: pickupPoint.CP,
+                      country: pickupPoint.Pays || "FR",
+                    });
                     setStep("payment");
                   }}
-                  className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition"
+                  className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
                 >
-                  Continuer vers le paiement <ArrowRight size={18} />
+                  Continuer vers le paiement
+                  <ArrowRight size={13} />
                 </button>
-              </div>
-            </div>
-          )}
+              </>
+            )}
 
-          {step === "payment" && (
-            <div className="space-y-6">
-              {/* Code promo */}
-              <div className="bg-white rounded-xl border p-6">
-                <h2 className="text-lg font-semibold mb-4">Code promo</h2>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) =>
-                      setPromoCode(e.target.value.toUpperCase())
-                    }
-                    placeholder="Entrez votre code"
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  />
-                  <button className="px-4 py-2.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                    Appliquer
-                  </button>
-                </div>
-              </div>
-
-              {/* Méthode de paiement */}
-              <div className="bg-white rounded-xl border p-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  Mode de paiement
-                </h2>
-
-                <div className="space-y-3">
-                  <label
-                    className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition ${
-                      paymentMethod === "stripe"
-                        ? "border-black bg-gray-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="stripe"
-                      checked={paymentMethod === "stripe"}
-                      onChange={() => setPaymentMethod("stripe")}
-                      className="w-4 h-4"
-                    />
-                    <CreditCard size={20} className="text-gray-600" />
-                    <div>
-                      <p className="font-medium text-sm">
-                        Carte bancaire (Stripe)
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Visa, Mastercard, CB
-                      </p>
+            {step === "payment" && (
+              <>
+                {/* Code promo */}
+                <Card eyebrow="Avantage" title="Code promo">
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Entrez votre code"
+                        className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300 uppercase tracking-wider"
+                      />
                     </div>
-                  </label>
+                    <button
+                      type="button"
+                      className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition pb-1"
+                    >
+                      Appliquer
+                    </button>
+                  </div>
+                </Card>
 
-                  <label
-                    className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition ${
-                      paymentMethod === "paypal"
-                        ? "border-black bg-gray-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="paypal"
-                      checked={paymentMethod === "paypal"}
-                      onChange={() => setPaymentMethod("paypal")}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-blue-600 font-bold text-sm">
-                      PayPal
+                {/* Récapitulatif retrait */}
+                {pickupPoint && (
+                  <Card eyebrow="Retrait" title="Votre point relais">
+                    <div className="flex items-start gap-3">
+                      <span className="w-10 h-10 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center shrink-0">
+                        <MapPin size={16} strokeWidth={1.5} />
+                      </span>
+                      <div className="text-[14px] leading-relaxed">
+                        <p className="font-serif text-gray-900">{pickupPoint.Nom}</p>
+                        <p className="text-gray-600 mt-0.5">
+                          {pickupPoint.Adresse1}
+                          {pickupPoint.Adresse2 ? `, ${pickupPoint.Adresse2}` : ""}
+                        </p>
+                        <p className="text-gray-600">
+                          {pickupPoint.CP} {pickupPoint.Ville}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Mode de paiement (Stripe uniquement) */}
+                <Card eyebrow="Sécurisé" title="Paiement par carte">
+                  <div className="flex items-center gap-4 px-5 py-4 border border-[var(--brand-gold)] bg-[var(--brand-cream)]/50">
+                    <span className="w-10 h-10 rounded-full border border-[var(--brand-gold)] text-[var(--brand-gold)] flex items-center justify-center shrink-0">
+                      <CreditCard size={16} strokeWidth={1.5} />
                     </span>
                     <div>
-                      <p className="font-medium text-sm">PayPal</p>
-                      <p className="text-xs text-gray-500">
-                        Payez avec votre compte PayPal
+                      <p className="text-[12px] uppercase tracking-[0.2em] font-medium text-gray-900">
+                        Carte bancaire
+                      </p>
+                      <p className="font-serif italic text-[12px] text-gray-500 mt-0.5">
+                        Visa, Mastercard, Apple Pay, Google Pay · via Stripe
                       </p>
                     </div>
-                  </label>
+                  </div>
+                  <p className="font-serif italic text-[12px] text-gray-400 mt-4 text-center">
+                    Vos informations bancaires sont traitées par Stripe et ne transitent jamais par nos serveurs.
+                  </p>
+                </Card>
+
+                {/* Actions */}
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep("shipping")}
+                    className="px-5 py-4 border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] hover:bg-[var(--brand-gold)]/5 transition"
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePlaceOrder}
+                    disabled={loading}
+                    className="flex-1 inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
+                  >
+                    {loading ? "Paiement en cours…" : <>Payer {formatPrice(total)} <ArrowRight size={13} /></>}
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setStep("shipping")}
-                  className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
-                >
-                  <ArrowLeft size={18} />
-                </button>
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50"
-                >
-                  {loading
-                    ? "Traitement..."
-                    : `Payer ${formatPrice(total)}`}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Récapitulatif */}
-        <div className="bg-white rounded-xl border p-6 h-fit sticky top-24">
-          <h2 className="text-lg font-semibold mb-4">Votre commande</h2>
-
-          <div className="space-y-3 mb-4">
-            {cartItems.map((item) => (
-              <div key={item._id} className="flex justify-between text-sm">
-                <span className="text-gray-600">
-                  {item.product.name} x{item.quantity}
-                </span>
-                <span>{formatPrice(item.subtotal)}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t pt-3 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">
-                Sous-total{taxConfig.pricesIncludeTax ? " TTC" : " HT"}
-              </span>
-              <span>{formatPrice(cartTotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Livraison</span>
-              <span>
-                {shippingCost === 0 ? (
-                  <span className="text-green-600">Gratuit</span>
-                ) : (
-                  formatPrice(shippingCost)
-                )}
-              </span>
-            </div>
-            {taxConfig.rate > 0 && (
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>
-                  {taxConfig.pricesIncludeTax ? "Dont " : ""}{taxConfig.label} ({taxConfig.rate}%)
-                </span>
-                <span>{formatPrice(taxAmount)}</span>
-              </div>
+              </>
             )}
           </div>
 
-          <div className="mt-3 pt-3 border-t flex justify-between items-center">
-            <span className="font-semibold">Total TTC</span>
-            <span className="text-xl font-bold">{formatPrice(total)}</span>
-          </div>
+          {/* Récapitulatif sticky */}
+          <aside className="lg:col-span-1">
+            <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-7 py-7 lg:sticky lg:top-28">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+                Votre sélection
+              </p>
+              <h2 className="font-serif text-2xl text-gray-900 leading-none mb-7">
+                Récapitulatif
+              </h2>
+
+              <div className="divide-y divide-[var(--brand-gold)]/10">
+                {cartItems.map((item) => (
+                  <div key={item._id} className="flex justify-between items-start gap-3 py-3 first:pt-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-serif text-[14px] text-gray-900 leading-tight truncate">
+                        {item.product.name}
+                      </p>
+                      <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--brand-gold)] mt-1">
+                        × {item.quantity}
+                      </p>
+                    </div>
+                    <span className="font-serif text-[14px] text-gray-900 shrink-0">
+                      {formatPrice(item.subtotal)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-[var(--brand-gold)]/15 mt-5 pt-5 space-y-3">
+                <SummaryRow
+                  label={`Sous-total${taxConfig.pricesIncludeTax ? " TTC" : " HT"}`}
+                  value={formatPrice(cartTotal)}
+                />
+                <SummaryRow
+                  label="Livraison"
+                  value={
+                    shippingCost === 0 ? (
+                      <span className="font-serif italic text-[var(--brand-gold)]">Offerte</span>
+                    ) : (
+                      formatPrice(shippingCost)
+                    )
+                  }
+                />
+                {taxConfig.rate > 0 && (
+                  <SummaryRow
+                    label={`${taxConfig.pricesIncludeTax ? "Dont " : ""}${taxConfig.label} (${taxConfig.rate} %)`}
+                    value={formatPrice(taxAmount)}
+                    subdued
+                  />
+                )}
+              </div>
+
+              <div className="border-t border-[var(--brand-gold)]/15 mt-5 pt-5 flex items-end justify-between">
+                <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400">
+                  Total TTC
+                </span>
+                <span className="font-serif text-2xl text-gray-900">
+                  {formatPrice(total)}
+                </span>
+              </div>
+
+              {session?.user?.email && (
+                <p className="font-serif italic text-[11px] text-gray-400 mt-6 text-center truncate">
+                  Connecté en tant que {session.user.email}
+                </p>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Sub-components ────────────────────────────────────────────
+
+function StepDot({
+  label,
+  active,
+  done,
+  number,
+}: {
+  label: string;
+  active: boolean;
+  done: boolean;
+  number: number;
+}) {
+  const colorClass = active
+    ? "text-[var(--brand-gold)]"
+    : done
+    ? "text-[var(--brand-gold)]/60"
+    : "text-gray-400";
+  const dotClass = active
+    ? "bg-[var(--brand-gold)] text-white border-[var(--brand-gold)]"
+    : done
+    ? "bg-white text-[var(--brand-gold)] border-[var(--brand-gold)]"
+    : "bg-white text-gray-400 border-gray-200";
+
+  return (
+    <div className={`flex items-center gap-3 ${colorClass} transition`}>
+      <span
+        className={`w-7 h-7 rounded-full border flex items-center justify-center text-[12px] font-serif ${dotClass}`}
+      >
+        {done ? <Check size={12} strokeWidth={2} /> : number}
+      </span>
+      <span className="text-[11px] uppercase tracking-[0.3em] font-medium hidden sm:inline">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function Card({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-8 py-7">
+      <div className="mb-7">
+        <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+          {eyebrow}
+        </p>
+        <h2 className="font-serif text-2xl text-gray-900 leading-none">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  required,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  required?: boolean;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+        {label}
+        {required && <span className="text-[var(--brand-gold)] ml-1">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        placeholder={placeholder}
+        className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
+      />
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  subdued,
+}: {
+  label: string;
+  value: React.ReactNode;
+  subdued?: boolean;
+}) {
+  return (
+    <div className={`flex justify-between text-[13px] ${subdued ? "text-gray-400" : "text-gray-700"}`}>
+      <span>{label}</span>
+      <span className={subdued ? "" : "text-gray-900"}>{value}</span>
     </div>
   );
 }

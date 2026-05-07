@@ -143,7 +143,7 @@ export default function OrderDetailPage() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-blue-900">
-              {order.tracking.carrier} — {order.tracking.trackingNumber}
+              {order.tracking.carrier} · {order.tracking.trackingNumber}
             </p>
             {order.tracking.trackingUrl && (
               <a

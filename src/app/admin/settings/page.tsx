@@ -750,7 +750,7 @@ export default function AdminSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Google Analytics 4 — ID de mesure</label>
+                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Google Analytics 4 · ID de mesure</label>
                 <input type="text" value={settings.analytics.googleAnalyticsId}
                   onChange={(e) => setSettings({ ...settings, analytics: { ...settings.analytics, googleAnalyticsId: e.target.value } })}
                   placeholder="G-XXXXXXXXXX"
@@ -758,7 +758,7 @@ export default function AdminSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Plausible — domaine</label>
+                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Plausible · domaine</label>
                 <input type="text" value={settings.analytics.plausibleDomain}
                   onChange={(e) => setSettings({ ...settings, analytics: { ...settings.analytics, plausibleDomain: e.target.value } })}
                   placeholder="maboutique.fr"

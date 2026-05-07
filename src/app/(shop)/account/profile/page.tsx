@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { User, Lock, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProfilePage() {
@@ -40,7 +40,7 @@ export default function ProfilePage() {
       return;
     }
     if (newPassword.length < 8) {
-      toast.error("Le mot de passe doit contenir au moins 8 caracteres");
+      toast.error("Le mot de passe doit contenir au moins 8 caractères");
       return;
     }
     setChangingPassword(true);
@@ -62,101 +62,140 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Mes informations</h1>
-      <p className="text-sm text-gray-500 mb-6">Gérez vos informations personnelles et votre mot de passe</p>
+    <div className="space-y-12">
+      {/* Header */}
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+          Profil
+        </p>
+        <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+          Mes <span className="italic text-[var(--brand-gold)]">informations</span>
+        </h1>
+        <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
+        <p className="font-serif italic text-[14px] text-gray-500 mt-7 max-w-md">
+          Gérez vos coordonnées et la sécurité de votre compte.
+        </p>
+      </div>
 
       {/* Profile info */}
-      <form onSubmit={handleSaveProfile} className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-        <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2 mb-4">
-          <User size={16} /> Informations personnelles
-        </h2>
-        <div className="space-y-4 max-w-md">
+      <form
+        onSubmit={handleSaveProfile}
+        className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-8 py-8"
+      >
+        <div className="mb-7">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+            Section
+          </p>
+          <h2 className="font-serif text-2xl text-gray-900">Coordonnées</h2>
+        </div>
+
+        <div className="space-y-6 max-w-lg">
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Email</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Email
+            </label>
             <input
               type="email"
               value={session?.user?.email || ""}
               disabled
-              className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-400 cursor-not-allowed"
             />
-            <p className="text-[11px] text-gray-400 mt-1">L&apos;email ne peut pas etre modifie</p>
+            <p className="font-serif italic text-[11px] text-gray-400 mt-2">
+              L&apos;email ne peut pas être modifié
+            </p>
           </div>
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Nom complet</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Nom complet
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Telephone</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Téléphone
+            </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="06 12 34 56 78"
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition disabled:opacity-50"
+            className="mt-2 inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
           >
-            {saving ? "Sauvegardé..." : <><Check size={14} /> Enregistrer</>}
+            {saving ? "Enregistrement…" : <>Enregistrer <ArrowRight size={13} /></>}
           </button>
         </div>
       </form>
 
       {/* Password change */}
-      <form onSubmit={handleChangePassword} className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2 mb-4">
-          <Lock size={16} /> Changer le mot de passe
-        </h2>
-        <div className="space-y-4 max-w-md">
+      <form
+        onSubmit={handleChangePassword}
+        className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-8 py-8"
+      >
+        <div className="mb-7">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+            Sécurité
+          </p>
+          <h2 className="font-serif text-2xl text-gray-900">Mot de passe</h2>
+        </div>
+
+        <div className="space-y-6 max-w-lg">
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Mot de passe actuel</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Mot de passe actuel
+            </label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Nouveau mot de passe</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Nouveau mot de passe
+            </label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={8}
-              placeholder="Minimum 8 caracteres"
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+              placeholder="Minimum 8 caractères"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
             />
           </div>
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Confirmer</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+              Confirmer le nouveau mot de passe
+            </label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+              className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
             />
           </div>
           <button
             type="submit"
             disabled={changingPassword}
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition disabled:opacity-50"
+            className="mt-2 inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
           >
-            {changingPassword ? "Modification..." : "Modifier le mot de passe"}
+            {changingPassword ? "Modification…" : <>Modifier le mot de passe <ArrowRight size={13} /></>}
           </button>
         </div>
       </form>

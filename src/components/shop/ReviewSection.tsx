@@ -208,7 +208,7 @@ export default function ReviewSection({ productId }: { productId: string }) {
               </div>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.comment}</p>
               <p className="text-xs text-gray-400 mt-3">
-                {review.user.name} — {formatDate(review.createdAt)}
+                {review.user.name} · {formatDate(review.createdAt)}
               </p>
             </div>
           ))}

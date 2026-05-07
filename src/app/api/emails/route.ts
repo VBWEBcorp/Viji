@@ -8,7 +8,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: "order_confirmation",
     name: "Confirmation de commande",
-    subject: "Commande {{orderNumber}} confirmée — Merci !",
+    subject: "Commande {{orderNumber}} confirmée. Merci !",
     description: "Envoyée au client après validation du paiement",
     variables: ["customerName", "orderNumber", "items", "subtotal", "shippingCost", "discount", "total", "shippingAddress"],
     body: `<h2>Merci pour votre commande !</h2>
@@ -40,7 +40,7 @@ const DEFAULT_TEMPLATES = [
     body: `<h2>Bienvenue, {{customerName}} !</h2>
 <p>Merci d'avoir créé votre compte.</p>
 <p>Vous pouvez désormais passer commande, suivre vos livraisons et gérer vos informations personnelles.</p>
-<p><a href="{{shopUrl}}/products">Découvrir nos produits</a></p>`,
+<p><a href="{{shopUrl}}/kits/decouverte">Découvrir nos kits</a></p>`,
   },
   {
     key: "order_cancelled",
@@ -56,7 +56,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: "refund",
     name: "Remboursement",
-    subject: "Remboursement confirmé — {{orderNumber}}",
+    subject: "Remboursement confirmé · {{orderNumber}}",
     description: "Envoyée quand un remboursement est effectué",
     variables: ["customerName", "orderNumber", "refundAmount"],
     body: `<h2>Remboursement confirmé</h2>

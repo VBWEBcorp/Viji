@@ -215,7 +215,7 @@ export default function AdminOrderDetailPage() {
                 <Truck size={18} className="text-blue-600" />
                 <div className="text-sm">
                   <p className="font-medium">
-                    {order.tracking.carrier} — {order.tracking.trackingNumber}
+                    {order.tracking.carrier} · {order.tracking.trackingNumber}
                   </p>
                   {order.tracking.trackingUrl && (
                     <a

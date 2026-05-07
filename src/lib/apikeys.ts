@@ -46,6 +46,7 @@ export async function getApiKeys(): Promise<ApiKeys> {
     resendApiKey: dbKeys.resendApiKey || process.env.RESEND_API_KEY || "",
     resendFromEmail:
       dbKeys.resendFromEmail ||
+      process.env.RESEND_FROM_EMAIL ||
       `${settings?.shopName || "Ma Boutique"} <noreply@${settings?.contactEmail?.split("@")[1] || "example.com"}>`,
   };
 

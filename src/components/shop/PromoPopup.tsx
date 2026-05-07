@@ -75,7 +75,7 @@ export default function PromoPopup() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{popup.title}</h2>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">{popup.description}</p>
             <a
-              href={popup.buttonUrl || "/products"}
+              href={popup.buttonUrl || "/kits/decouverte"}
               onClick={close}
               className="block w-full bg-gray-900 text-white py-3.5 rounded-xl text-[15px] font-semibold hover:bg-gray-800 transition-colors text-center"
             >

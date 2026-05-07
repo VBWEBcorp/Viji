@@ -41,42 +41,57 @@ export default function WishlistPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Mes favoris</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        {products.length} produit{products.length > 1 ? "s" : ""} sauvegarde{products.length > 1 ? "s" : ""}
-      </p>
+      {/* Header */}
+      <div className="mb-12">
+        <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+          Sélection
+        </p>
+        <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+          Mes <span className="italic text-[var(--brand-gold)]">favoris</span>
+        </h1>
+        <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
+        <p className="font-serif italic text-[14px] text-gray-500 mt-7">
+          {products.length} produit{products.length > 1 ? "s" : ""} sauvegardé
+          {products.length > 1 ? "s" : ""}
+        </p>
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-gray-100 rounded-xl aspect-[3/4] animate-pulse" />
+            <div key={i} className="bg-[var(--brand-cream)] aspect-[3/4] animate-pulse" />
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <Heart size={48} className="mx-auto text-gray-200 mb-4" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Aucun favori</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Parcourez nos produits et cliquez sur le coeur pour sauvegarder vos coups de coeur.
+        <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-16 text-center">
+          <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+            <Heart size={18} strokeWidth={1.5} />
+          </div>
+          <p className="font-serif italic text-2xl text-gray-900 mb-2">
+            Aucun coup de cœur encore…
+          </p>
+          <p className="text-[13px] text-gray-500 mb-7 max-w-xs mx-auto leading-relaxed">
+            Parcourez la boutique et cliquez sur le cœur pour sauvegarder vos favoris.
           </p>
           <Link
-            href="/products"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition"
+            href="/kits/decouverte"
+            className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
           >
-            Découvrir nos produits <ArrowRight size={14} />
+            Découvrir les kits
+            <ArrowRight size={13} />
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {products.map((product) => (
             <div key={String(product._id)} className="relative group">
               <ProductCard product={{ ...product, _id: String(product._id) }} />
               <button
                 onClick={() => removeFromWishlist(String(product._id))}
-                className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur border border-[var(--brand-gold)]/20 flex items-center justify-center text-[var(--brand-gold)]/60 hover:text-[var(--brand-gold)] hover:border-[var(--brand-gold)] opacity-0 group-hover:opacity-100 transition-all"
                 title="Retirer des favoris"
               >
-                <Trash2 size={14} />
+                <Trash2 size={13} strokeWidth={1.5} />
               </button>
             </div>
           ))}

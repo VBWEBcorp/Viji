@@ -2,15 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Package,
-  ShoppingCart,
-  Users,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowRight,
-  ArrowDownRight,
-} from "lucide-react";
+import { Package, ShoppingCart, Users, TrendingUp, ArrowRight, Wallet } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import {
   AreaChart,
@@ -55,6 +47,16 @@ const periods = [
   { value: "12m", label: "12 mois" },
 ];
 
+const statusLabels: Record<string, string> = {
+  pending: "En attente",
+  paid: "Payée",
+  failed: "Échouée",
+  refunded: "Remboursée",
+  processing: "En préparation",
+  shipped: "Expédiée",
+  delivered: "Livrée",
+};
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,14 +75,20 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Dashboard</h1>
+      <div className="space-y-10">
+        <div className="space-y-3">
+          <div className="h-3 w-32 bg-[var(--brand-gold)]/10 animate-pulse" />
+          <div className="h-10 w-64 bg-gray-100 animate-pulse" />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 h-[120px] animate-pulse border border-gray-100" />
+            <div
+              key={i}
+              className="bg-white border border-[var(--brand-gold)]/15 h-[140px] animate-pulse"
+            />
           ))}
         </div>
-        <div className="mt-6 bg-white rounded-2xl h-[350px] animate-pulse border border-gray-100" />
+        <div className="bg-white border border-[var(--brand-gold)]/15 h-[350px] animate-pulse" />
       </div>
     );
   }
@@ -90,71 +98,60 @@ export default function AdminDashboard() {
       label: "Chiffre d'affaires",
       value: formatPrice(stats?.totalRevenue || 0),
       change: stats?.revenueChange || 0,
-      icon: TrendingUp,
-      gradient: "from-emerald-500 to-teal-600",
+      icon: <TrendingUp size={16} strokeWidth={1.5} />,
     },
     {
       label: "Commandes",
-      value: stats?.orderCount || 0,
+      value: String(stats?.orderCount || 0),
       change: stats?.previousOrderCount
-        ? Math.round(((stats.orderCount - stats.previousOrderCount) / stats.previousOrderCount) * 100)
+        ? Math.round(
+            ((stats.orderCount - stats.previousOrderCount) / stats.previousOrderCount) * 100
+          )
         : 0,
-      icon: ShoppingCart,
-      gradient: "from-blue-500 to-indigo-600",
+      icon: <ShoppingCart size={16} strokeWidth={1.5} />,
     },
     {
       label: "Panier moyen",
       value: formatPrice(stats?.aov || 0),
-      icon: Package,
-      gradient: "from-violet-500 to-purple-600",
+      icon: <Wallet size={16} strokeWidth={1.5} />,
     },
     {
       label: "Nouveaux clients",
-      value: stats?.newCustomers || 0,
+      value: String(stats?.newCustomers || 0),
       change: stats?.previousNewCustomers
-        ? Math.round(((stats.newCustomers - stats.previousNewCustomers) / stats.previousNewCustomers) * 100)
+        ? Math.round(
+            ((stats.newCustomers - stats.previousNewCustomers) / stats.previousNewCustomers) * 100
+          )
         : 0,
-      icon: Users,
-      gradient: "from-orange-500 to-amber-600",
+      icon: <Users size={16} strokeWidth={1.5} />,
     },
   ];
-
-  const statusBadge = (status: string) => {
-    const map: Record<string, { label: string; cls: string }> = {
-      pending: { label: "En attente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-      paid: { label: "Payee", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-      failed: { label: "Echouee", cls: "bg-red-50 text-red-700 border-red-200" },
-      processing: { label: "Preparation", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-      shipped: { label: "Expediee", cls: "bg-purple-50 text-purple-700 border-purple-200" },
-      delivered: { label: "Livree", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    };
-    const s = map[status] || { label: status, cls: "bg-gray-50 text-gray-600 border-gray-200" };
-    return (
-      <span className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full border ${s.cls}`}>
-        {s.label}
-      </span>
-    );
-  };
 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de votre boutique</p>
+          <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-3">
+            Administration
+          </p>
+          <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+            Tableau de <span className="italic text-[var(--brand-gold)]">bord</span>
+          </h1>
+          <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-wrap items-center gap-3">
           {/* Period selector */}
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          <div className="flex bg-white border border-[var(--brand-gold)]/15 p-1">
             {periods.map((p) => (
               <button
                 key={p.value}
                 onClick={() => setPeriod(p.value)}
-                className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.25em] transition ${
                   period === p.value
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-[var(--brand-gold)] text-white"
+                    : "text-gray-500 hover:text-[var(--brand-gold)]"
                 }`}
               >
                 {p.label}
@@ -163,53 +160,61 @@ export default function AdminDashboard() {
           </div>
           <Link
             href="/admin/products/new"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-4 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-5 py-3 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
           >
-            Ajouter un produit <ArrowUpRight size={14} />
+            Ajouter un produit
+            <ArrowRight size={13} />
           </Link>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {cards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition-shadow"
+            className="bg-white border border-[var(--brand-gold)]/15 px-6 py-6"
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium">{card.label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
-                {"change" in card && card.change !== undefined && card.change !== 0 && (
-                  <div className={`flex items-center gap-1 mt-1 text-[12px] font-medium ${
-                    card.change > 0 ? "text-emerald-600" : "text-red-500"
-                  }`}>
-                    {card.change > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                    {Math.abs(card.change)}% vs periode prec.
-                  </div>
-                )}
+            <div className="flex items-center justify-between mb-5">
+              <div className="w-10 h-10 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center">
+                {card.icon}
               </div>
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center`}>
-                <card.icon size={18} className="text-white" />
-              </div>
+              {"change" in card && card.change !== undefined && card.change !== 0 && (
+                <span
+                  className={`text-[10px] uppercase tracking-[0.25em] ${
+                    card.change > 0 ? "text-[var(--brand-gold)]" : "text-gray-400"
+                  }`}
+                >
+                  {card.change > 0 ? "+" : ""}
+                  {card.change}%
+                </span>
+              )}
             </div>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">
+              {card.label}
+            </p>
+            <p className="font-serif text-3xl text-gray-900 leading-none">{card.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Revenue Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">Chiffre d&apos;affaires</h2>
+      {/* Revenue Chart + Top Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <div className="lg:col-span-2 bg-white border border-[var(--brand-gold)]/15 px-6 py-7">
+          <div className="mb-6">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+              Section
+            </p>
+            <h2 className="font-serif text-2xl text-gray-900">Chiffre d&apos;affaires</h2>
+          </div>
           <div className="h-[280px]">
             {stats?.chartData && stats.chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.chartData}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#111827" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#111827" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#b8923c" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#b8923c" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
@@ -224,27 +229,30 @@ export default function AdminDashboard() {
                   />
                   <YAxis
                     tick={{ fontSize: 11, fill: "#9ca3af" }}
-                    tickFormatter={(v) => `${(v / 100).toFixed(0)}€`}
+                    tickFormatter={(v) => `${(v / 100).toFixed(0)} €`}
                     width={55}
                   />
                   <Tooltip
                     contentStyle={{
                       background: "#fff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "12px",
+                      border: "1px solid rgba(184, 146, 60, 0.25)",
+                      borderRadius: "0",
                       fontSize: "13px",
-                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                      fontFamily: "var(--font-serif)",
                     }}
                     formatter={(value) => [formatPrice(value as number), "CA"]}
                     labelFormatter={(label) => {
                       const d = new Date(label);
-                      return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+                      return d.toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                      });
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#111827"
+                    stroke="#b8923c"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorRevenue)"
@@ -252,81 +260,110 @@ export default function AdminDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-300 text-sm">
-                Pas de donnees pour cette periode
+              <div className="h-full flex items-center justify-center font-serif italic text-gray-400 text-sm">
+                Pas de donnée pour cette période
               </div>
             )}
           </div>
         </div>
 
         {/* Top Products */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">Top produits</h2>
+        <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-7">
+          <div className="mb-6">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
+              Classement
+            </p>
+            <h2 className="font-serif text-2xl text-gray-900">Top produits</h2>
+          </div>
           {stats?.topProducts && stats.topProducts.length > 0 ? (
-            <div className="space-y-3">
+            <div className="divide-y divide-[var(--brand-gold)]/10">
               {stats.topProducts.map((product, i) => (
-                <div key={product._id} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-[11px] font-bold text-gray-500">
+                <div key={product._id} className="flex items-center gap-3 py-3 first:pt-0">
+                  <span className="font-serif italic text-[var(--brand-gold)]/60 text-lg w-6 shrink-0">
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-gray-900 truncate">{product._id}</p>
-                    <p className="text-[11px] text-gray-400">{product.quantity} vendus</p>
+                    <p className="font-serif text-[14px] text-gray-900 truncate leading-tight">
+                      {product._id}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400 mt-1">
+                      {product.quantity} vendus
+                    </p>
                   </div>
-                  <span className="text-[13px] font-semibold text-gray-700">
+                  <span className="font-serif text-[14px] text-gray-900 shrink-0">
                     {formatPrice(product.revenue)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">Aucune vente</p>
+            <p className="font-serif italic text-sm text-gray-400 text-center py-8">
+              Aucune vente
+            </p>
           )}
         </div>
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-2xl border border-gray-100">
-        <div className="px-6 py-4 flex items-center justify-between border-b border-gray-50">
-          <h2 className="text-[15px] font-semibold text-gray-900">Commandes recentes</h2>
+      <div className="bg-white border border-[var(--brand-gold)]/15">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-[var(--brand-gold)]/15">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-1">
+              Activité
+            </p>
+            <h2 className="font-serif text-xl text-gray-900">Commandes récentes</h2>
+          </div>
           <Link
             href="/admin/orders"
-            className="text-[13px] text-gray-400 hover:text-gray-600 transition flex items-center gap-1"
+            className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
           >
-            Tout voir <ArrowRight size={12} />
+            Tout voir
           </Link>
         </div>
 
         {stats?.recentOrders && stats.recentOrders.length > 0 ? (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--brand-gold)]/10">
             {stats.recentOrders.map((order) => (
               <Link
                 key={order._id}
                 href={`/admin/orders/${order._id}`}
-                className="flex items-center px-6 py-3.5 hover:bg-gray-50/50 transition-colors group"
+                className="group flex items-center gap-4 px-6 py-4 hover:bg-[var(--brand-cream)]/50 transition"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-gray-900">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                    <span className="font-serif text-[16px] text-gray-900">
                       {order.orderNumber}
                     </span>
-                    {statusBadge(order.paymentStatus)}
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)]">
+                      {statusLabels[order.paymentStatus] || order.paymentStatus}
+                    </span>
                   </div>
-                  <p className="text-[12px] text-gray-400 mt-0.5">
-                    {order.user?.name && <span>{order.user.name} — </span>}
+                  <p className="font-serif italic text-[12px] text-gray-500">
+                    {order.user?.name && <span>{order.user.name} · </span>}
                     {formatDate(order.createdAt)}
                   </p>
                 </div>
-                <span className="text-[14px] font-semibold text-gray-900 group-hover:text-gray-700">
+                <span className="font-serif text-[16px] text-gray-900 shrink-0">
                   {formatPrice(order.total)}
                 </span>
+                <ArrowRight
+                  size={14}
+                  className="text-[var(--brand-gold)]/30 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all shrink-0"
+                />
               </Link>
             ))}
           </div>
         ) : (
-          <div className="px-6 py-12 text-center">
-            <ShoppingCart size={32} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">Aucune commande pour le moment</p>
+          <div className="px-6 py-16 text-center">
+            <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+              <ShoppingCart size={18} strokeWidth={1.5} />
+            </div>
+            <p className="font-serif italic text-2xl text-gray-900 mb-2">
+              Aucune commande pour le moment
+            </p>
+            <p className="text-[13px] text-gray-500">
+              Les commandes apparaîtront ici dès le premier achat.
+            </p>
           </div>
         )}
       </div>

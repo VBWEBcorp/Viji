@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o NUL -w \"HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/ --max-time 90)",
+      "Bash(curl -s -o NUL -w \"HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/ --max-time 180)",
+      "Bash(powershell -Command \"Stop-Process -Id 20576 -Force -ErrorAction SilentlyContinue; Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object OwningProcess\")",
+      "Bash(powershell -Command \"taskkill /F /PID 20576\")",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Write-Host \\('\\\\''PID: '\\\\'' + $_.OwningProcess\\); Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object OwningProcess')",
+      "PowerShell($conns = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; foreach \\($c in $conns\\) { Write-Output \\(\"Killing PID \" + $c.OwningProcess\\); Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; $left = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($left\\) { Write-Output \"Still listening:\"; $left | Select-Object OwningProcess } else { Write-Output \"Port 3000 free\" })",
+      "PowerShell($conns = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($conns\\) { $conns | Select-Object OwningProcess; foreach \\($c in $conns\\) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue } } else { Write-Output \"Port 3000 free\" }; Start-Sleep -Seconds 1; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { Write-Output \"STILL BUSY\" } else { Write-Output \"OK port 3000 free\" })",
+      "Bash(curl -s -o NUL -w \"HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/ --max-time 240)",
+      "Bash(start http://localhost:3000)",
+      "Bash(ls \"c:/Users/conta/OneDrive/Desktop/Cursor/Viji/src/app/\\(shop\\)\" 2>&1; mkdir -p \"c:/Users/conta/OneDrive/Desktop/Cursor/Viji/src/app/\\(shop\\)/box/[slug]\" \"c:/Users/conta/OneDrive/Desktop/Cursor/Viji/src/app/\\(shop\\)/ateliers\" 2>&1; echo \"---\"; ls \"c:/Users/conta/OneDrive/Desktop/Cursor/Viji/src/app/\\(shop\\)/box/[slug]\" 2>&1)",
+      "PowerShell($conns = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; foreach \\($c in $conns\\) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { Write-Output \"STILL BUSY\" } else { Write-Output \"Port 3000 free\" })",
+      "Bash(node -e \"const l=require\\('lucide-react'\\); ['Globe2','Users','Sparkles','ArrowRight','ShoppingCart','Minus','Plus','User','Menu','X','ChevronDown'].forEach\\(k=>console.log\\(k+': '+\\(typeof l[k]==='undefined'?'MISSING':'ok'\\)\\)\\)\")",
+      "Bash(curl -s -o NUL -w \"GET / → HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/ --max-time 60)",
+      "Bash(curl -s -o NUL -w \"GET /box/decouverte → HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/box/decouverte --max-time 60)",
+      "Bash(curl -s -o NUL -w \"GET /box/signature → HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/box/signature --max-time 60)",
+      "Bash(curl -s -o NUL -w \"GET /box/familiale → HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/box/familiale --max-time 60)",
+      "Bash(curl -s -o NUL -w \"GET /ateliers → HTTP %{http_code} \\(%{time_total}s\\)\\\\n\" http://localhost:3000/ateliers --max-time 60)",
+      "Bash(curl -s -o NUL -w \"GET / → HTTP %{http_code}\\\\n\" http://localhost:3000/ --max-time 60)",
+      "Bash(findstr :3000)",
+      "Bash(findstr :3004)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"ProcessId = 2896 OR ProcessId = 32252\")",
+      "Bash(taskkill /F /PID 32252)",
+      "PowerShell(Stop-Process -Id 32252 -Force)",
+      "PowerShell(Get-Process -Id 32252 -ErrorAction SilentlyContinue)",
+      "PowerShell($p = Get-CimInstance Win32_Process -Filter \"ProcessId = 28848\"; $p.CommandLine)",
+      "Bash(node scripts/create-r2-bucket.mjs)",
+      "Bash(node scripts/get-r2-public-url.mjs)",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64'\\)\\)\")",
+      "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\conta\\OneDrive\\Desktop\\Cursor\\Viji\\src\\app\\(shop)\\box"
+    ]
+  }
+}

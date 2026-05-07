@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import React from "react";
+import type { DocumentProps } from "@react-pdf/renderer";
+import React, { type ReactElement } from "react";
 import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import Order from "@/models/Order";
@@ -77,7 +78,7 @@ export async function GET(
       React.createElement(InvoiceDocument, {
         order: order.toObject(),
         settings: settings.toObject(),
-      }) as React.ReactElement
+      }) as ReactElement<DocumentProps>
     );
 
     const filename = `${order.invoiceNumber || order.orderNumber}.pdf`;

@@ -15,15 +15,15 @@ interface Order {
   items: { name: string; quantity: number; image?: string }[];
 }
 
-const statusLabels: Record<string, { label: string; cls: string }> = {
-  pending: { label: "En attente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  paid: { label: "Paye", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  failed: { label: "Échoué", cls: "bg-red-50 text-red-700 border-red-200" },
-  refunded: { label: "Remboursé", cls: "bg-gray-50 text-gray-600 border-gray-200" },
-  processing: { label: "En preparation", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  shipped: { label: "Expédié", cls: "bg-purple-50 text-purple-700 border-purple-200" },
-  delivered: { label: "Livre", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  returned: { label: "Retourne", cls: "bg-red-50 text-red-500 border-red-200" },
+const statusLabels: Record<string, string> = {
+  pending: "En attente",
+  paid: "Payée",
+  failed: "Échouée",
+  refunded: "Remboursée",
+  processing: "En préparation",
+  shipped: "Expédiée",
+  delivered: "Livrée",
+  returned: "Retournée",
 };
 
 export default function OrdersPage() {
@@ -41,63 +41,84 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Mes commandes</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        {orders.length} commande{orders.length > 1 ? "s" : ""}
-      </p>
+      {/* Header */}
+      <div className="mb-12">
+        <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-4">
+          Historique
+        </p>
+        <h1 className="font-serif text-4xl md:text-5xl text-gray-900 leading-[1.05]">
+          Mes <span className="italic text-[var(--brand-gold)]">commandes</span>
+        </h1>
+        <div className="w-12 h-px bg-[var(--brand-gold)]/40 mt-7" />
+        <p className="font-serif italic text-[14px] text-gray-500 mt-7">
+          {orders.length} commande{orders.length > 1 ? "s" : ""} au total
+        </p>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-24 bg-white border border-[var(--brand-gold)]/15 animate-pulse" />
           ))}
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <Package size={48} className="mx-auto text-gray-200 mb-4" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Aucune commande</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Vos commandes apparaitront ici une fois que vous aurez passe votre premiere commande.
+        <div className="bg-white border border-[var(--brand-gold)]/15 px-6 py-16 text-center">
+          <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+            <Package size={18} strokeWidth={1.5} />
+          </div>
+          <p className="font-serif italic text-2xl text-gray-900 mb-2">
+            Aucune commande pour le moment
+          </p>
+          <p className="text-[13px] text-gray-500 mb-7 max-w-xs mx-auto leading-relaxed">
+            Vos commandes apparaîtront ici dès votre premier achat.
           </p>
           <Link
-            href="/products"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition"
+            href="/kits/decouverte"
+            className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-7 py-3.5 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
           >
-            Découvrir nos produits <ArrowRight size={14} />
+            Découvrir les kits
+            <ArrowRight size={13} />
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="bg-white border border-[var(--brand-gold)]/15 divide-y divide-[var(--brand-gold)]/10">
           {orders.map((order) => (
             <Link
               key={order._id}
               href={`/account/orders/${order._id}`}
-              className="block bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm hover:border-gray-200 transition-all group"
+              className="group block px-5 sm:px-7 py-6 hover:bg-[var(--brand-cream)]/50 transition"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-semibold text-gray-900">{order.orderNumber}</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${statusLabels[order.fulfillmentStatus]?.cls || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                      {statusLabels[order.fulfillmentStatus]?.label || order.fulfillmentStatus}
+              <div className="flex items-start justify-between mb-3 gap-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                    <span className="font-serif text-[18px] text-gray-900">
+                      {order.orderNumber}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)]">
+                      {statusLabels[order.fulfillmentStatus] || order.fulfillmentStatus}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">{formatDate(order.createdAt)}</p>
+                  <p className="font-serif italic text-[12px] text-gray-500">
+                    {formatDate(order.createdAt)}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[15px] font-bold text-gray-900">{formatPrice(order.total)}</p>
-                  <p className="text-[11px] text-gray-400">
-                    {order.items.reduce((s, i) => s + i.quantity, 0)} article{order.items.length > 1 ? "s" : ""}
+                <div className="text-right shrink-0">
+                  <p className="font-serif text-[18px] text-gray-900">
+                    {formatPrice(order.total)}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mt-1">
+                    {order.items.reduce((s, i) => s + i.quantity, 0)} article
+                    {order.items.reduce((s, i) => s + i.quantity, 0) > 1 ? "s" : ""}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <p className="text-[12px] text-gray-500 truncate flex-1">
-                  {order.items.map((i) => `${i.name} x${i.quantity}`).join(", ")}
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[12px] text-gray-500 truncate flex-1 font-serif italic">
+                  {order.items.map((i) => `${i.name} ×${i.quantity}`).join(" · ")}
                 </p>
-                <span className="text-[12px] text-gray-400 group-hover:text-gray-600 flex items-center gap-1 ml-3 shrink-0 transition">
-                  Voir le detail <ArrowRight size={12} />
+                <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] flex items-center gap-2 shrink-0 group-hover:gap-3 transition-all">
+                  Voir le détail <ArrowRight size={12} />
                 </span>
               </div>
             </Link>

@@ -241,7 +241,7 @@ export default function CategoriesManager() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Categories</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {categories.length} categorie{categories.length > 1 ? "s" : ""} — Gérez vos categories, sous-categories et filtres
+            {categories.length} catégorie{categories.length > 1 ? "s" : ""} · Gérez vos catégories, sous-catégories et filtres
           </p>
         </div>
         <button

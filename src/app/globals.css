@@ -2,15 +2,26 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #1f1d1a;
+  --brand-gold: #b8923c;
+  --brand-gold-dark: #9c7a2e;
+  --brand-olive: #9caf88;
+  --brand-cream: #faf7f1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-dark: var(--brand-gold-dark);
+  --color-brand-olive: var(--brand-olive);
+  --color-brand-cream: var(--brand-cream);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
 }
+
+.font-serif { font-family: var(--font-serif), Georgia, serif; }
 
 body {
   background: var(--background);
@@ -51,6 +62,32 @@ body {
 }
 .animate-marquee-reverse {
   animation: marquee 30s linear infinite reverse;
+}
+
+/* Slow rotation for decorative elements (e.g. bowl watermarks) */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 40s linear infinite;
+}
+.animate-spin-slow-reverse {
+  animation: spin-slow 50s linear infinite reverse;
+}
+
+/* Scroll-driven parallax: rotate based on scroll progress.
+   Falls back to no animation in browsers without animation-timeline support. */
+@supports (animation-timeline: view()) {
+  @keyframes scroll-rotate {
+    from { transform: rotate(-30deg); }
+    to { transform: rotate(30deg); }
+  }
+  .scroll-roll {
+    animation: scroll-rotate linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
 }
 
 /* Smooth scroll */

@@ -67,7 +67,7 @@ export default function AdminCustomersPage() {
                     </div>
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-gray-500">{customer.email}</td>
-                  <td className="px-5 py-3.5 text-[13px] text-gray-400">{customer.phone || "—"}</td>
+                  <td className="px-5 py-3.5 text-[13px] text-gray-400">{customer.phone || "·"}</td>
                   <td className="px-5 py-3.5 text-[12px] text-gray-400">{formatDate(customer.createdAt)}</td>
                   <td className="px-5 py-3.5 text-right">
                     <Link

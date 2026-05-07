@@ -90,7 +90,7 @@ export default function AdminOrdersPage() {
                     {order.orderNumber}
                   </td>
                   <td className="px-5 py-3.5">
-                    <p className="text-[13px] text-gray-700">{order.user?.name || "—"}</p>
+                    <p className="text-[13px] text-gray-700">{order.user?.name || "·"}</p>
                     <p className="text-[11px] text-gray-400">{order.user?.email}</p>
                   </td>
                   <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900">

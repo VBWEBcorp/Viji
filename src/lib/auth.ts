@@ -4,6 +4,13 @@ import { connectDB } from "./db";
 import User from "@/models/User";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    (process.env.NODE_ENV !== "production"
+      ? "dev-only-insecure-secret-replace-in-prod"
+      : undefined),
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",

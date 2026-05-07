@@ -30,7 +30,7 @@ export function generateShippingNotificationEmail(
       props.trackingNumber
         ? `
     <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-      <p style="margin: 0 0 5px 0; font-size: 14px; color: #666;">Transporteur: <strong>${props.carrier || "—"}</strong></p>
+      <p style="margin: 0 0 5px 0; font-size: 14px; color: #666;">Transporteur: <strong>${props.carrier || "non précisé"}</strong></p>
       <p style="margin: 0 0 15px 0; font-size: 14px; color: #666;">N° de suivi: <strong>${props.trackingNumber}</strong></p>
       ${
         props.trackingUrl

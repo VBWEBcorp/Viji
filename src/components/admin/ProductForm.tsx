@@ -209,7 +209,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
           }).catch(() => {});
         }
 
-        toast.success(isEditing ? "Produit mis à jour — indexation Google lancée" : "Produit créé — indexation Google lancée");
+        toast.success(isEditing ? "Produit mis à jour. Indexation Google lancée" : "Produit créé. Indexation Google lancée");
         router.push("/admin/products");
       } else {
         const data = await res.json();
@@ -378,7 +378,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
                 <>
                   <Plus size={24} className="mx-auto text-gray-400 mb-1" />
                   <p className="text-sm text-gray-500">Cliquer ou glisser des images</p>
-                  <p className="text-xs text-gray-400">JPG, PNG, WebP — max 5MB</p>
+                  <p className="text-xs text-gray-400">JPG, PNG, WebP · max 5MB</p>
                 </>
               )}
             </div>
