@@ -17,36 +17,43 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email: loginEmail,
-      password: loginPassword,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setLoading(false);
-      setError("Email ou mot de passe incorrect");
-      return;
-    }
-
-    // Determine destination based on the freshly-issued session role.
-    let destination = "/";
     try {
-      const sessionRes = await fetch("/api/auth/session");
-      const session = await sessionRes.json();
-      if (session?.user?.role === "admin") destination = "/admin";
-    } catch {
-      // fall through to "/"
-    }
+      const result = await signIn("credentials", {
+        email: loginEmail,
+        password: loginPassword,
+        redirect: false,
+      });
 
-    setLoading(false);
-    router.push(destination);
-    router.refresh();
+      if (!result || result.error) {
+        setLoading(false);
+        setError(result?.error || "Email ou mot de passe incorrect");
+        return;
+      }
+
+      // Determine destination based on the freshly-issued session role.
+      let destination = "/";
+      try {
+        const sessionRes = await fetch("/api/auth/session");
+        const session = await sessionRes.json();
+        if (session?.user?.role === "admin") destination = "/admin";
+      } catch {
+        // fall through to "/"
+      }
+
+      setLoading(false);
+      router.push(destination);
+      router.refresh();
+    } catch (err) {
+      setLoading(false);
+      setError(err instanceof Error ? err.message : "Erreur de connexion");
+    }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await handleLogin(email, password);
+    e.stopPropagation();
+    void handleLogin(email, password);
+    return false;
   }
 
   return (
@@ -72,6 +79,7 @@ export default function LoginPage() {
           </p>
           <div className="space-y-3 mb-10">
             <button
+              type="button"
               onClick={() => handleLogin("admin@demo.com", "demo1234")}
               disabled={loading}
               className="group w-full flex items-center gap-4 px-4 py-3.5 bg-[var(--brand-gold)] text-white hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-50"
@@ -87,6 +95,7 @@ export default function LoginPage() {
             </button>
 
             <button
+              type="button"
               onClick={() => handleLogin("client@demo.com", "demo1234")}
               disabled={loading}
               className="group w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] hover:bg-[var(--brand-cream)] transition disabled:opacity-50"
