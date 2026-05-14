@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Snowflake, BookOpen, Sprout, Sparkles, Flame, Star } from "lucide-react";
+import { Snowflake, BookOpen, Sprout, Sparkles, Star } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
@@ -31,13 +31,6 @@ export async function generateMetadata({
     description:
       "Kits culinaires indiens à faire soi-même, épices sélectionnées, recettes pas à pas.",
   };
-}
-
-/** "2 personnes" → 2 · "2 à 3 personnes" → 3 · "4 à 6 personnes" → 6 */
-function maxServings(s: string): number | null {
-  const m = s.match(/(\d+)\s*(?:à\s*(\d+))?/);
-  if (!m) return null;
-  return parseInt(m[2] || m[1], 10);
 }
 
 function formatEUR(cents: number): string {
@@ -163,9 +156,6 @@ export default async function KitCategoryPage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {items.map((item) => {
-            const portions = maxServings(item.servings);
-            const perPortion = portions ? Math.round(item.price / portions) : null;
-
             return (
               <article
                 key={item._id}
@@ -181,13 +171,6 @@ export default async function KitCategoryPage({
                       className="object-cover group-hover:scale-105 transition-transform duration-[1200ms] ease-out"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
-                  )}
-
-                  {item.isFeatured && (
-                    <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-[var(--brand-gold)] text-white text-[10px] uppercase tracking-[0.18em] font-bold px-2.5 py-1 shadow-sm">
-                      <Flame size={11} strokeWidth={2.4} />
-                      Très populaire
-                    </span>
                   )}
 
                   {item.servings && (
@@ -218,11 +201,6 @@ export default async function KitCategoryPage({
                     <p className="text-2xl font-serif text-gray-900">
                       {formatEUR(item.price)}
                     </p>
-                    {perPortion && portions && portions > 1 && (
-                      <p className="text-[11px] text-gray-500">
-                        soit <span className="font-medium text-gray-700">{formatEUR(perPortion)}</span> / portion
-                      </p>
-                    )}
                   </div>
 
                   <AddToCartButton

@@ -83,12 +83,10 @@ export default function PressSection() {
           <Corner className="-bottom-2 -right-2 rotate-180" />
 
           <article
-            className="group relative bg-[#faf6ec] rounded-[2px] px-6 sm:px-9 md:px-12 pt-8 sm:pt-10 pb-7 sm:pb-9 -rotate-[0.25deg] hover:rotate-0 transition-all duration-700 ease-out hover:-translate-y-1"
+            className="group relative bg-white rounded-[2px] px-6 sm:px-9 md:px-12 pt-8 sm:pt-10 pb-7 sm:pb-9 -rotate-[0.25deg] hover:rotate-0 transition-all duration-700 ease-out hover:-translate-y-1"
             style={{
               boxShadow:
                 "0 40px 70px -25px rgba(60,40,15,0.32), 0 20px 35px -15px rgba(60,40,15,0.18), 0 0 0 1px rgba(184,146,60,0.06)",
-              backgroundImage:
-                "linear-gradient(180deg, rgba(255,253,245,0.6) 0%, rgba(250,246,236,0) 30%, rgba(250,246,236,0) 70%, rgba(244,237,221,0.5) 100%)",
             }}
           >
             {/* Bandeau LOGOS */}

@@ -349,17 +349,12 @@ function Dropdown({
                     : "border-transparent hover:bg-[var(--brand-cream)]/40 hover:border-[var(--brand-gold)]/40"
                 }`}
               >
-                <span>
-                  <span
-                    className={`block font-serif text-[15px] leading-tight transition-colors ${
-                      isActive ? "text-[var(--brand-gold-dark)]" : "text-gray-900 group-hover/item:text-[var(--brand-gold-dark)]"
-                    }`}
-                  >
-                    {link.label}
-                  </span>
-                  <span className="block font-serif italic text-[11px] text-gray-500 mt-0.5">
-                    {link.tagline}
-                  </span>
+                <span
+                  className={`block font-serif text-[15px] leading-tight transition-colors ${
+                    isActive ? "text-[var(--brand-gold-dark)]" : "text-gray-900 group-hover/item:text-[var(--brand-gold-dark)]"
+                  }`}
+                >
+                  {link.label}
                 </span>
                 <ArrowRight
                   size={12}
@@ -590,17 +585,12 @@ function DrawerSection({
               onClick={onClose}
               className="group flex items-center justify-between"
             >
-              <span>
-                <span
-                  className={`block font-serif text-[18px] leading-tight transition ${
-                    active ? "italic text-[var(--brand-gold)]" : "text-gray-800 group-hover:text-[var(--brand-gold)]"
-                  }`}
-                >
-                  {link.label}
-                </span>
-                <span className="block font-serif italic text-[11px] text-gray-500 mt-0.5">
-                  {link.tagline}
-                </span>
+              <span
+                className={`block font-serif text-[18px] leading-tight transition ${
+                  active ? "italic text-[var(--brand-gold)]" : "text-gray-800 group-hover:text-[var(--brand-gold)]"
+                }`}
+              >
+                {link.label}
               </span>
               <ArrowRight
                 size={13}

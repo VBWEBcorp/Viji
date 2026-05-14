@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
+  // Force la racine Turbopack à ce dossier : sinon Next remonte dans
+  // c:\Users\conta\OneDrive\Desktop\Cursor et n'arrive plus à résoudre
+  // tailwindcss & co (qui sont dans le node_modules local du projet).
+  turbopack: {
+    root: path.resolve("."),
+  },
   images: {
     remotePatterns: [
       {
