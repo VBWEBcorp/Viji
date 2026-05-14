@@ -6,6 +6,7 @@ import { ArrowRight, Star } from "lucide-react";
 import YouTubeShort from "@/components/shop/YouTubeShort";
 import HeroSection from "@/components/shop/HeroSection";
 import ReviewMarquee from "@/components/shop/ReviewMarquee";
+import PressSection from "@/components/shop/PressSection";
 
 export const metadata = {
   title: "Entre Maman et Moi · Kits culinaires indiens & ateliers",
@@ -331,6 +332,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── VU DANS LA PRESSE ──────────────────────────────────── */}
+      <PressSection />
 
       {/* ── AVIS GOOGLE ─────────────────────────────────────────── */}
       <section className="py-24 md:py-32 overflow-hidden">
