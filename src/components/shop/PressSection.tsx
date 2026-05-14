@@ -187,25 +187,6 @@ export default function PressSection() {
           </article>
         </div>
 
-        {/* Badge "Featured by Ouest France" */}
-        <div
-          className={`text-center mt-14 md:mt-16 transition-all duration-1000 delay-200 ease-out ${
-            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-        >
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-sm border border-[var(--brand-gold)]/30 rounded-sm shadow-sm shadow-black/5">
-            <span className="relative flex">
-              <span className="block w-1.5 h-1.5 rounded-full bg-[var(--brand-gold)]" />
-              <span className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-[var(--brand-gold)] animate-ping opacity-60" />
-            </span>
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gray-700">
-              Featured by{" "}
-              <span className="text-[#e2231a] font-extrabold tracking-[0.15em]">
-                Ouest France
-              </span>
-            </p>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -228,56 +209,13 @@ function Corner({ className = "" }: { className?: string }) {
 
 function EmmLogo() {
   return (
-    <svg
-      viewBox="0 0 110 110"
-      className="w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] md:w-[76px] md:h-[76px] shrink-0"
-      aria-label="Entre Maman et Moi"
-    >
-      <defs>
-        <path id="emm-top" d="M 55,55 m -38,0 a 38,38 0 0,1 76,0" fill="none" />
-        <path
-          id="emm-bottom"
-          d="M 55,55 m -38,0 a 38,38 0 0,0 76,0"
-          fill="none"
-        />
-      </defs>
-      <text
-        fontFamily="var(--font-serif), Georgia, serif"
-        fontStyle="italic"
-        fontSize="10.2"
-        letterSpacing="1.2"
-        fill="#1f1d1a"
-      >
-        <textPath href="#emm-top" startOffset="50%" textAnchor="middle">
-          ENTRE MAMAN
-        </textPath>
-      </text>
-      <text
-        fontFamily="var(--font-serif), Georgia, serif"
-        fontStyle="italic"
-        fontSize="10.2"
-        letterSpacing="1.4"
-        fill="#1f1d1a"
-      >
-        <textPath href="#emm-bottom" startOffset="50%" textAnchor="middle">
-          ET MOI
-        </textPath>
-      </text>
-
-      {/* Carotte stylisée */}
-      <g transform="translate(55 56) rotate(-18)">
-        <path d="M -10 -16 q -3 -8 -8 -10 q 4 6 4 12 z" fill="#5a7a3a" />
-        <path d="M -2 -18 q 0 -10 -3 -14 q 0 8 -2 14 z" fill="#6a8c44" />
-        <path d="M 6 -16 q 5 -8 10 -10 q -4 6 -5 12 z" fill="#5a7a3a" />
-        <path d="M -10 -12 L 10 -12 L 0 18 Z" fill="#d97a2a" />
-        <path
-          d="M -6 -8 L -4 14 M 0 -8 L 0 14 M 6 -8 L 4 14"
-          stroke="#a85416"
-          strokeWidth="0.7"
-          strokeLinecap="round"
-        />
-      </g>
-    </svg>
+    <Image
+      src="https://i.ibb.co/V0XmmQRt/logo-entre-maman-et-moi.jpg"
+      alt="Entre Maman et Moi"
+      width={160}
+      height={160}
+      className="w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] md:w-[76px] md:h-[76px] shrink-0 object-contain"
+    />
   );
 }
 

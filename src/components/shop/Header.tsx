@@ -106,7 +106,7 @@ export default function Header() {
             Vern-sur-Seiche · Rennes
           </p>
           <p className="font-serif italic normal-case tracking-normal text-[12px] text-[var(--brand-gold)]/90">
-            Cuisine indienne authentique — depuis 2024
+            Née dans la cuisine de ma mère
           </p>
           <a
             href="tel:0767360926"
@@ -333,15 +333,9 @@ function Dropdown({
         }`}
       >
         <div
-          className="bg-white border border-[var(--brand-gold)]/25 min-w-[280px] py-2"
+          className="relative bg-white border-x border-b border-[var(--brand-gold)]/25 min-w-[280px] py-2"
           style={{ boxShadow: "0 24px 48px -20px rgba(60,40,15,0.20)" }}
         >
-          {/* Filet gold top */}
-          <div
-            aria-hidden
-            className="absolute left-0 right-0 -top-px h-px bg-gradient-to-r from-transparent via-[var(--brand-gold)]/60 to-transparent"
-          />
-
           {links.map((link) => {
             const isActive = pathname === link.href;
             return (

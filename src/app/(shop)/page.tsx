@@ -182,27 +182,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FULL-BLEED ATELIER ─────────────────────────────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-2 min-h-[80vh] bg-[var(--brand-cream)]/30">
-        <div className="relative md:min-h-[80vh] flex items-center justify-center py-12 md:py-0">
-          <div className="w-full max-w-[280px] sm:max-w-xs">
-            <YouTubeShort
-              id="mBXvjsEqAZw"
-              title="Atelier cuisine indienne"
-              className="shadow-2xl shadow-black/15"
-            />
-          </div>
-        </div>
-        <div className="bg-[var(--brand-cream)]/30 flex items-center px-6 sm:px-12 md:px-20 py-16 md:py-0">
-          <div className="max-w-md">
+      {/* ── ATELIERS — vidéo encadrée façon polaroid premium ──── */}
+      <section className="bg-[var(--brand-cream)]/40 py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-center">
+          {/* Texte */}
+          <div className="md:col-span-6 lg:col-span-5 order-2 md:order-1 text-center md:text-left">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-6">
               Ateliers
             </p>
-            <h2 className="font-serif text-4xl md:text-6xl text-gray-900 leading-[1.05] mb-8">
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.05] mb-7">
               Apprendre<br />
               <span className="italic text-[var(--brand-gold)]">ensemble</span>
             </h2>
-            <p className="text-[14px] text-gray-700 leading-[1.85] mb-10">
+            <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
+            <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
               À domicile, en collectif ou avec un chef privé. Trois formules, un même esprit&nbsp;: la transmission.
             </p>
             <Link
@@ -212,47 +205,65 @@ export default async function HomePage() {
               Voir les ateliers <ArrowRight size={11} />
             </Link>
           </div>
+
+          {/* Vidéo encadrée */}
+          <div className="md:col-span-6 lg:col-span-7 order-1 md:order-2 flex justify-center md:justify-end">
+            <FramedMedia caption="Un atelier · une transmission" rotate="-rotate-[0.6deg]" maxW="max-w-[300px] sm:max-w-[340px]">
+              <YouTubeShort
+                id="mBXvjsEqAZw"
+                title="Atelier cuisine indienne"
+              />
+            </FramedMedia>
+          </div>
         </div>
       </section>
 
-      {/* ── FULL-BLEED TRAITEUR (inversé) ──────────────────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-2 min-h-[80vh]">
-        <div className="bg-white flex items-center px-6 sm:px-12 md:px-20 py-16 md:py-0 order-2 md:order-1">
-          <div className="max-w-md">
+      {/* ── TRAITEUR — image encadrée façon polaroid premium ──── */}
+      <section className="bg-white py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-center">
+          {/* Image encadrée */}
+          <div className="md:col-span-6 lg:col-span-7 order-1 flex justify-center md:justify-start">
+            <FramedMedia caption="Plats du moment · à Melesse" rotate="rotate-[0.6deg]" maxW="max-w-[420px] sm:max-w-[480px]">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)]">
+                <Image
+                  src="https://i.ibb.co/tTqdZjjS/Citronade-indienne.jpg"
+                  alt="Citronnade indienne"
+                  fill
+                  className="object-cover hover:scale-[1.04] transition-transform duration-[1200ms] ease-out"
+                  sizes="(max-width: 768px) 90vw, 480px"
+                />
+              </div>
+            </FramedMedia>
+          </div>
+
+          {/* Texte */}
+          <div className="md:col-span-6 lg:col-span-5 order-2 text-center md:text-left">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-6">
               Traiteur
             </p>
-            <h2 className="font-serif text-4xl md:text-6xl text-gray-900 leading-[1.05] mb-8">
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.05] mb-7">
               À emporter<br />
               <span className="italic text-[var(--brand-gold)]">&amp; sur mesure</span>
             </h2>
-            <p className="text-[14px] text-gray-700 leading-[1.85] mb-10">
-              Click & Collect à Melesse pour vos plats du moment. Devis sur mesure pour vos événements.
+            <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
+            <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
+              Click &amp; Collect à Melesse pour vos plats du moment. Devis sur mesure pour vos événements.
             </p>
-            <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3">
               <Link
                 href="/traiteur/emporter"
-                className="text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
+                className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
               >
-                À emporter
+                À emporter <ArrowRight size={11} />
               </Link>
               <Link
                 href="/traiteur/evenementiel"
-                className="text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
+                className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
               >
-                Événementiel
+                Événementiel <ArrowRight size={11} />
               </Link>
             </div>
           </div>
-        </div>
-        <div className="relative aspect-[4/5] md:aspect-auto md:min-h-[80vh] order-1 md:order-2">
-          <Image
-            src="https://i.ibb.co/tTqdZjjS/Citronade-indienne.jpg"
-            alt="Citronnade indienne"
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
         </div>
       </section>
 
@@ -443,6 +454,43 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+    </div>
+  );
+}
+
+function FramedMedia({
+  children,
+  caption,
+  rotate,
+  maxW,
+}: {
+  children: React.ReactNode;
+  caption: string;
+  rotate: string;
+  maxW: string;
+}) {
+  const CORNER =
+    "absolute w-5 h-5 z-10 pointer-events-none";
+  const CORNER_STYLE = "1px solid rgba(184,146,60,0.55)";
+  return (
+    <div className={`relative w-full ${maxW}`}>
+      <span aria-hidden className={`${CORNER} -top-3 -left-3`} style={{ borderTop: CORNER_STYLE, borderLeft: CORNER_STYLE }} />
+      <span aria-hidden className={`${CORNER} -top-3 -right-3`} style={{ borderTop: CORNER_STYLE, borderRight: CORNER_STYLE }} />
+      <span aria-hidden className={`${CORNER} -bottom-3 -left-3`} style={{ borderBottom: CORNER_STYLE, borderLeft: CORNER_STYLE }} />
+      <span aria-hidden className={`${CORNER} -bottom-3 -right-3`} style={{ borderBottom: CORNER_STYLE, borderRight: CORNER_STYLE }} />
+
+      <div
+        className={`group bg-white p-3 sm:p-4 ${rotate} hover:rotate-0 transition-transform duration-700 ease-out`}
+        style={{
+          boxShadow:
+            "0 30px 60px -25px rgba(60,40,15,0.30), 0 15px 25px -15px rgba(60,40,15,0.15)",
+        }}
+      >
+        {children}
+        <p className="font-serif italic text-[12px] sm:text-[13px] text-gray-500 text-center mt-3">
+          {caption}
+        </p>
+      </div>
     </div>
   );
 }
