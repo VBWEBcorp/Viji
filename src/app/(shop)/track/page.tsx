@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Package, Truck, Check, Clock } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface OrderInfo {
   orderNumber: string;
@@ -22,6 +23,7 @@ const statusSteps = [
 ];
 
 export default function TrackPage() {
+  usePageTitle("Suivi de commande");
   const [orderNumber, setOrderNumber] = useState("");
   const [email, setEmail] = useState("");
   const [order, setOrder] = useState<OrderInfo | null>(null);

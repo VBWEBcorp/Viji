@@ -1,18 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { auth } from "@/lib/auth";
 import Cart from "@/models/Cart";
 import Order from "@/models/Order";
-import Product from "@/models/Product";
+import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
 import SiteSettings from "@/models/SiteSettings";
 import { getStripe } from "@/lib/stripe";
 import { createPayPalOrder } from "@/lib/paypal";
 import { generateOrderNumber } from "@/lib/utils";
+import { sendEmail } from "@/lib/resend";
 import { cookies } from "next/headers";
 import { z } from "zod";
+import crypto from "node:crypto";
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] || c)
+  );
+}
+
+function passwordSetupEmailHtml(name: string, link: string, orderNumber: string): string {
+  return `<!DOCTYPE html>
+<html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#faf6ee; margin:0; padding:0;">
+  <div style="max-width:560px; margin:0 auto; background:#ffffff; padding:48px 32px;">
+    <p style="font-size:11px; letter-spacing:0.4em; text-transform:uppercase; color:#b08438; margin:0 0 20px;">Entre Maman et Moi</p>
+    <h1 style="font-family:Georgia, serif; font-size:28px; color:#111827; margin:0 0 24px;">Bienvenue, ${escapeHtml(name)}</h1>
+    <p style="font-size:15px; line-height:1.7; color:#374151;">Merci pour votre commande <strong>${escapeHtml(orderNumber)}</strong>. Un compte client a été créé pour vous, afin que vous puissiez retrouver vos commandes et leur suivi à tout moment.</p>
+    <p style="font-size:15px; line-height:1.7; color:#374151; margin-top:16px;">Choisissez votre mot de passe pour activer votre espace client&nbsp;:</p>
+    <p style="margin:32px 0;">
+      <a href="${link}" style="display:inline-block; background:#b08438; color:#ffffff; padding:14px 28px; text-decoration:none; font-size:13px; letter-spacing:0.2em; text-transform:uppercase;">Choisir mon mot de passe</a>
+    </p>
+    <p style="font-size:13px; color:#6b7280; line-height:1.7;">Ce lien est valable 30 jours. Vous pourrez aussi le redemander à tout moment depuis la page de connexion en cliquant sur «&nbsp;Mot de passe oublié&nbsp;?&nbsp;».</p>
+    <p style="font-size:13px; color:#6b7280; word-break:break-all; margin-top:24px;">Lien direct&nbsp;:<br/>${link}</p>
+  </div>
+</body></html>`;
+}
 
 const checkoutSchema = z.object({
+  email: z.string().email("Email invalide"),
+  // Mot de passe optionnel choisi par le client pendant le checkout.
+  // Si présent et que l'email n'a pas encore de compte, on crée le compte avec
+  // ce mot de passe et on connecte automatiquement le client après paiement.
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit faire au moins 8 caractères")
+    .optional(),
   shippingAddress: z.object({
     name: z.string().min(1),
     street: z.string().min(1),
@@ -49,22 +81,69 @@ const checkoutSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Vous devez être connecté pour commander" },
-        { status: 401 }
-      );
-    }
-
     await connectDB();
     const body = await req.json();
     const validated = checkoutSchema.parse(body);
 
-    // Récupérer le panier
-    const cart = await Cart.findOne({ user: session.user.id }).populate(
-      "items.product"
-    );
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get("cart_session")?.value;
+
+    // L'utilisateur est TOUJOURS déterminé par l'email saisi dans le formulaire,
+    // pas par la session. Sinon un admin connecté qui teste avec un autre email
+    // verrait toutes ces commandes rattachées à son propre compte.
+    const emailLower = validated.email.toLowerCase();
+    const existingUser = await User.findOne({ email: emailLower });
+    let userId: string;
+    let isNewAccount = false;
+    let accountHasPassword = false;
+    let passwordSetupToken: string | null = null;
+    if (existingUser) {
+      // Compte déjà existant : on ne touche pas au mot de passe même si le
+      // client en a saisi un (sinon n'importe qui pourrait écraser le mdp
+      // d'un autre simplement en utilisant son email lors d'un checkout).
+      userId = String(existingUser._id);
+    } else if (validated.password) {
+      // Le client a choisi un mot de passe pendant le checkout : on crée
+      // directement le compte avec, et il pourra se connecter sans email.
+      const newUser = await User.create({
+        email: emailLower,
+        name: validated.shippingAddress.name,
+        passwordHash: validated.password, // hashed by pre-save hook
+        role: "customer",
+        phone: validated.shippingAddress.phone,
+      });
+      userId = String(newUser._id);
+      isNewAccount = true;
+      accountHasPassword = true;
+    } else {
+      // Pas de mot de passe choisi : compte créé avec un mot de passe aléatoire
+      // + un token envoyé par email pour le configurer plus tard.
+      const randomPwd = crypto.randomBytes(16).toString("hex");
+      passwordSetupToken = crypto.randomBytes(32).toString("hex");
+      const newUser = await User.create({
+        email: emailLower,
+        name: validated.shippingAddress.name,
+        passwordHash: randomPwd,
+        role: "customer",
+        phone: validated.shippingAddress.phone,
+        passwordResetToken: passwordSetupToken,
+        passwordResetExpires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 jours
+      });
+      userId = String(newUser._id);
+      isNewAccount = true;
+    }
+
+    // Récupérer le panier (par user ou par sessionId pour les guests)
+    let cart = await Cart.findOne({ user: userId }).populate("items.product");
+    if (!cart && sessionId) {
+      cart = await Cart.findOne({ sessionId }).populate("items.product");
+      // Lier le cart au user à la commande
+      if (cart) {
+        cart.user = userId as unknown as typeof cart.user;
+        cart.sessionId = undefined;
+        await cart.save();
+      }
+    }
 
     if (!cart || cart.items.length === 0) {
       return NextResponse.json(
@@ -188,7 +267,7 @@ export async function POST(req: NextRequest) {
     // Créer la commande
     const order = await Order.create({
       orderNumber,
-      user: session.user.id,
+      user: userId,
       items: orderItems,
       subtotal,
       shippingCost,
@@ -204,6 +283,18 @@ export async function POST(req: NextRequest) {
       paymentStatus: "pending",
       fulfillmentStatus: "pending",
     });
+
+    // Pour un nouveau compte créé par checkout invité, on envoie tout de suite
+    // le lien « définir mon mot de passe » par email. L'envoi est best-effort —
+    // si Resend échoue (quota, clé manquante), on ne bloque pas la commande.
+    if (isNewAccount && passwordSetupToken) {
+      const link = `${req.nextUrl.origin}/reinitialiser-mot-de-passe?token=${passwordSetupToken}`;
+      sendEmail({
+        to: emailLower,
+        subject: "Bienvenue chez Entre Maman et Moi – choisissez votre mot de passe",
+        html: passwordSetupEmailHtml(validated.shippingAddress.name, link, orderNumber),
+      }).catch((err) => console.error("Password setup email failed:", err));
+    }
 
     // Initier le paiement
     if (validated.paymentMethod === "stripe") {
@@ -225,6 +316,8 @@ export async function POST(req: NextRequest) {
         orderNumber,
         clientSecret: paymentIntent.client_secret,
         paymentMethod: "stripe",
+        isNewAccount,
+        accountHasPassword,
       });
     } else {
       // PayPal
@@ -238,6 +331,8 @@ export async function POST(req: NextRequest) {
         orderNumber,
         paypalOrderId: paypalOrder.id,
         paymentMethod: "paypal",
+        isNewAccount,
+        accountHasPassword,
       });
     }
   } catch (error) {

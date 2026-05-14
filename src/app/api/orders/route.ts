@@ -17,11 +17,14 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const status_filter = searchParams.get("status") || "";
+    const scope = searchParams.get("scope");
 
     const filter: Record<string, unknown> = {};
 
-    // Si c'est un client, on ne montre que ses commandes
-    if (session.user.role !== "admin") {
+    // scope=user : force le filtrage par user (utilisé par /account, même si
+    // l'utilisateur est admin — un admin qui visite son espace client ne doit
+    // voir QUE ses propres commandes, pas toutes celles de la base).
+    if (scope === "user" || session.user.role !== "admin") {
       filter.user = session.user.id;
     }
 

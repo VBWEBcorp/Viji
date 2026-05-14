@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Plus, Pencil, Trash2, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface Address {
   _id: string;
@@ -14,6 +15,7 @@ interface Address {
 }
 
 export default function AddressesPage() {
+  usePageTitle("Mes adresses");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

@@ -5,6 +5,7 @@ import { Heart, Trash2, ArrowRight } from "lucide-react";
 import ProductCard from "@/components/shop/ProductCard";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface WishlistProduct {
   _id: string;
@@ -17,6 +18,7 @@ interface WishlistProduct {
 }
 
 export default function WishlistPage() {
+  usePageTitle("Mes favoris");
   const [products, setProducts] = useState<WishlistProduct[]>([]);
   const [loading, setLoading] = useState(true);
 

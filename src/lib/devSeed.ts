@@ -202,25 +202,8 @@ async function ensureBlogPosts() {
   }
 }
 
-async function ensureDemoUsers() {
-  const demoUsers = [
-    { email: "admin@demo.com", name: "Admin Démo", role: "admin" as const, password: "demo1234" },
-    { email: "client@demo.com", name: "Client Démo", role: "customer" as const, password: "demo1234" },
-  ];
-
-  for (const u of demoUsers) {
-    const existing = await User.findOne({ email: u.email });
-    if (existing) continue;
-    // Pre-save hook hashes when passwordHash is modified.
-    await User.create({
-      email: u.email,
-      name: u.name,
-      role: u.role,
-      passwordHash: u.password,
-      addresses: [],
-    });
-  }
-}
+// Les comptes démo ont été remplacés par le vrai compte admin de Viji
+// (créé via scripts/setup-admin.mjs). Pour recréer un admin, utiliser ce script.
 
 type ProductSeed = {
   name: string;
@@ -438,8 +421,6 @@ const PRODUCTS: ProductSeed[] = [
 export async function ensureDevSeed(_uri: string) {
   if (process.env.NODE_ENV === "production") return;
 
-  // Always make sure the demo accounts exist (idempotent).
-  await ensureDemoUsers();
   await ensureBlogPosts();
 
   const existing = await Category.countDocuments();

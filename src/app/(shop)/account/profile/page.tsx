@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
+import { usePageTitle } from "@/lib/use-page-title";
 
 export default function ProfilePage() {
+  usePageTitle("Mes informations");
   const { data: session, update } = useSession();
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");

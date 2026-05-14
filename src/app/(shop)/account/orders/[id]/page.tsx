@@ -6,6 +6,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import { ArrowLeft, Package, Truck, Clock, Check, MapPin, FileDown } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface OrderDetail {
   _id: string;
@@ -38,12 +39,13 @@ const statusSteps = [
 ];
 
 export default function OrderDetailPage() {
+  usePageTitle("Détail de commande");
   const { id } = useParams();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/orders/${id}`)
+    fetch(`/api/orders/${id}?scope=user`)
       .then((r) => r.json())
       .then((data) => {
         if (!data.error) setOrder(data);

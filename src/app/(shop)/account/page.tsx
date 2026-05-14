@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Package, Heart, MapPin, Truck, ArrowRight, Wallet } from "lucide-react";
 import Link from "next/link";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface Order {
   _id: string;
@@ -24,6 +25,7 @@ interface AccountStats {
 }
 
 export default function AccountDashboard() {
+  usePageTitle("Mon espace client");
   const { data: session } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<AccountStats>({
@@ -35,7 +37,7 @@ export default function AccountDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/orders?limit=5").then((r) => r.json()),
+      fetch("/api/orders?limit=5&scope=user").then((r) => r.json()),
       fetch("/api/wishlist").then((r) => r.json()),
     ]).then(([orderData, wishlistData]) => {
       const orderList = orderData.orders || [];

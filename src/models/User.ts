@@ -16,6 +16,8 @@ export interface IUser extends Document {
   phone?: string;
   role: "customer" | "admin";
   addresses: IAddress[];
+  passwordResetToken?: string | null;
+  passwordResetExpires?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -50,6 +52,10 @@ const UserSchema = new Schema<IUser>(
       default: "customer",
     },
     addresses: [AddressSchema],
+    // Token de réinitialisation / configuration initiale du mot de passe.
+    // Envoyé au premier checkout invité, valable 30 jours par défaut.
+    passwordResetToken: { type: String, default: null, index: true },
+    passwordResetExpires: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Package, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { usePageTitle } from "@/lib/use-page-title";
 
 interface Order {
   _id: string;
@@ -27,11 +28,12 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  usePageTitle("Mes commandes");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/orders?limit=50")
+    fetch("/api/orders?limit=50&scope=user")
       .then((r) => r.json())
       .then((data) => {
         setOrders(data.orders || []);

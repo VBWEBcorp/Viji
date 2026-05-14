@@ -17,9 +17,10 @@ export async function GET(
 
     await connectDB();
     const { id } = await params;
+    const scope = req.nextUrl.searchParams.get("scope");
 
     const filter: Record<string, unknown> = { _id: id };
-    if (session.user.role !== "admin") {
+    if (scope === "user" || session.user.role !== "admin") {
       filter.user = session.user.id;
     }
 

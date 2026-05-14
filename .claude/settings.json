@@ -31,7 +31,10 @@
       "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64'\\)\\)\")",
       "Bash(grep -E \"\\\\.env\\\\.local|\\\\.env$\")",
       "Bash(node scripts/create-stripe-webhook.mjs https://viji-ouibo.netlify.app)",
-      "Bash(node scripts/check-users.mjs)"
+      "Bash(node scripts/check-users.mjs)",
+      "Bash(node scripts/setup-admin.mjs)",
+      "Bash(curl -sI \"https://widget.mondialrelay.com/parcelshop-picker/jquery.plugin.mondialrelay.parcelshoppicker.min.js\")",
+      "Bash(curl -s \"https://widget.mondialrelay.com/parcelshop-picker/jquery.plugin.mondialrelay.parcelshoppicker.min.js\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\conta\\OneDrive\\Desktop\\Cursor\\Viji\\src\\app\\(shop)\\box"

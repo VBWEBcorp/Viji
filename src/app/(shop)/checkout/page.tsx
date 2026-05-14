@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+import { usePageTitle } from "@/lib/use-page-title";
 import { formatPrice } from "@/lib/utils";
-import { CreditCard, ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import MondialRelayWidget, { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
+
+// Chargé une seule fois au niveau module : Stripe.js doit rester unique sur la page.
+const stripePromise: Promise<Stripe | null> | null =
+  typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+    : null;
 
 interface CartItem {
   _id: string;
@@ -25,13 +33,19 @@ interface CartItem {
 type Step = "shipping" | "payment" | "confirmation";
 
 export default function CheckoutPage() {
-  const router = useRouter();
+  usePageTitle("Finalisation de la commande");
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>("shipping");
   const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [promoCode, setPromoCode] = useState("");
+
+  const [email, setEmail] = useState("");
+  // Mot de passe optionnel : si le client en saisit un, on crée son compte
+  // avec et il est connecté automatiquement après le paiement. Sinon on lui
+  // envoie un email pour le configurer plus tard.
+  const [password, setPassword] = useState("");
 
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
@@ -42,14 +56,15 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [sameAsBilling, setSameAsBilling] = useState(true);
-  const [billingAddress] = useState({
-    name: "",
+  // Par défaut, l'adresse de facturation est l'adresse renseignée par le client.
+  // S'il coche cette case, on affiche un formulaire séparé pour renseigner une
+  // adresse de facturation différente (utile en B2B, cadeau, etc.).
+  const [differentBilling, setDifferentBilling] = useState(false);
+  const [billingAddress, setBillingAddress] = useState({
     street: "",
     city: "",
     zip: "",
     country: "FR",
-    phone: "",
   });
 
   const [pickupPoint, setPickupPoint] = useState<MondialRelayPoint | null>(null);
@@ -66,6 +81,25 @@ export default function CheckoutPage() {
   });
   const [taxConfig, setTaxConfig] = useState({ rate: 20, pricesIncludeTax: true, label: "TVA" });
 
+  // État du paiement : la commande et l'intention Stripe sont créées au passage
+  // à l'étape « paiement », pour pouvoir afficher le PaymentElement de Stripe.
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paidOrderNumber, setPaidOrderNumber] = useState<string | null>(null);
+  // Indique si le client a créé son compte avec un mot de passe pendant le
+  // checkout : si oui, on le connecte automatiquement après paiement réussi.
+  const [accountReadyForLogin, setAccountReadyForLogin] = useState(false);
+  // Indique si la commande a déclenché la création d'un nouveau compte.
+  // Sert à choisir le bon message sur l'écran de confirmation.
+  const [createdNewAccount, setCreatedNewAccount] = useState(false);
+
+  // Remonte la page en haut à chaque changement d'étape, sinon Next.js conserve
+  // le scroll position et le client se retrouve en bas de l'étape suivante.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [step]);
+
   // Mondial Relay only.
   const shippingCost =
     shippingRates.pickupFreeThreshold > 0 && cartTotal >= shippingRates.pickupFreeThreshold
@@ -78,12 +112,13 @@ export default function CheckoutPage() {
     : Math.round(taxableBase * (taxConfig.rate / 100));
   const total = taxConfig.pricesIncludeTax ? taxableBase : taxableBase + taxAmount;
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login?redirect=/checkout");
-      return;
-    }
+  // Pas de pré-remplissage automatique : un compte admin (ex. Viji en train
+  // de tester) verrait son nom et son email s'écrire dans la commande, ce qui
+  // n'est pas souhaitable. Le client tape ses propres informations.
 
+  useEffect(() => {
+    // Guest checkout : pas de redirect vers /login.
+    // Le compte sera créé automatiquement à partir de l'email saisi lors de la commande.
     fetch("/api/cart")
       .then((r) => r.json())
       .then((data) => {
@@ -109,18 +144,56 @@ export default function CheckoutPage() {
         });
       })
       .catch(() => {});
-  }, [status, router]);
+  }, [status]);
 
-  async function handlePlaceOrder() {
+  // Crée la commande côté serveur et récupère le clientSecret Stripe.
+  // Doit être appelée AVANT de monter le PaymentElement (qui en a besoin).
+  async function handleCreateOrder() {
     setLoading(true);
 
     try {
+      // Construit l'adresse de livraison à partir du point relais (la commande
+      // physique part chez Mondial Relay), tout en conservant le nom et le
+      // téléphone du client pour la fiche transporteur.
+      const shippingForApi = pickupPoint
+        ? {
+            name: shippingAddress.name,
+            street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
+            city: pickupPoint.Ville,
+            zip: pickupPoint.CP,
+            country: pickupPoint.Pays || "FR",
+            phone: shippingAddress.phone,
+          }
+        : shippingAddress;
+
+      // Adresse de facturation : par défaut celle saisie par le client,
+      // sinon l'adresse alternative qu'il a renseignée explicitement.
+      const billingForApi = differentBilling
+        ? {
+            name: shippingAddress.name,
+            street: billingAddress.street,
+            city: billingAddress.city,
+            zip: billingAddress.zip,
+            country: billingAddress.country,
+            phone: shippingAddress.phone,
+          }
+        : {
+            name: shippingAddress.name,
+            street: shippingAddress.street,
+            city: shippingAddress.city,
+            zip: shippingAddress.zip,
+            country: shippingAddress.country,
+            phone: shippingAddress.phone,
+          };
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          shippingAddress,
-          billingAddress: sameAsBilling ? shippingAddress : billingAddress,
+          email,
+          password: password || undefined,
+          shippingAddress: shippingForApi,
+          billingAddress: billingForApi,
           paymentMethod: "stripe",
           shippingCost,
           shippingMethod: "pickup",
@@ -148,8 +221,11 @@ export default function CheckoutPage() {
       }
 
       if (data.clientSecret) {
-        setStep("confirmation");
-        toast.success(`Commande ${data.orderNumber} créée. Paiement Stripe à finaliser.`);
+        setClientSecret(data.clientSecret);
+        setPaidOrderNumber(data.orderNumber);
+        setAccountReadyForLogin(Boolean(data.accountHasPassword));
+        setCreatedNewAccount(Boolean(data.isNewAccount));
+        setStep("payment");
       } else {
         toast.error("Erreur lors de l'initialisation du paiement");
       }
@@ -186,7 +262,29 @@ export default function CheckoutPage() {
           </h1>
           <div className="w-12 h-px bg-[var(--brand-gold)]/40 mx-auto mb-7" />
           <p className="font-serif italic text-[15px] text-gray-600 leading-relaxed mb-10 max-w-md mx-auto">
-            Vous recevrez un email avec les détails de votre commande dans quelques instants.
+            {paidOrderNumber ? (
+              <>Commande <span className="not-italic font-medium text-gray-900">{paidOrderNumber}</span> enregistrée. Vous recevrez un email avec les détails dans quelques instants.</>
+            ) : (
+              <>Vous recevrez un email avec les détails de votre commande dans quelques instants.</>
+            )}
+            {accountReadyForLogin && (
+              <>
+                <br />
+                <span className="text-[var(--brand-gold)] not-italic">Votre espace client est prêt, vous y êtes déjà connecté.</span>
+              </>
+            )}
+            {!accountReadyForLogin && createdNewAccount && (
+              <>
+                <br />
+                Un email vous a été envoyé pour activer votre espace client et choisir votre mot de passe.
+              </>
+            )}
+            {!accountReadyForLogin && !createdNewAccount && !session?.user && (
+              <>
+                <br />
+                Cette adresse a déjà un espace client. <Link href="/login" className="text-[var(--brand-gold)] not-italic underline">Connectez-vous</Link> pour suivre votre commande.
+              </>
+            )}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -197,10 +295,10 @@ export default function CheckoutPage() {
               <ArrowRight size={13} />
             </Link>
             <Link
-              href="/kits/decouverte"
+              href="/"
               className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
-              Découvrir les kits
+              Retour à la boutique
             </Link>
           </div>
         </div>
@@ -243,7 +341,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
             {step === "shipping" && (
               <>
-                {/* Coordonnées */}
+                {/* Coordonnées + adresse */}
                 <Card eyebrow="Vous concernant" title="Vos coordonnées">
                   <div className="space-y-6">
                     <Field
@@ -253,12 +351,27 @@ export default function CheckoutPage() {
                       onChange={(v) => setShippingAddress({ ...shippingAddress, name: v })}
                     />
                     <Field
-                      label="Code postal pour rechercher un point"
+                      label="Email"
+                      type="email"
                       required
-                      placeholder="35000"
-                      value={shippingAddress.zip}
-                      onChange={(v) => setShippingAddress({ ...shippingAddress, zip: v })}
+                      placeholder="vous@exemple.com"
+                      value={email}
+                      onChange={setEmail}
                     />
+                    {!session?.user && (
+                      <div>
+                        <Field
+                          label="Mot de passe (créez votre espace client)"
+                          type="password"
+                          placeholder="Minimum 8 caractères"
+                          value={password}
+                          onChange={setPassword}
+                        />
+                        <p className="font-serif italic text-[12px] text-gray-400 mt-2">
+                          Optionnel. Si vous le renseignez, votre espace client est créé immédiatement et vous y êtes connecté après le paiement. Sinon, un email vous sera envoyé pour le configurer plus tard.
+                        </p>
+                      </div>
+                    )}
                     <Field
                       label="Téléphone (requis par Mondial Relay)"
                       type="tel"
@@ -266,24 +379,86 @@ export default function CheckoutPage() {
                       value={shippingAddress.phone}
                       onChange={(v) => setShippingAddress({ ...shippingAddress, phone: v })}
                     />
-                    <label className="flex items-center gap-3 pt-2 cursor-pointer">
+                    <Field
+                      label="Adresse"
+                      required
+                      placeholder="12 rue de la Fontaine"
+                      value={shippingAddress.street}
+                      onChange={(v) => setShippingAddress({ ...shippingAddress, street: v })}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <Field
+                        label="Code postal"
+                        required
+                        placeholder="35000"
+                        value={shippingAddress.zip}
+                        onChange={(v) => setShippingAddress({ ...shippingAddress, zip: v })}
+                      />
+                      <div className="sm:col-span-2">
+                        <Field
+                          label="Ville"
+                          required
+                          placeholder="Rennes"
+                          value={shippingAddress.city}
+                          onChange={(v) => setShippingAddress({ ...shippingAddress, city: v })}
+                        />
+                      </div>
+                    </div>
+
+                    <label className="flex items-start gap-3 pt-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        checked={sameAsBilling}
-                        onChange={(e) => setSameAsBilling(e.target.checked)}
-                        className="w-4 h-4 accent-[var(--brand-gold)]"
+                        checked={differentBilling}
+                        onChange={(e) => setDifferentBilling(e.target.checked)}
+                        className="w-4 h-4 mt-0.5 accent-[var(--brand-gold)]"
                       />
-                      <span className="font-serif italic text-[13px] text-gray-600">
-                        Adresse de facturation identique au point relais
+                      <span className="font-serif italic text-[13px] text-gray-600 group-hover:text-gray-900 transition">
+                        Utiliser une adresse de facturation différente
                       </span>
                     </label>
                   </div>
                 </Card>
 
+                {/* Adresse de facturation (conditionnelle) */}
+                {differentBilling && (
+                  <Card eyebrow="Pour la facture" title="Adresse de facturation">
+                    <p className="font-serif italic text-[13px] text-gray-500 mb-6">
+                      Cette adresse figurera sur votre facture. Indispensable pour la TVA en cas d&apos;achat professionnel.
+                    </p>
+                    <div className="space-y-6">
+                      <Field
+                        label="Adresse"
+                        required
+                        placeholder="12 rue de la Fontaine"
+                        value={billingAddress.street}
+                        onChange={(v) => setBillingAddress({ ...billingAddress, street: v })}
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <Field
+                          label="Code postal"
+                          required
+                          placeholder="35000"
+                          value={billingAddress.zip}
+                          onChange={(v) => setBillingAddress({ ...billingAddress, zip: v })}
+                        />
+                        <div className="sm:col-span-2">
+                          <Field
+                            label="Ville"
+                            required
+                            placeholder="Rennes"
+                            value={billingAddress.city}
+                            onChange={(v) => setBillingAddress({ ...billingAddress, city: v })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
                 {/* Sélecteur point relais Mondial Relay (gratuit) */}
                 <Card eyebrow="Retrait" title="Choisissez votre point relais">
                   <p className="font-serif italic text-[13px] text-gray-500 mb-6">
-                    Toutes les commandes sont expédiées via Mondial Relay. Sélectionnez le point de retrait le plus proche sur la carte.
+                    Toutes les commandes sont expédiées via Mondial Relay. La carte cherche par défaut autour de votre code postal, vous pouvez le modifier directement dans le widget.
                   </p>
 
                   {pickupPoint && (
@@ -310,59 +485,50 @@ export default function CheckoutPage() {
                 </Card>
 
                 <button
+                  disabled={loading}
                   onClick={() => {
                     if (!shippingAddress.name) {
                       toast.error("Veuillez renseigner votre nom");
+                      return;
+                    }
+                    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      toast.error("Veuillez renseigner un email valide");
+                      return;
+                    }
+                    if (password && password.length < 8) {
+                      toast.error("Le mot de passe doit faire au moins 8 caractères");
                       return;
                     }
                     if (!shippingAddress.phone) {
                       toast.error("Le téléphone est obligatoire pour Mondial Relay");
                       return;
                     }
+                    if (!shippingAddress.street || !shippingAddress.zip || !shippingAddress.city) {
+                      toast.error("Veuillez renseigner votre adresse complète");
+                      return;
+                    }
+                    if (
+                      differentBilling &&
+                      (!billingAddress.street || !billingAddress.zip || !billingAddress.city)
+                    ) {
+                      toast.error("Veuillez compléter l'adresse de facturation");
+                      return;
+                    }
                     if (!pickupPoint) {
                       toast.error("Veuillez choisir un point relais sur la carte");
                       return;
                     }
-                    setShippingAddress({
-                      ...shippingAddress,
-                      street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
-                      city: pickupPoint.Ville,
-                      zip: pickupPoint.CP,
-                      country: pickupPoint.Pays || "FR",
-                    });
-                    setStep("payment");
+                    void handleCreateOrder();
                   }}
-                  className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
+                  className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Continuer vers le paiement
-                  <ArrowRight size={13} />
+                  {loading ? "Préparation du paiement…" : <>Continuer vers le paiement <ArrowRight size={13} /></>}
                 </button>
               </>
             )}
 
             {step === "payment" && (
               <>
-                {/* Code promo */}
-                <Card eyebrow="Avantage" title="Code promo">
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                        placeholder="Entrez votre code"
-                        className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300 uppercase tracking-wider"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition pb-1"
-                    >
-                      Appliquer
-                    </button>
-                  </div>
-                </Card>
-
                 {/* Récapitulatif retrait */}
                 {pickupPoint && (
                   <Card eyebrow="Retrait" title="Votre point relais">
@@ -384,44 +550,78 @@ export default function CheckoutPage() {
                   </Card>
                 )}
 
-                {/* Mode de paiement (Stripe uniquement) */}
+                {/* Stripe Elements : carte bancaire */}
                 <Card eyebrow="Sécurisé" title="Paiement par carte">
-                  <div className="flex items-center gap-4 px-5 py-4 border border-[var(--brand-gold)] bg-[var(--brand-cream)]/50">
-                    <span className="w-10 h-10 rounded-full border border-[var(--brand-gold)] text-[var(--brand-gold)] flex items-center justify-center shrink-0">
-                      <CreditCard size={16} strokeWidth={1.5} />
-                    </span>
-                    <div>
-                      <p className="text-[12px] uppercase tracking-[0.2em] font-medium text-gray-900">
-                        Carte bancaire
-                      </p>
-                      <p className="font-serif italic text-[12px] text-gray-500 mt-0.5">
-                        Visa, Mastercard, Apple Pay, Google Pay · via Stripe
-                      </p>
-                    </div>
-                  </div>
-                  <p className="font-serif italic text-[12px] text-gray-400 mt-4 text-center">
-                    Vos informations bancaires sont traitées par Stripe et ne transitent jamais par nos serveurs.
+                  {!stripePromise && (
+                    <p className="font-serif italic text-[13px] text-red-600">
+                      Clé publique Stripe manquante (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY).
+                      Vérifiez votre fichier .env.local.
+                    </p>
+                  )}
+                  {stripePromise && clientSecret && (
+                    <Elements
+                      stripe={stripePromise}
+                      options={
+                        {
+                          clientSecret,
+                          appearance: {
+                            theme: "flat",
+                            variables: {
+                              colorPrimary: "#b08438",
+                              colorBackground: "#ffffff",
+                              colorText: "#111827",
+                              colorDanger: "#b91c1c",
+                              fontFamily: "ui-sans-serif, system-ui, sans-serif",
+                              borderRadius: "0px",
+                              spacingUnit: "4px",
+                            },
+                            rules: {
+                              ".Input": {
+                                border: "1px solid #e5e7eb",
+                                padding: "10px 12px",
+                              },
+                              ".Input:focus": {
+                                border: "1px solid #b08438",
+                                boxShadow: "none",
+                              },
+                              ".Label": {
+                                fontSize: "10px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3em",
+                                color: "#6b7280",
+                              },
+                            },
+                          },
+                        } as StripeElementsOptions
+                      }
+                    >
+                      <PaymentForm
+                        total={total}
+                        onSuccess={async () => {
+                          // Auto-connexion si le client a choisi un mot de passe
+                          // pendant le checkout. Best-effort : si ça échoue,
+                          // on passe quand même à la confirmation.
+                          if (accountReadyForLogin && password) {
+                            try {
+                              await signIn("credentials", {
+                                email,
+                                password,
+                                redirect: false,
+                              });
+                            } catch {
+                              // ignore
+                            }
+                          }
+                          setStep("confirmation");
+                        }}
+                        onBack={() => setStep("shipping")}
+                      />
+                    </Elements>
+                  )}
+                  <p className="font-serif italic text-[12px] text-gray-400 mt-6 text-center">
+                    Carte de test Stripe : 4242 4242 4242 4242 · n&apos;importe quelle date future · n&apos;importe quel CVC.
                   </p>
                 </Card>
-
-                {/* Actions */}
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setStep("shipping")}
-                    className="px-5 py-4 border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] hover:bg-[var(--brand-gold)]/5 transition"
-                  >
-                    <ArrowLeft size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePlaceOrder}
-                    disabled={loading}
-                    className="flex-1 inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
-                  >
-                    {loading ? "Paiement en cours…" : <>Payer {formatPrice(total)} <ArrowRight size={13} /></>}
-                  </button>
-                </div>
               </>
             )}
           </div>
@@ -607,5 +807,77 @@ function SummaryRow({
       <span>{label}</span>
       <span className={subdued ? "" : "text-gray-900"}>{value}</span>
     </div>
+  );
+}
+
+function PaymentForm({
+  total,
+  onSuccess,
+  onBack,
+}: {
+  total: number;
+  onSuccess: () => void;
+  onBack: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    // redirect: "if_required" : pour les cartes classiques on reste sur la page,
+    // seul un challenge 3DS provoque éventuellement une redirection.
+    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/checkout`,
+      },
+      redirect: "if_required",
+    });
+
+    if (stripeError) {
+      setError(stripeError.message || "Erreur lors du paiement");
+      setSubmitting(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === "succeeded") {
+      onSuccess();
+    } else {
+      setError("Paiement non finalisé. Merci de réessayer.");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      {error && (
+        <p className="text-[13px] text-red-600 font-serif italic">{error}</p>
+      )}
+      <div className="flex items-center gap-4 pt-2">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={submitting}
+          className="px-5 py-4 border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] hover:bg-[var(--brand-gold)]/5 transition disabled:opacity-60"
+        >
+          <ArrowLeft size={14} />
+        </button>
+        <button
+          type="submit"
+          disabled={!stripe || submitting}
+          className="flex-1 inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Paiement en cours…" : <>Payer {formatPrice(total)} <ArrowRight size={13} /></>}
+        </button>
+      </div>
+    </form>
   );
 }

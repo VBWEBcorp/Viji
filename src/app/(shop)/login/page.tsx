@@ -1,21 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { ArrowRight, Shield, User } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { ArrowRight } from "lucide-react";
+import { usePageTitle } from "@/lib/use-page-title";
 
 export default function LoginPage() {
+  usePageTitle("Connexion");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(
-    loginEmail: string,
-    loginPassword: string,
-    forceDestination?: string
-  ) {
+  async function handleLogin(loginEmail: string, loginPassword: string) {
     setError("");
     setLoading(true);
 
@@ -32,26 +30,20 @@ export default function LoginPage() {
         return;
       }
 
-      // If the caller knows the destination (admin button vs client button),
-      // use it directly to avoid a race condition with /api/auth/session in production.
-      let destination = forceDestination || "/";
-
-      // Manual form submit (no forced destination) → poll /api/auth/session
-      // briefly to determine the role.
-      if (!forceDestination) {
-        for (let i = 0; i < 5; i++) {
-          try {
-            const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
-            const session = await sessionRes.json();
-            if (session?.user?.role) {
-              destination = session.user.role === "admin" ? "/admin" : "/";
-              break;
-            }
-          } catch {
-            // ignore, retry
+      // Polling /api/auth/session pour récupérer le rôle (et router admin/client)
+      let destination = "/";
+      for (let i = 0; i < 5; i++) {
+        try {
+          const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+          const session = await sessionRes.json();
+          if (session?.user?.role) {
+            destination = session.user.role === "admin" ? "/admin" : "/account";
+            break;
           }
-          await new Promise((r) => setTimeout(r, 200));
+        } catch {
+          // ignore, retry
         }
+        await new Promise((r) => setTimeout(r, 200));
       }
 
       setLoading(false);
@@ -86,51 +78,6 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-10 py-10 sm:py-12">
-          {/* Demo logins */}
-          <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-4 text-center">
-            Accès démo
-          </p>
-          <div className="space-y-3 mb-10">
-            <button
-              type="button"
-              onClick={() => handleLogin("admin@demo.com", "demo1234", "/admin")}
-              disabled={loading}
-              className="group w-full flex items-center gap-4 px-4 py-3.5 bg-[var(--brand-gold)] text-white hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-50"
-            >
-              <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                <Shield size={15} strokeWidth={1.5} />
-              </div>
-              <div className="text-left flex-1">
-                <p className="text-[12px] uppercase tracking-[0.25em] font-medium">Connexion Admin</p>
-                <p className="text-[11px] text-white/70 font-serif italic mt-0.5">Accès au back-office</p>
-              </div>
-              <ArrowRight size={14} className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleLogin("client@demo.com", "demo1234", "/")}
-              disabled={loading}
-              className="group w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] hover:bg-[var(--brand-cream)] transition disabled:opacity-50"
-            >
-              <div className="w-9 h-9 rounded-full bg-[var(--brand-cream)] flex items-center justify-center shrink-0">
-                <User size={15} strokeWidth={1.5} />
-              </div>
-              <div className="text-left flex-1">
-                <p className="text-[12px] uppercase tracking-[0.25em] font-medium">Connexion Client</p>
-                <p className="text-[11px] text-gray-500 font-serif italic mt-0.5">Espace, commandes, favoris</p>
-              </div>
-              <ArrowRight size={14} className="text-[var(--brand-gold)]/50 group-hover:text-[var(--brand-gold)] group-hover:translate-x-1 transition-all" />
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="flex-1 h-px bg-[var(--brand-gold)]/20" />
-            <span className="font-serif italic text-sm text-gray-400">ou</span>
-            <div className="flex-1 h-px bg-[var(--brand-gold)]/20" />
-          </div>
-
           {error && (
             <div className="mb-6 px-4 py-3 border border-red-200 bg-red-50/50 text-red-700 text-[13px] font-serif italic text-center">
               {error}
@@ -177,20 +124,24 @@ export default function LoginPage() {
             >
               {loading ? "Connexion en cours…" : <>Se connecter <ArrowRight size={13} /></>}
             </button>
+
+            <div className="text-center pt-1">
+              <Link
+                href="/mot-de-passe-oublie"
+                className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-0.5 hover:border-[var(--brand-gold)] transition"
+              >
+                Mot de passe oublié&nbsp;?
+              </Link>
+            </div>
           </form>
         </div>
 
-        {/* Footer */}
+        {/* Footer — pas de lien d'inscription : un compte est créé automatiquement à la commande */}
         <div className="mt-10 text-center">
-          <p className="font-serif italic text-[15px] text-gray-600">
-            Pas encore de compte&nbsp;?
+          <p className="font-serif italic text-[13px] text-gray-500">
+            Pas encore de compte&nbsp;?<br />
+            Il sera créé automatiquement lors de votre première commande, et un email vous permettra de choisir votre mot de passe.
           </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center mt-3 text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
-          >
-            Créer un compte
-          </Link>
         </div>
       </div>
     </div>
