@@ -93,6 +93,23 @@ body {
 /* Smooth scroll */
 html { scroll-behavior: smooth; }
 
+/* Respect user motion preference: stop infinite/long animations,
+   reduce transition durations to imperceptible. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-reverse,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse {
+    animation: none !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Hide scrollbar on marquee */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

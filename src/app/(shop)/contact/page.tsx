@@ -42,8 +42,8 @@ export default function ContactPage() {
         <div className="md:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)] mb-10">
             <Image
-              src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=900&h=1100&fit=crop"
-              alt="Cuisine indienne"
+              src="https://i.ibb.co/F4318X0S/Ourka-citron.jpg"
+              alt="Ourka au citron"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 40vw"

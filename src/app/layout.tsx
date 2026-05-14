@@ -37,8 +37,15 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://i.ibb.co" crossOrigin="" />
+        <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+      </head>
       <body className="min-h-full flex flex-col">
         <Analytics />
         <Providers>{children}</Providers>

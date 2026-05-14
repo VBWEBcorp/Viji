@@ -2,16 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { getMarketing, type MarketingData } from "@/lib/marketingCache";
 
-interface PopupData {
-  isActive: boolean;
-  image: string;
-  title: string;
-  description: string;
-  buttonText: string;
-  buttonUrl: string;
-  delay: number;
-}
+type PopupData = NonNullable<MarketingData["popup"]>;
 
 const DISMISSED_KEY = "promo_popup_dismissed";
 
@@ -23,15 +16,12 @@ export default function PromoPopup() {
     // Ne pas afficher si déjà fermé dans cette session
     if (typeof window !== "undefined" && sessionStorage.getItem(DISMISSED_KEY)) return;
 
-    fetch("/api/marketing")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.popup?.isActive && data.popup?.title) {
-          setPopup(data.popup);
-          setTimeout(() => setVisible(true), (data.popup.delay || 5) * 1000);
-        }
-      })
-      .catch(() => {});
+    getMarketing().then((data) => {
+      if (data.popup?.isActive && data.popup?.title) {
+        setPopup(data.popup);
+        setTimeout(() => setVisible(true), (data.popup!.delay || 5) * 1000);
+      }
+    });
   }, []);
 
   function close() {

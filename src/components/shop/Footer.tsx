@@ -150,11 +150,15 @@ export default async function Footer() {
               Contact
             </Link>
           </div>
-          <div className="flex items-center gap-2">
-            <PaymentBadge label="VISA" />
-            <PaymentBadge label="MC" />
-            <PaymentBadge label="PayPal" />
-            <PaymentBadge label="Pay" />
+          <div
+            aria-label="Moyens de paiement acceptés"
+            className="flex items-center gap-2"
+          >
+            <PaymentBadge label="Visa"><VisaMark /></PaymentBadge>
+            <PaymentBadge label="Mastercard"><MastercardMark /></PaymentBadge>
+            <PaymentBadge label="Maestro"><MaestroMark /></PaymentBadge>
+            <PaymentBadge label="PayPal"><PaypalMark /></PaymentBadge>
+            <PaymentBadge label="Apple Pay"><ApplePayMark /></PaymentBadge>
           </div>
         </div>
       </div>
@@ -190,11 +194,115 @@ function FooterColumn({
   );
 }
 
-function PaymentBadge({ label }: { label: string }) {
+function PaymentBadge({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <span className="px-2.5 py-1 border border-gray-200 rounded text-[10px] font-semibold tracking-wider text-gray-500 bg-white">
-      {label}
+    <span
+      aria-label={label}
+      title={label}
+      className="inline-flex items-center justify-center w-10 h-7 border border-gray-200 rounded bg-white shrink-0"
+    >
+      {children}
     </span>
+  );
+}
+
+/* ───────── Marques de paiement ───────── */
+
+function VisaMark() {
+  return (
+    <svg
+      viewBox="0 0 64 22"
+      className="h-3 w-auto"
+      aria-hidden="true"
+    >
+      <text
+        x="32"
+        y="17"
+        textAnchor="middle"
+        fontFamily="Geist, Arial, sans-serif"
+        fontWeight="900"
+        fontStyle="italic"
+        fontSize="20"
+        letterSpacing="0.5"
+        fill="#1A1F71"
+      >
+        VISA
+      </text>
+    </svg>
+  );
+}
+
+function MastercardMark() {
+  return (
+    <svg viewBox="0 0 36 22" className="h-4 w-auto" aria-hidden="true">
+      <circle cx="14" cy="11" r="8" fill="#EB001B" />
+      <circle cx="22" cy="11" r="8" fill="#F79E1B" />
+      <path
+        d="M18 5.4a8 8 0 0 1 0 11.2 8 8 0 0 1 0-11.2Z"
+        fill="#FF5F00"
+      />
+    </svg>
+  );
+}
+
+function MaestroMark() {
+  return (
+    <svg viewBox="0 0 36 22" className="h-4 w-auto" aria-hidden="true">
+      <circle cx="14" cy="11" r="8" fill="#0099DF" />
+      <circle cx="22" cy="11" r="8" fill="#ED0006" />
+      <path
+        d="M18 5.4a8 8 0 0 1 0 11.2 8 8 0 0 1 0-11.2Z"
+        fill="#6C6BBD"
+      />
+    </svg>
+  );
+}
+
+function PaypalMark() {
+  return (
+    <svg viewBox="0 0 64 18" className="h-3 w-auto" aria-hidden="true">
+      <text
+        x="32"
+        y="14"
+        textAnchor="middle"
+        fontFamily="Geist, Arial, sans-serif"
+        fontWeight="800"
+        fontStyle="italic"
+        fontSize="14"
+        letterSpacing="-0.3"
+      >
+        <tspan fill="#003087">Pay</tspan>
+        <tspan fill="#009CDE">Pal</tspan>
+      </text>
+    </svg>
+  );
+}
+
+function ApplePayMark() {
+  return (
+    <svg viewBox="0 0 50 22" className="h-3.5 w-auto" aria-hidden="true">
+      {/* Apple logo */}
+      <path
+        d="M11.6 6.4c-.6.7-1.5 1.2-2.4 1.2-.1-.9.3-1.8.9-2.4.6-.7 1.5-1.2 2.3-1.3.1.9-.3 1.8-.8 2.5Zm.8.9c-1.3 0-2.4.7-3 .7-.7 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.4 2.4-.4 6 1 7.9.7.9 1.5 2 2.5 2 1 0 1.4-.6 2.6-.6 1.2 0 1.6.6 2.6.6 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.1-.8-2.1-3.2 0-2 1.6-3 1.7-3-.9-1.4-2.4-1.5-2.8-1.5Z"
+        fill="#000"
+      />
+      <text
+        x="22"
+        y="15"
+        fontFamily="Geist, Arial, sans-serif"
+        fontWeight="600"
+        fontSize="11"
+        fill="#000"
+      >
+        Pay
+      </text>
+    </svg>
   );
 }
 
