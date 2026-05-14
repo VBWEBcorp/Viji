@@ -124,7 +124,6 @@ export default function PressSection() {
                     src={PORTRAIT_SRC}
                     alt="Viji Tinot dans sa cuisine"
                     fill
-                    quality={95}
                     className="object-cover group-hover:scale-[1.04] transition-transform duration-[1400ms] ease-out"
                     sizes="(max-width: 768px) 60vw, 420px"
                   />

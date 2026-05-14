@@ -94,7 +94,8 @@ export default function Header() {
               width={240}
               height={96}
               priority
-              className="h-16 sm:h-20 w-auto object-contain"
+              className="h-16 sm:h-20 object-contain"
+              style={{ width: "auto" }}
             />
           </Link>
 
@@ -228,7 +229,8 @@ function MobileDrawer({
               alt="Entre Maman et Moi"
               width={140}
               height={56}
-              className="h-14 w-auto object-contain"
+              className="h-14 object-contain"
+              style={{ width: "auto" }}
             />
             <p className="mt-2 text-[10px] uppercase tracking-[0.45em] text-gray-400">
               Navigation

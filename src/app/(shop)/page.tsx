@@ -7,6 +7,7 @@ import YouTubeShort from "@/components/shop/YouTubeShort";
 import HeroSection from "@/components/shop/HeroSection";
 import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
+import PressLogoBar from "@/components/shop/PressLogoBar";
 
 export const metadata = {
   title: "Entre Maman et Moi · Kits culinaires indiens & ateliers",
@@ -58,6 +59,9 @@ export default async function HomePage() {
     <div className="bg-white">
       {/* ── HERO + BANDEAU INTERACTIF ──────────────────────────── */}
       <HeroSection images={ATMOSPHERE} />
+
+      {/* ── BANDE LOGOS PRESSE ─────────────────────────────────── */}
+      <PressLogoBar />
 
       {/* ── 3 KITS — cartes monumentales ───────────────────────── */}
       <section className="py-24 md:py-36">
@@ -138,7 +142,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden py-32 md:py-44">
         {/* Decorative bowls — slow rotation + scroll-driven tilt */}
         <div className="pointer-events-none absolute -left-12 top-12 md:-left-20 md:top-24 w-40 h-40 md:w-56 md:h-56 opacity-25 scroll-roll">
-          <div className="w-full h-full animate-spin-slow">
+          <div className="relative w-full h-full animate-spin-slow">
             <Image
               src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
               alt=""
@@ -149,7 +153,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="pointer-events-none absolute -right-10 bottom-10 md:-right-16 md:bottom-20 w-32 h-32 md:w-48 md:h-48 opacity-20 scroll-roll">
-          <div className="w-full h-full animate-spin-slow-reverse">
+          <div className="relative w-full h-full animate-spin-slow-reverse">
             <Image
               src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
               alt=""
@@ -256,7 +260,7 @@ export default async function HomePage() {
       <section className="relative bg-[var(--brand-cream)]/60 py-24 md:py-36 overflow-hidden">
         {/* Bols décoratifs en rotation lente, en fond */}
         <div className="pointer-events-none absolute -left-16 top-12 md:-left-24 md:top-20 w-44 h-44 md:w-64 md:h-64 opacity-15">
-          <div className="w-full h-full animate-spin-slow">
+          <div className="relative w-full h-full animate-spin-slow">
             <Image
               src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
               alt=""
@@ -267,7 +271,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="pointer-events-none absolute -right-16 bottom-12 md:-right-20 md:bottom-20 w-36 h-36 md:w-52 md:h-52 opacity-15">
-          <div className="w-full h-full animate-spin-slow-reverse">
+          <div className="relative w-full h-full animate-spin-slow-reverse">
             <Image
               src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
               alt=""
@@ -334,7 +338,9 @@ export default async function HomePage() {
       </section>
 
       {/* ── VU DANS LA PRESSE ──────────────────────────────────── */}
-      <PressSection />
+      <div id="presse" className="scroll-mt-20">
+        <PressSection />
+      </div>
 
       {/* ── AVIS GOOGLE ─────────────────────────────────────────── */}
       <section className="py-24 md:py-32 overflow-hidden">
