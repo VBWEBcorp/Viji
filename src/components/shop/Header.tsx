@@ -37,8 +37,21 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    let ticking = false;
+    let last = window.scrollY > 20;
+    setScrolled(last);
+
     function onScroll() {
-      setScrolled(window.scrollY > 20);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const next = window.scrollY > 20;
+        if (next !== last) {
+          last = next;
+          setScrolled(next);
+        }
+        ticking = false;
+      });
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);

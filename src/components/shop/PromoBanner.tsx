@@ -2,29 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { getMarketing, type MarketingData } from "@/lib/marketingCache";
 
-interface BannerData {
-  isActive: boolean;
-  text: string;
-  backgroundColor: string;
-  textColor: string;
-  linkUrl: string;
-  speed: number;
-}
+type BannerData = NonNullable<MarketingData["banner"]>;
 
 export default function PromoBanner() {
   const [banner, setBanner] = useState<BannerData | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    fetch("/api/marketing")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.banner?.isActive && data.banner?.text) {
-          setBanner(data.banner);
-        }
-      })
-      .catch(() => {});
+    getMarketing().then((data) => {
+      if (data.banner?.isActive && data.banner?.text) {
+        setBanner(data.banner);
+      }
+    });
   }, []);
 
   if (!banner || dismissed) return null;
