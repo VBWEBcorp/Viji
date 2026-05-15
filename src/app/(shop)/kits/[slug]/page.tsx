@@ -225,7 +225,7 @@ export default async function KitCategoryPage({
               <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
             ))}
           </span>
-          <span className="text-[12px]">5,0 · 27 avis Google</span>
+          <span className="text-[12px]">5,0 · 18 avis Google</span>
         </div>
       </div>
     </div>

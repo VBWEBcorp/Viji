@@ -196,7 +196,7 @@ export default async function HomePage() {
             </h2>
             <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
             <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
-              À domicile, en collectif ou avec un chef privé. Trois formules, un même esprit&nbsp;: la transmission.
+              À domicile, en collectif ou avec une cheffe privée. Trois formules, un même esprit&nbsp;: la transmission.
             </p>
             <Link
               href="/ateliers"
@@ -223,7 +223,7 @@ export default async function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-center">
           {/* Image encadrée */}
           <div className="md:col-span-6 lg:col-span-7 order-1 flex justify-center md:justify-start">
-            <FramedMedia caption="Plats du moment · à Melesse" rotate="rotate-[0.6deg]" maxW="max-w-[420px] sm:max-w-[480px]">
+            <FramedMedia rotate="rotate-[0.6deg]" maxW="max-w-[420px] sm:max-w-[480px]">
               <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)]">
                 <Image
                   src="https://i.ibb.co/tTqdZjjS/Citronade-indienne.jpg"
@@ -247,7 +247,7 @@ export default async function HomePage() {
             </h2>
             <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
             <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
-              Click &amp; Collect à Melesse pour vos plats du moment. Devis sur mesure pour vos événements.
+              Click &amp; Collect à Vern-sur-Seiche pour vos plats du moment. Devis sur mesure pour vos événements.
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3">
               <Link
@@ -371,7 +371,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <span className="text-[13px] font-medium text-gray-900">5,0</span>
-              <span className="text-[12px] text-gray-400">· 27 avis</span>
+              <span className="text-[12px] text-gray-400">· 18 avis</span>
             </div>
           </div>
         </div>
@@ -465,7 +465,7 @@ function FramedMedia({
   maxW,
 }: {
   children: React.ReactNode;
-  caption: string;
+  caption?: string;
   rotate: string;
   maxW: string;
 }) {
@@ -487,9 +487,11 @@ function FramedMedia({
         }}
       >
         {children}
-        <p className="font-serif italic text-[12px] sm:text-[13px] text-gray-500 text-center mt-3">
-          {caption}
-        </p>
+        {caption && (
+          <p className="font-serif italic text-[12px] sm:text-[13px] text-gray-500 text-center mt-3">
+            {caption}
+          </p>
+        )}
       </div>
     </div>
   );

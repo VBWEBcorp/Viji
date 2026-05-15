@@ -22,7 +22,7 @@ export default async function Footer() {
     { href: settings?.social?.facebook || "#", label: "Facebook", Icon: FacebookIcon },
     { href: settings?.social?.instagram || "#", label: "Instagram", Icon: InstagramIcon },
     { href: settings?.social?.tiktok || "#", label: "TikTok", Icon: TikTokIcon },
-    { href: "#", label: "YouTube", Icon: YoutubeIcon },
+    { href: settings?.social?.youtube || "#", label: "YouTube", Icon: YoutubeIcon },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default async function Footer() {
         {/* Centered brand */}
         <div className="text-center mb-16 md:mb-20">
           <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-6">
-            À Melesse · cuisine indienne maison
+            À Vern-sur-Seiche · cuisine indienne maison
           </p>
           <Link href="/" className="inline-block" aria-label={shopName}>
             <Image
@@ -65,7 +65,7 @@ export default async function Footer() {
             links={[
               { href: "/ateliers/a-domicile", label: "Atelier à domicile" },
               { href: "/ateliers/collectif", label: "Atelier collectif" },
-              { href: "/ateliers/chef-prive", label: "Chef privé à domicile" },
+              { href: "/ateliers/chef-prive", label: "Cheffe privée à domicile" },
               { href: "/traiteur/emporter", label: "Traiteur à emporter" },
               { href: "/traiteur/evenementiel", label: "Traiteur événementiel" },
             ]}
@@ -81,9 +81,9 @@ export default async function Footer() {
                   Adresse
                 </p>
                 <p>
-                  Rue du Val
+                  3 rue de la Libération
                   <br />
-                  35520 Melesse · France
+                  35770 Vern-sur-Seiche · France
                 </p>
               </div>
               <div>
@@ -91,10 +91,10 @@ export default async function Footer() {
                   Email
                 </p>
                 <a
-                  href="mailto:contact@entre-maman-et-moi.fr"
+                  href="mailto:entremamanetmoicook@gmail.com"
                   className="hover:text-[var(--brand-gold)] transition border-b border-transparent hover:border-[var(--brand-gold)]/40"
                 >
-                  contact@entre-maman-et-moi.fr
+                  entremamanetmoicook@gmail.com
                 </a>
               </div>
               <div>

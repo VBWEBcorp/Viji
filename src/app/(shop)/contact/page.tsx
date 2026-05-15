@@ -11,10 +11,10 @@ const INFO = [
   {
     Icon: Mail,
     label: "Email",
-    value: "contact@entre-maman-et-moi.fr",
-    href: "mailto:contact@entre-maman-et-moi.fr",
+    value: "entremamanetmoicook@gmail.com",
+    href: "mailto:entremamanetmoicook@gmail.com",
   },
-  { Icon: MapPin, label: "Lieu", value: "Rue du Val, 35520 Melesse, France" },
+  { Icon: MapPin, label: "Lieu", value: "3 rue de la Libération, 35770 Vern-sur-Seiche" },
   { Icon: Clock, label: "Réponse", value: "Sous 48h en moyenne" },
 ];
 

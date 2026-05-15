@@ -46,6 +46,7 @@ export interface ISiteSettings extends Document {
     instagram?: string;
     twitter?: string;
     tiktok?: string;
+    youtube?: string;
   };
   legal: {
     siret?: string;
@@ -121,6 +122,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       instagram: { type: String },
       twitter: { type: String },
       tiktok: { type: String },
+      youtube: { type: String },
     },
     legal: {
       siret: { type: String },

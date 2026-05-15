@@ -49,6 +49,7 @@ interface Settings {
     instagram: string;
     twitter: string;
     tiktok: string;
+    youtube: string;
   };
   legal: {
     siret: string;
@@ -100,7 +101,7 @@ const defaultSettings: Settings = {
   },
   analytics: { googleAnalyticsId: "", plausibleDomain: "", metaPixelId: "", customHeadScript: "" },
   integrations: { formspreeId: "" },
-  social: { facebook: "", instagram: "", twitter: "", tiktok: "" },
+  social: { facebook: "", instagram: "", twitter: "", tiktok: "", youtube: "" },
   legal: { siret: "", tva: "", rcs: "", capital: "", legalForm: "" },
   apiKeys: {
     stripeSecretKey: "",
@@ -203,6 +204,7 @@ export default function AdminSettingsPage() {
               instagram: data.social?.instagram || "",
               twitter: data.social?.twitter || "",
               tiktok: data.social?.tiktok || "",
+              youtube: data.social?.youtube || "",
             },
             legal: {
               siret: data.legal?.siret || "",
@@ -347,7 +349,7 @@ export default function AdminSettingsPage() {
             <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
               <h2 className="text-[15px] font-semibold text-gray-900">Reseaux sociaux</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(["facebook", "instagram", "twitter", "tiktok"] as const).map((n) => (
+                {(["facebook", "instagram", "twitter", "tiktok", "youtube"] as const).map((n) => (
                   <div key={n}>
                     <label className="block text-[13px] font-medium text-gray-600 mb-1.5 capitalize">{n}</label>
                     <input type="url" value={settings.social[n]}

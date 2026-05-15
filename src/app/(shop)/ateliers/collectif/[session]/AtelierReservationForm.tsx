@@ -1,28 +1,34 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Check, Calendar, MapPin } from "lucide-react";
+
+type Occurrence = {
+  date: string;
+  schedule: string;
+  location: string;
+};
 
 interface Props {
-  productId?: string;
-  productName: string;
-  /** Slug logique de l'atelier (utilisé dans l'email reçu par Viji). */
-  atelierSlug?: string;
+  sessionSlug: string;
+  sessionTitle: string;
+  occurrences: Occurrence[];
 }
 
-/**
- * Réservation d'atelier (à domicile, etc.) par email.
- * Pas de cart / checkout / Mondial Relay : l'atelier n'a pas besoin
- * d'expédition. La cliente paye sur place ou par virement après confirmation.
- */
-export default function AtelierForm({ productName, atelierSlug }: Props) {
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+export default function AtelierReservationForm({
+  sessionSlug,
+  sessionTitle,
+  occurrences,
+}: Props) {
+  const hasMultiple = occurrences.length > 1;
 
+  // Sélection visuelle : index numérique de l'occurrence choisie.
+  // Présélectionne la 1re si une seule option, sinon laisse vide pour forcer un choix.
+  const [occIndex, setOccIndex] = useState<number | null>(hasMultiple ? null : 0);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
-  const [participants, setParticipants] = useState(2);
+  const [participants, setParticipants] = useState(1);
   const [notes, setNotes] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -33,18 +39,28 @@ export default function AtelierForm({ productName, atelierSlug }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
+    if (occIndex === null) {
+      setError("Choisissez une date.");
+      return;
+    }
+
+    const chosen = occurrences[occIndex];
+    if (!chosen) {
+      setError("Date / lieu invalide.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const res = await fetch("/api/ateliers/reservation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionSlug: atelierSlug || "atelier-a-domicile",
-          sessionTitle: productName,
-          sessionDate: preferredDate
-            ? `Date souhaitée : ${preferredDate}`
-            : "Date à convenir",
+          sessionSlug,
+          sessionTitle,
+          sessionDate: `${chosen.date} · ${chosen.schedule}`,
+          sessionLocation: chosen.location,
           name,
           phone,
           email,
@@ -75,10 +91,10 @@ export default function AtelierForm({ productName, atelierSlug }: Props) {
           <Check size={20} strokeWidth={1.5} />
         </div>
         <p className="font-serif italic text-[18px] text-gray-800 mb-2">
-          Demande envoyée
+          Demande de réservation envoyée
         </p>
         <p className="text-[13px] text-gray-600 max-w-md mx-auto leading-relaxed">
-          Je reviens vers vous rapidement pour confirmer la date et les détails.
+          Je reviens vers vous très vite pour confirmer votre participation et les détails pratiques.
         </p>
       </div>
     );
@@ -103,6 +119,71 @@ export default function AtelierForm({ productName, atelierSlug }: Props) {
         </div>
       )}
 
+      {/* Sélecteur de date — dropdown WooCommerce-style */}
+      <div>
+        <label
+          htmlFor="atelier-date"
+          className="block text-[13px] font-medium text-gray-800 mb-2"
+        >
+          Date :
+          <span className="text-[var(--brand-gold)] ml-1">*</span>
+        </label>
+        <div className="relative">
+          <select
+            id="atelier-date"
+            required
+            value={occIndex === null ? "" : String(occIndex)}
+            onChange={(e) =>
+              setOccIndex(e.target.value === "" ? null : parseInt(e.target.value, 10))
+            }
+            className="appearance-none w-full bg-white border border-gray-300 px-4 py-3 pr-10 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-2 focus:ring-[var(--brand-gold)]/20 outline-none transition rounded-sm"
+          >
+            <option value="">Choisir une option</option>
+            {occurrences.map((o, i) => (
+              <option key={i} value={String(i)}>
+                {o.date} – {o.location}
+              </option>
+            ))}
+          </select>
+          {/* Chevron custom (since appearance-none) */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+          >
+            ▾
+          </span>
+        </div>
+
+        {/* Récap visuel sous le select une fois la date choisie */}
+        {occIndex !== null && occurrences[occIndex] && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-gray-700">
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar size={13} strokeWidth={1.7} className="text-[var(--brand-gold)]" />
+              {occurrences[occIndex].date} · {occurrences[occIndex].schedule}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin size={13} strokeWidth={1.7} className="text-[var(--brand-gold)]" />
+              {occurrences[occIndex].location}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+          Nombre de personnes <span className="text-[var(--brand-gold)] ml-1">*</span>
+        </label>
+        <input
+          type="number"
+          required
+          min={1}
+          max={20}
+          value={participants}
+          onChange={(e) => setParticipants(parseInt(e.target.value, 10) || 1)}
+          className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="Nom complet" required value={name} onChange={setName} placeholder="Prénom Nom" autoComplete="name" />
         <Field label="Téléphone" type="tel" required value={phone} onChange={setPhone} placeholder="06 ..." autoComplete="tel" />
@@ -110,45 +191,15 @@ export default function AtelierForm({ productName, atelierSlug }: Props) {
 
       <Field label="Email (optionnel)" type="email" value={email} onChange={setEmail} placeholder="vous@exemple.com" autoComplete="email" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
-            Date souhaitée
-          </label>
-          <input
-            type="date"
-            min={today}
-            value={preferredDate}
-            onChange={(e) => setPreferredDate(e.target.value)}
-            className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
-          />
-        </div>
-
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
-            Nombre de participants <span className="text-[var(--brand-gold)] ml-1">*</span>
-          </label>
-          <input
-            type="number"
-            required
-            min={1}
-            max={20}
-            value={participants}
-            onChange={(e) => setParticipants(parseInt(e.target.value, 10) || 1)}
-            className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"
-          />
-        </div>
-      </div>
-
       <div>
         <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
-          Allergies, restrictions ou notes (optionnel)
+          Notes / allergies (optionnel)
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
-          placeholder="Indiquez vos allergies, intolérances, ou toute information utile."
+          placeholder="Précisez vos restrictions, allergies, ou questions particulières."
           className="w-full px-3 py-3 bg-transparent border border-gray-200 text-[14px] text-gray-800 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300 leading-relaxed"
         />
       </div>
@@ -158,7 +209,7 @@ export default function AtelierForm({ productName, atelierSlug }: Props) {
         disabled={submitting}
         className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {submitting ? "Envoi en cours…" : <>Demander ma réservation <ArrowRight size={13} /></>}
+        {submitting ? "Envoi en cours…" : <>Réserver ma place <ArrowRight size={13} /></>}
       </button>
     </form>
   );

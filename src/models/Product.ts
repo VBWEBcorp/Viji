@@ -42,6 +42,10 @@ export interface IProduct extends Document {
   tags: string[];
   isActive: boolean;
   isFeatured: boolean;
+  /** Section dans une carte traiteur (Entrée, Plats, Boissons…). */
+  section?: string;
+  /** Ordre d'affichage dans la section (croissant). */
+  sectionOrder?: number;
   seo: {
     metaTitle?: string;
     metaDescription?: string;
@@ -108,6 +112,8 @@ const ProductSchema = new Schema<IProduct>(
     tags: [{ type: String, trim: true }],
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
+    section: { type: String, trim: true, index: true },
+    sectionOrder: { type: Number, default: 0 },
     seo: {
       metaTitle: { type: String },
       metaDescription: { type: String },

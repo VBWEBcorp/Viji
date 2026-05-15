@@ -30,7 +30,7 @@ const KIT_LINKS = [
 const ATELIER_LINKS = [
   { href: "/ateliers/a-domicile", label: "À domicile", tagline: "Entre proches" },
   { href: "/ateliers/collectif", label: "Atelier collectif", tagline: "Rencontre" },
-  { href: "/ateliers/chef-prive", label: "Chef privé", tagline: "Sur mesure" },
+  { href: "/ateliers/chef-prive", label: "Cheffe privée", tagline: "Sur mesure" },
 ];
 
 const TRAITEUR_LINKS = [
@@ -501,7 +501,7 @@ function MobileDrawer({
 
           <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-gray-400">
             <a
-              href="mailto:contact@entremamanetmoi.fr"
+              href="mailto:entremamanetmoicook@gmail.com"
               className="flex items-center gap-1.5 hover:text-[var(--brand-gold)] transition"
             >
               <Mail size={12} strokeWidth={1.5} />

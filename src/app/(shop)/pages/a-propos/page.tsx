@@ -51,16 +51,6 @@ export default function AboutPage() {
                 />
               </div>
 
-              {/* Bowl decorative overlay (bottom-left) */}
-              <div className="absolute -bottom-2 -left-2 sm:-bottom-4 sm:-left-4 w-32 sm:w-40 md:w-44 aspect-square pointer-events-none drop-shadow-2xl">
-                <Image
-                  src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
-                  alt=""
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 8rem, 11rem"
-                />
-              </div>
             </div>
           </div>
 
@@ -110,11 +100,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── L'EXPÉRIENCE BOX ─────────────────────────────────── */}
+      {/* ── L'EXPÉRIENCE KITS ────────────────────────────────── */}
       <section className="py-14 md:py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-6 text-center">
-            Les box
+            Les kits
           </p>
           <h2 className="font-serif text-3xl md:text-5xl text-gray-900 leading-[1.1] mb-12 text-center">
             Une invitation au{" "}
@@ -141,7 +131,7 @@ export default function AboutPage() {
               href="/kits/decouverte"
               className="inline-flex items-center gap-3 bg-[var(--brand-gold)] text-white px-8 py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition"
             >
-              Voir les box
+              Voir les kits
               <ArrowRight size={13} />
             </Link>
           </div>
@@ -153,7 +143,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mb-12" />
           <p className="font-serif italic text-2xl md:text-4xl text-gray-900 leading-[1.3] mb-8">
-            Entre Maman et Moi, ce n&apos;est pas seulement une box ou un
+            Entre Maman et Moi, ce n&apos;est pas seulement un kit ou un
             atelier&nbsp;: c&apos;est une{" "}
             <span className="text-[var(--brand-gold)] not-italic">
               histoire de transmission

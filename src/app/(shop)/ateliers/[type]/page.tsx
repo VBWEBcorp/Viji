@@ -41,36 +41,15 @@ const TYPES: Record<string, AtelierConfig> = {
     ],
     defaultPrice: 6000,
   },
-  collectif: {
-    title: "Atelier collectif",
-    eyebrow: "Atelier",
-    intro:
-      "Une session conviviale dans une cuisine partagée. Ingrédients, épices, matériel et tablier sont fournis. Vous repartez avec les gestes, les épices et le sourire.",
-    image: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=1200&h=1500&fit=crop",
-    videoId: "xdbz0OvLut4",
-    program: [
-      { title: "Atelier ouvert à plusieurs participants", body: "Une session conviviale dans notre cuisine partagée. Tout est fourni." },
-      { title: "Menu de la session", body: "Poulet aux pommes de terre avec son riz au citron, raita oignon et lassi salé." },
-      { title: "Au programme", body: "Épices essentielles (curcuma, cumin), bases classiques, cuisson lente, astuces maison." },
-      { title: "Moment convivial", body: "Dégustation sur place, partage avec les autres participants." },
-      { title: "Enfants", body: "Gratuit jusqu'à 6 ans." },
-      { title: "Option emporter", body: "Si vous ne finissez pas sur place, vous emportez vos plats." },
-      { title: "Adaptations", body: "Allergies et intolérances à préciser à la réservation." },
-    ],
-    practical: [
-      { label: "Prochaine session", value: "Date à venir" },
-      { label: "Horaires", value: "10h – 12h30" },
-      { label: "Lieu", value: "Noblessa Cuisines, Melesse (35)" },
-    ],
-    defaultPrice: 6000,
-  },
+  // "collectif" est désormais géré par /ateliers/collectif (liste de
+  // sessions individuelles), il n'est plus une route [type] dynamique.
   "chef-prive": {
-    title: "Chef privé à domicile",
+    title: "Cheffe privée à domicile",
     eyebrow: "Service",
     intro:
       "Vous recevez, je m'occupe de tout. Menu indien sur mesure, service complet, cuisine laissée propre.",
     image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&h=1500&fit=crop",
-    videoId: "iOiZLd2s9KU",
+    videoId: "WcYWmnDoy6M",
     program: [
       { title: "Je cuisine pour vous", body: "Service traiteur à domicile : vous recevez, je m'occupe de tout en cuisine." },
       { title: "Menu personnalisé", body: "Nous définissons ensemble un menu indien adapté à vos goûts et à votre événement." },
@@ -287,7 +266,11 @@ export default async function AtelierTypePage({ params }: { params: Promise<{ ty
                 </Link>
               </div>
             ) : (
-              <AtelierForm productId={atelier?._id} productName={data.title} />
+              <AtelierForm
+                productId={atelier?._id}
+                productName={data.title}
+                atelierSlug={`atelier-${type}`}
+              />
             )}
           </div>
         </div>

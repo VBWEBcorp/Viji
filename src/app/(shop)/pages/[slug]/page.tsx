@@ -14,7 +14,7 @@ const COMPANY = {
   vat: "FR15953254406",
   ape: "4791B (Vente à distance sur catalogue spécialisé)",
   address: "3 rue de la Libération, 35770 Vern-sur-Seiche, France",
-  email: "contact@entre-maman-et-moi.fr",
+  email: "entremamanetmoicook@gmail.com",
   phone: "",
   director: "Viji Tinot",
   hostingName: "Vercel Inc.",

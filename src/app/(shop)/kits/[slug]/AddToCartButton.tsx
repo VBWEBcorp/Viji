@@ -21,7 +21,7 @@ interface Props {
 
 const METHOD_LABELS: Record<DeliveryMethod, { label: string; sub: string; Icon: typeof Truck }> = {
   "mondial-relay": { label: "Mondial Relay", sub: "Livraison en point relais", Icon: Truck },
-  "click-collect": { label: "Click & Collect", sub: "Retrait à Melesse", Icon: Store },
+  "click-collect": { label: "Click & Collect", sub: "Retrait à Vern-sur-Seiche", Icon: Store },
 };
 
 export default function AddToCartButton({ product, methods = ["mondial-relay", "click-collect"] }: Props) {

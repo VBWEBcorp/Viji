@@ -4,6 +4,8 @@ import Product from "@/models/Product";
 import SiteSettings from "@/models/SiteSettings";
 import User from "@/models/User";
 import BlogPost from "@/models/BlogPost";
+import AtelierSession from "@/models/AtelierSession";
+import { SESSIONS as ATELIER_SESSIONS } from "./ateliers-collectifs";
 
 const BLOG_POSTS = [
   {
@@ -409,7 +411,7 @@ const PRODUCTS: ProductSeed[] = [
     name: "Atelier Cuisine Indienne",
     slug: "atelier-cuisine-indienne",
     shortDescription: "Une expérience conviviale et entièrement guidée. Tout est fourni : ingrédients, épices, matériel et tablier.",
-    description: "<p><strong>Une expérience conviviale et entièrement guidée !</strong></p><p>Participez à un atelier complet où tout est fourni : <strong>ingrédients, épices, matériel et tablier</strong>. Sous ma guidance, vous découvrirez les secrets de la cuisine indienne, les techniques fondamentales et l'équilibre des saveurs.</p><h3>Menu de la session</h3><p>Poulet aux pommes de terre avec son riz au citron accompagné d'un raita oignon et d'un lassi salé.</p><h3>Au programme</h3><p>Apprentissage des épices essentielles (curcuma, cumin etc.), préparation de bases classiques, cuisson lente et astuces pour reproduire les plats chez vous.</p><h3>Moment convivial</h3><p>Dégustation du repas sur place, partage et échange avec les autres participants dans une ambiance chaleureuse.</p><h3>Participation des enfants</h3><p>Gratuite pour les enfants de 6 ans et moins.</p><h3>Option emporter</h3><p>Si vous ne pouvez pas finir le repas sur place, vous pouvez emporter vos plats dans vos propres contenants.</p><h3>Adaptations alimentaires</h3><p>Gestion des allergies courantes (à préciser à la réservation).</p><h3>Date prochaine session</h3><p>DATE À VENIR</p><h3>Horaires</h3><p>10H – 12H30</p><h3>Lieu</h3><p>Noblessa Cuisines, Rue du Val, 35520 Melesse — France</p>",
+    description: "<p><strong>Une expérience conviviale et entièrement guidée !</strong></p><p>Participez à un atelier complet où tout est fourni : <strong>ingrédients, épices, matériel et tablier</strong>. Sous ma guidance, vous découvrirez les secrets de la cuisine indienne, les techniques fondamentales et l'équilibre des saveurs.</p><h3>Menu de la session</h3><p>Poulet aux pommes de terre avec son riz au citron accompagné d'un raita oignon et d'un lassi salé.</p><h3>Au programme</h3><p>Apprentissage des épices essentielles (curcuma, cumin etc.), préparation de bases classiques, cuisson lente et astuces pour reproduire les plats chez vous.</p><h3>Moment convivial</h3><p>Dégustation du repas sur place, partage et échange avec les autres participants dans une ambiance chaleureuse.</p><h3>Participation des enfants</h3><p>Gratuite pour les enfants de 6 ans et moins.</p><h3>Option emporter</h3><p>Si vous ne pouvez pas finir le repas sur place, vous pouvez emporter vos plats dans vos propres contenants.</p><h3>Adaptations alimentaires</h3><p>Gestion des allergies courantes (à préciser à la réservation).</p><h3>Date prochaine session</h3><p>DATE À VENIR</p><h3>Horaires</h3><p>10H – 12H30</p><h3>Lieu</h3><p>Adresse à venir (région rennaise)</p>",
     price: 6000,
     categorySlug: "ateliers",
     image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=900&h=1100&fit=crop",
@@ -418,10 +420,63 @@ const PRODUCTS: ProductSeed[] = [
   },
 ];
 
+async function ensureAtelierSessions() {
+  const count = await AtelierSession.countDocuments();
+  if (count > 0) {
+    // Reseed minimal : si une session du fichier n'est pas en base, on l'ajoute.
+    for (let i = 0; i < ATELIER_SESSIONS.length; i++) {
+      const s = ATELIER_SESSIONS[i];
+      const exists = await AtelierSession.findOne({ slug: s.slug }).lean();
+      if (!exists) {
+        await AtelierSession.create({ ...s, order: i, isActive: true });
+        console.log(`[db] Added missing atelier session: ${s.slug}`);
+      }
+    }
+
+    // Migration des anciens documents : si occurrences est vide alors qu'on a
+    // les champs legacy date/schedule/location au root, on les transforme en
+    // une seule occurrence. Permet l'évolution multi-lieux sans wipe.
+    const legacyDocs = await AtelierSession.find({
+      $or: [{ occurrences: { $exists: false } }, { occurrences: { $size: 0 } }],
+    }).lean();
+    for (const doc of legacyDocs) {
+      if (doc.date && doc.schedule && doc.location) {
+        await AtelierSession.updateOne(
+          { _id: doc._id },
+          {
+            $set: {
+              occurrences: [
+                {
+                  date: doc.date,
+                  dateISO: doc.dateISO,
+                  schedule: doc.schedule,
+                  location: doc.location,
+                },
+              ],
+            },
+          }
+        );
+        console.log(`[db] Migrated atelier session to occurrences: ${doc.slug}`);
+      }
+    }
+    return;
+  }
+
+  await AtelierSession.insertMany(
+    ATELIER_SESSIONS.map((s, i) => ({
+      ...s,
+      order: i,
+      isActive: true,
+    }))
+  );
+  console.log("[db] Seeded atelier sessions.");
+}
+
 export async function ensureDevSeed(_uri: string) {
   if (process.env.NODE_ENV === "production") return;
 
   await ensureBlogPosts();
+  await ensureAtelierSessions();
 
   const existing = await Category.countDocuments();
   if (existing > 0) {
@@ -445,6 +500,19 @@ export async function ensureDevSeed(_uri: string) {
         }
       );
     }
+    // Propage les nouveaux champs social (ex. youtube) vers le document
+    // SiteSettings déjà existant sans écraser les autres réglages.
+    await SiteSettings.updateOne(
+      {},
+      {
+        $set: {
+          "social.youtube": "https://www.youtube.com/@EntreMamanetMoi",
+          contactEmail: "entremamanetmoicook@gmail.com",
+          address: "3 rue de la Libération, 35770 Vern-sur-Seiche, France",
+        },
+      },
+      { upsert: false }
+    );
     console.log("[db] Synced seed data on existing dev DB.");
     return;
   }
@@ -480,7 +548,7 @@ export async function ensureDevSeed(_uri: string) {
     shopName: "Entre Maman et Moi",
     shopDescription:
       "Box culinaires indiennes et ateliers de cuisine. Voyagez au cœur de l'Inde depuis votre cuisine.",
-    contactEmail: "contact@entre-maman-et-moi.fr",
+    contactEmail: "entremamanetmoicook@gmail.com",
     contactPhone: "",
     address: "3 rue de la Libération, 35770 Vern-sur-Seiche, France",
     currency: "EUR",
@@ -500,6 +568,7 @@ export async function ensureDevSeed(_uri: string) {
       facebook: "https://facebook.com/",
       instagram: "https://instagram.com/",
       tiktok: "https://tiktok.com/",
+      youtube: "https://www.youtube.com/@EntreMamanetMoi",
     },
     legal: {
       siret: "95325440600028",

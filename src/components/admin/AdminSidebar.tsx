@@ -20,12 +20,14 @@ import {
   PenSquare,
   Mail,
   Megaphone,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Produits", icon: Package },
+  { href: "/admin/ateliers", label: "Ateliers", icon: CalendarDays },
   { href: "/admin/orders", label: "Commandes", icon: ShoppingCart },
   { href: "/admin/customers", label: "Clients", icon: Users },
   { href: "/admin/reviews", label: "Avis", icon: Star },
