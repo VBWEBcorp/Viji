@@ -6,7 +6,12 @@ import { connectDB } from "@/lib/db";
 export default async function Footer() {
   let settings: {
     shopName?: string;
-    social?: { facebook?: string; instagram?: string; tiktok?: string };
+    social?: {
+      facebook?: string;
+      instagram?: string;
+      tiktok?: string;
+      youtube?: string;
+    };
   } | null = null;
   try {
     await connectDB();

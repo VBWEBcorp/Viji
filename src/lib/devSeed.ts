@@ -414,7 +414,7 @@ const PRODUCTS: ProductSeed[] = [
     description: "<p><strong>Une expérience conviviale et entièrement guidée !</strong></p><p>Participez à un atelier complet où tout est fourni : <strong>ingrédients, épices, matériel et tablier</strong>. Sous ma guidance, vous découvrirez les secrets de la cuisine indienne, les techniques fondamentales et l'équilibre des saveurs.</p><h3>Menu de la session</h3><p>Poulet aux pommes de terre avec son riz au citron accompagné d'un raita oignon et d'un lassi salé.</p><h3>Au programme</h3><p>Apprentissage des épices essentielles (curcuma, cumin etc.), préparation de bases classiques, cuisson lente et astuces pour reproduire les plats chez vous.</p><h3>Moment convivial</h3><p>Dégustation du repas sur place, partage et échange avec les autres participants dans une ambiance chaleureuse.</p><h3>Participation des enfants</h3><p>Gratuite pour les enfants de 6 ans et moins.</p><h3>Option emporter</h3><p>Si vous ne pouvez pas finir le repas sur place, vous pouvez emporter vos plats dans vos propres contenants.</p><h3>Adaptations alimentaires</h3><p>Gestion des allergies courantes (à préciser à la réservation).</p><h3>Date prochaine session</h3><p>DATE À VENIR</p><h3>Horaires</h3><p>10H – 12H30</p><h3>Lieu</h3><p>Adresse à venir (région rennaise)</p>",
     price: 6000,
     categorySlug: "ateliers",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=900&h=1100&fit=crop",
+    image: "https://i.ibb.co/qLvzCsJS/Viji.jpg",
     servings: "Sur place",
     contents: "Atelier 2h30, tout fourni",
   },
