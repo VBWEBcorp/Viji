@@ -20,7 +20,7 @@ export default function HeroSection({ images }: Props) {
   return (
     <>
       {/* HERO PLEIN ÉCRAN */}
-      <section className="relative h-[88vh] min-h-[600px] overflow-hidden">
+      <section className="relative h-[70vh] min-h-[460px] sm:h-[80vh] sm:min-h-[540px] md:h-[88vh] md:min-h-[600px] overflow-hidden">
         {images.map((img, i) => (
           <div
             key={img.src}

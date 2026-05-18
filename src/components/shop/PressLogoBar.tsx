@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 type Logo = {
   name: string;
@@ -15,10 +16,10 @@ const LOGOS: Logo[] = [
     Mark: OuestFranceMark,
   },
   {
-    name: "L'essentiel",
-    href: "https://www.lessentiel.fr/rennes/entreprises/2026-03-31/pres-de-rennes-des-box-culinaires-uniques-en-france-dediees-la",
-    external: true,
-    Mark: LessentielMark,
+    name: "Actu Rennes",
+    href: "#presse",
+    external: false,
+    Mark: ActuRennesMark,
   },
 ];
 
@@ -71,38 +72,27 @@ export default function PressLogoBar() {
 
 function OuestFranceMark() {
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="bg-[#e2231a] text-white px-1.5 py-0.5 leading-[0.95]">
-        <p className="font-sans font-extrabold text-[12px] tracking-tight">
-          ouest
-        </p>
-        <p className="font-sans font-extrabold text-[12px] tracking-tight">
-          france
-        </p>
-      </div>
-      <svg
-        viewBox="0 0 40 40"
-        className="w-6 h-6 text-[#e2231a]"
-        aria-hidden="true"
-      >
-        <g fill="currentColor">
-          <path d="M20 4 a16 16 0 0 1 16 16 h-5 a11 11 0 0 0 -11 -11 z" />
-          <path d="M36 20 a16 16 0 0 1 -16 16 v-5 a11 11 0 0 0 11 -11 z" />
-          <path d="M20 36 a16 16 0 0 1 -16 -16 h5 a11 11 0 0 0 11 11 z" />
-        </g>
-        <circle cx="20" cy="20" r="3" fill="currentColor" />
-      </svg>
-    </div>
+    <Image
+      src="https://i.ibb.co/PvNPqYJp/Ouest-france.png"
+      alt="Ouest France"
+      width={200}
+      height={80}
+      className="h-7 sm:h-8 md:h-9 w-auto object-contain"
+      unoptimized
+    />
   );
 }
 
-function LessentielMark() {
+function ActuRennesMark() {
   return (
-    <span
-      className="font-serif italic text-[26px] sm:text-[28px] md:text-[30px] leading-none tracking-tight text-gray-900"
-      style={{ fontWeight: 600 }}
-    >
-      L<span className="text-[#c0282d]">’</span>essentiel
-    </span>
+    <Image
+      src="https://i.ibb.co/pq7xWvp/Actu-Rennes.webp"
+      alt="Actu Rennes"
+      width={280}
+      height={120}
+      className="h-12 sm:h-14 md:h-16 w-auto object-contain"
+      unoptimized
+    />
   );
 }
+

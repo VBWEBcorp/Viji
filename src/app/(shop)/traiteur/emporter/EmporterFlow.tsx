@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Minus, Plus, X, ClipboardList } from "lucide-react";
-import toast from "react-hot-toast";
 
 export type Dish = {
   _id: string;
@@ -89,7 +88,7 @@ export default function EmporterFlow({ items }: Props) {
         [dish._id]: { dish, qty: existing ? existing.qty + 1 : 1 },
       };
     });
-    toast.success(`${dish.name} ajouté`, { duration: 1500 });
+    // Plus de toast — le récap sticky en bas fait office de feedback visuel.
   }
 
   function incQty(id: string) {
@@ -572,22 +571,22 @@ export default function EmporterFlow({ items }: Props) {
         </div>
       </section>
 
-      {/* ── Barre flottante mobile : récap commande + CTA ──────────
-          N'apparaît que sur mobile (sm: cachée) et uniquement quand
-          au moins un plat est sélectionné. */}
+      {/* ── Barre flottante de récap : visible mobile ET desktop
+          dès qu'au moins un plat est sélectionné. Au clic, scroll vers
+          le formulaire en bas de page. */}
       {!done && selectionCount > 0 && (
         <>
           {/* Espace en bas pour ne pas masquer le dernier contenu */}
-          <div aria-hidden className="sm:hidden h-20" />
+          <div aria-hidden className="h-20" />
 
           <div
-            className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-[var(--brand-gold)]/30 shadow-[0_-10px_30px_-15px_rgba(60,40,15,0.25)] animate-slide-up-fade"
+            className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-[var(--brand-gold)]/30 shadow-[0_-10px_30px_-15px_rgba(60,40,15,0.25)] animate-slide-up-fade"
             style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
           >
             <button
               type="button"
               onClick={scrollToReservation}
-              className="w-full flex items-center justify-between gap-3 px-4 pt-3 pb-3 text-left active:scale-[0.99] transition"
+              className="w-full max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-6 pt-3 pb-3 text-left active:scale-[0.99] transition"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="relative w-10 h-10 bg-[var(--brand-gold)] text-white flex items-center justify-center shrink-0">
@@ -601,12 +600,12 @@ export default function EmporterFlow({ items }: Props) {
                     Ma sélection
                   </p>
                   <p className="font-serif text-[16px] text-gray-900 leading-none">
-                    {formatEUR(selectionTotal)}
+                    {selectionCount} {selectionCount > 1 ? "plats" : "plat"} · {formatEUR(selectionTotal)}
                   </p>
                 </div>
               </div>
 
-              <span className="inline-flex items-center gap-1.5 bg-[var(--brand-gold)] text-white px-4 py-2.5 text-[11px] uppercase tracking-[0.22em] font-medium shrink-0">
+              <span className="inline-flex items-center gap-1.5 bg-[var(--brand-gold)] text-white px-4 sm:px-5 py-2.5 sm:py-3 text-[11px] uppercase tracking-[0.22em] font-medium shrink-0 hover:bg-[var(--brand-gold-dark)] transition">
                 Réserver
                 <ArrowRight size={12} strokeWidth={2} />
               </span>

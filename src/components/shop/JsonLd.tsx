@@ -113,13 +113,20 @@ export function OrganizationJsonLd({
   email?: string;
   phone?: string;
   address?: string;
-  social?: { facebook?: string; instagram?: string; twitter?: string; tiktok?: string };
+  social?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    tiktok?: string;
+    youtube?: string;
+  };
 }) {
   const sameAs = [
     social?.facebook,
     social?.instagram,
     social?.twitter,
     social?.tiktok,
+    social?.youtube,
   ].filter(Boolean);
 
   const jsonLd: Record<string, unknown> = {
