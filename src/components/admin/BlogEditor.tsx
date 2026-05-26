@@ -2,22 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Eye, Upload, Tag, X } from "lucide-react";
+import { Save, Eye, Upload, Tag, X } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 import SeoPanel from "./SeoPanel";
+import { GoldButton, GhostButton } from "@/components/admin/ui";
 import { generateSlug } from "@/lib/utils";
 
 const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
   ssr: false,
   loading: () => (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-      <div className="h-12 bg-gray-50 border-b border-gray-100" />
-      <div className="h-[400px] animate-pulse bg-gray-50" />
+    <div className="border border-[var(--brand-gold)]/20 overflow-hidden bg-white">
+      <div className="h-12 bg-[var(--brand-cream)]/30 border-b border-[var(--brand-gold)]/15" />
+      <div className="h-[400px] animate-pulse bg-[var(--brand-cream)]/40" />
     </div>
   ),
 });
+
+const fieldCls =
+  "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
 
 interface BlogEditorProps {
   initialData?: {
@@ -171,49 +175,40 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+    <div className="pb-24 sm:pb-0">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7 sm:mb-9">
+        <div className="min-w-0">
           <Link
             href="/admin/blog"
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+            className="inline-block text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-2"
           >
-            <ArrowLeft size={18} />
+            ← Retour
           </Link>
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              {isEditing ? "Modifier l'article" : "Nouvel article"}
-            </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
-              Redigez et optimisez votre article pour le referencement
-            </p>
-          </div>
+          <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1]">
+            {isEditing ? "Modifier l'article" : "Nouvel article"}
+          </h1>
+          <p className="text-[13px] text-gray-500 mt-2">
+            Redigez et optimisez votre article pour le referencement
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Actions — masquées sur mobile (barre collante en bas), visibles dès sm */}
+        <div className="hidden sm:flex flex-wrap items-center gap-2.5 shrink-0">
           {slug && (
             <Link
               href={`/blog/${slug}`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+              className="inline-flex items-center justify-center gap-2 border border-[var(--brand-gold)]/25 text-gray-600 text-[11px] uppercase tracking-[0.25em] font-medium px-4 py-2.5 hover:text-[var(--brand-gold)] hover:border-[var(--brand-gold)]/50 transition"
             >
               <Eye size={14} /> Apercu
             </Link>
           )}
-          <button
-            onClick={() => handleSave(false)}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition disabled:opacity-50"
-          >
+          <GhostButton onClick={() => handleSave(false)} disabled={saving}>
             <Save size={14} /> Brouillon
-          </button>
-          <button
-            onClick={() => handleSave(true)}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition disabled:opacity-50"
-          >
+          </GhostButton>
+          <GoldButton onClick={() => handleSave(true)} disabled={saving}>
             {saving ? "Sauvegardé..." : isPublished ? "Mettre a jour" : "Publier"}
-          </button>
+          </GoldButton>
         </div>
       </div>
 
@@ -221,13 +216,13 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
         {/* Main content — left 2/3 */}
         <div className="lg:col-span-2 space-y-6">
           {/* Title */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Titre de l'article"
-              className="w-full text-2xl font-bold text-gray-900 placeholder:text-gray-300 outline-none border-none bg-transparent"
+              className="w-full font-serif text-2xl sm:text-3xl text-gray-900 placeholder:text-gray-300 outline-none border-none bg-transparent"
             />
           </div>
 
@@ -235,9 +230,9 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
           <RichTextEditor content={content} onChange={setContent} />
 
           {/* Excerpt */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[13px] font-medium text-gray-600">
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[12px] font-medium text-gray-600">
                 Extrait / chapeau
               </label>
               <span className="text-[11px] text-gray-400">{excerpt.length}/500</span>
@@ -248,7 +243,7 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
               placeholder="Resume de l'article affiche dans les listes et les partages sociaux..."
               maxLength={500}
               rows={3}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+              className={`${fieldCls} leading-relaxed`}
             />
           </div>
 
@@ -270,31 +265,31 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
         {/* Sidebar — right 1/3 */}
         <div className="space-y-6">
           {/* Cover Image */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-3">Image de couverture</h3>
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
+            <h3 className="font-serif text-lg text-gray-900 mb-3">Image de couverture</h3>
             {coverImage ? (
               <div className="relative mb-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={coverImage}
                   alt="Couverture"
-                  className="w-full aspect-[16/9] object-cover rounded-xl border border-gray-100"
+                  className="w-full aspect-[16/9] object-cover border border-[var(--brand-gold)]/15"
                 />
                 <button
                   onClick={() => setCoverImage("")}
-                  className="absolute top-2 right-2 bg-white/90 backdrop-blur p-1.5 rounded-lg text-gray-500 hover:text-red-500 transition shadow-sm"
+                  className="absolute top-2 right-2 bg-white/90 backdrop-blur p-1.5 text-gray-500 hover:text-red-500 transition shadow-sm"
                 >
                   <X size={14} />
                 </button>
               </div>
             ) : null}
-            <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition">
+            <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-[var(--brand-gold)]/25 cursor-pointer hover:border-[var(--brand-gold)]/45 hover:bg-[var(--brand-cream)]/40 transition">
               <div className="text-center">
                 {uploading ? (
                   <p className="text-[12px] text-gray-400">Upload...</p>
                 ) : (
                   <>
-                    <Upload size={20} className="mx-auto text-gray-300 mb-1" />
+                    <Upload size={20} className="mx-auto text-[var(--brand-gold)]/40 mb-1" />
                     <p className="text-[12px] text-gray-400">1200x630px recommande</p>
                   </>
                 )}
@@ -310,21 +305,21 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
           </div>
 
           {/* Category */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-3">Categorie</h3>
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
+            <h3 className="font-serif text-lg text-gray-900 mb-3">Categorie</h3>
             <input
               type="text"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="Ex: Conseils, Actualites, Guides..."
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+              className={fieldCls}
             />
           </div>
 
           {/* Tags */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-3">
-              <Tag size={14} className="inline mr-1" />
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
+            <h3 className="font-serif text-lg text-gray-900 mb-3 flex items-center gap-1.5">
+              <Tag size={15} className="text-[var(--brand-gold)]" />
               Tags
             </h3>
             <div className="flex gap-2 mb-2">
@@ -339,12 +334,12 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
                   }
                 }}
                 placeholder="Ajouter un tag..."
-                className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                className={fieldCls}
               />
               <button
                 type="button"
                 onClick={addTag}
-                className="px-3 py-2 bg-gray-100 rounded-xl text-sm text-gray-600 hover:bg-gray-200 transition"
+                className="px-4 border border-[var(--brand-gold)]/25 text-gray-600 hover:text-[var(--brand-gold)] hover:border-[var(--brand-gold)]/50 transition shrink-0"
               >
                 +
               </button>
@@ -354,7 +349,7 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-1 text-[12px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg"
+                    className="inline-flex items-center gap-1 text-[12px] bg-[var(--brand-cream)]/60 text-[var(--brand-gold-dark)] px-2.5 py-1"
                   >
                     #{tag}
                     <button
@@ -370,14 +365,14 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
           </div>
 
           {/* Publication Status */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-3">Publication</h3>
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6">
+            <h3 className="font-serif text-lg text-gray-900 mb-3">Publication</h3>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={isPublished}
                 onChange={(e) => setIsPublished(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300"
+                className="w-4 h-4 accent-[var(--brand-gold)]"
               />
               <div>
                 <span className="text-sm font-medium text-gray-700">
@@ -392,6 +387,16 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
             </label>
           </div>
         </div>
+      </div>
+
+      {/* Barre d'action — collante en bas sur mobile */}
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-20 px-4 py-3 bg-[var(--brand-cream)]/90 backdrop-blur border-t border-[var(--brand-gold)]/15 flex items-stretch gap-2.5">
+        <GhostButton onClick={() => handleSave(false)} disabled={saving} className="flex-1">
+          <Save size={14} /> Brouillon
+        </GhostButton>
+        <GoldButton onClick={() => handleSave(true)} disabled={saving} className="flex-1">
+          {saving ? "..." : isPublished ? "Mettre a jour" : "Publier"}
+        </GoldButton>
       </div>
     </div>
   );

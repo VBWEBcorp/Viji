@@ -6,10 +6,10 @@ const BlogEditor = dynamic(() => import("@/components/admin/BlogEditor"), {
   ssr: false,
   loading: () => (
     <div>
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">Nouvel article</h1>
+      <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 mb-6">Nouvel article</h1>
       <div className="animate-pulse space-y-4">
-        <div className="h-12 bg-gray-100 rounded-2xl" />
-        <div className="h-64 bg-gray-100 rounded-2xl" />
+        <div className="h-12 bg-[var(--brand-cream)]/60" />
+        <div className="h-64 bg-[var(--brand-cream)]/60" />
       </div>
     </div>
   ),

@@ -216,7 +216,7 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           <button
             type="button"
             onClick={addOccurrence}
-            className="inline-flex items-center gap-1.5 text-[12px] text-gray-600 hover:text-gray-900 transition"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] transition"
           >
             <Plus size={14} /> Ajouter une date
           </button>
@@ -232,7 +232,7 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           {data.occurrences.map((o, i) => (
             <div
               key={i}
-              className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50/40 relative"
+              className="border border-[var(--brand-gold)]/15 p-4 space-y-3 bg-[var(--brand-cream)]/30 relative"
             >
               <button
                 type="button"
@@ -242,6 +242,9 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
               >
                 <Trash2 size={15} />
               </button>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--brand-gold-dark)] font-medium">
+                Date {i + 1}
+              </p>
               <Row>
                 <Field
                   label="Date affichée"
@@ -305,7 +308,7 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           <button
             type="button"
             onClick={addProgram}
-            className="inline-flex items-center gap-1.5 text-[12px] text-gray-600 hover:text-gray-900 transition"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] transition"
           >
             <Plus size={14} /> Ajouter
           </button>
@@ -331,7 +334,7 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           <button
             type="button"
             onClick={addNote}
-            className="inline-flex items-center gap-1.5 text-[12px] text-gray-600 hover:text-gray-900 transition"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] transition"
           >
             <Plus size={14} /> Ajouter
           </button>
@@ -357,7 +360,7 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
             type="checkbox"
             checked={data.isActive}
             onChange={(e) => update("isActive", e.target.checked)}
-            className="w-4 h-4 accent-gray-900"
+            className="w-4 h-4 accent-[var(--brand-gold)]"
           />
           <span className="text-[14px] text-gray-700">Session visible sur le site public</span>
         </label>
@@ -371,19 +374,19 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
         </div>
       </Card>
 
-      {/* Bouton submit */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      {/* Barre d'action — collante en bas sur mobile pour rester accessible */}
+      <div className="sticky bottom-0 -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-2 bg-[var(--brand-cream)]/80 sm:bg-transparent backdrop-blur sm:backdrop-blur-none border-t border-[var(--brand-gold)]/15 sm:border-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2.5">
         <button
           type="button"
           onClick={() => router.push("/admin/ateliers")}
-          className="px-5 py-2.5 text-[13px] text-gray-600 hover:text-gray-900 transition"
+          className="px-5 py-3 sm:py-2.5 text-[11px] uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--brand-gold)] transition border border-[var(--brand-gold)]/25 sm:border-0 text-center"
         >
           Annuler
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 text-[13px] font-medium rounded-lg hover:bg-gray-800 transition disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 bg-[var(--brand-gold)] text-white px-6 py-3 sm:py-2.5 text-[11px] uppercase tracking-[0.25em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
         >
           <Save size={15} />
           {submitting ? "Enregistrement…" : isEdit ? "Mettre à jour" : "Créer la session"}
@@ -405,15 +408,18 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold text-gray-900">{title}</h2>
+    <section className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-[var(--brand-gold)]/10">
+        <h2 className="font-serif text-lg text-gray-900">{title}</h2>
         {action}
       </div>
       {children}
     </section>
   );
 }
+
+const fieldCls =
+  "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
 
 function Row({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>;
@@ -446,7 +452,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
-        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+        className={fieldCls}
       />
     </div>
   );
@@ -479,7 +485,7 @@ function Textarea({
         required={required}
         placeholder={placeholder}
         rows={rows}
-        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300 leading-relaxed"
+        className={`${fieldCls} leading-relaxed`}
       />
     </div>
   );

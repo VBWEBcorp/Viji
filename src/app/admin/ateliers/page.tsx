@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { CalendarDays, Plus, Pencil, Trash2, Eye, EyeOff, MapPin } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageHeader, Card, Badge, GoldButton, EmptyState } from "@/components/admin/ui";
 
 type Occurrence = {
   date: string;
@@ -18,9 +19,7 @@ type Session = {
   shortTitle: string;
   title: string;
   image: string;
-  /** Liste des date+lieu (nouveau modèle). */
   occurrences?: Occurrence[];
-  /** Champs legacy (anciens documents non encore migrés). */
   date?: string;
   schedule?: string;
   location?: string;
@@ -35,6 +34,10 @@ function getOccurrences(s: Session): Occurrence[] {
     return [{ date: s.date, schedule: s.schedule, location: s.location }];
   }
   return [];
+}
+
+function uniqueLocations(occs: Occurrence[]): string[] {
+  return Array.from(new Set(occs.map((o) => o.location).filter(Boolean)));
 }
 
 function formatEUR(cents: number) {
@@ -84,140 +87,224 @@ export default function AdminAteliersPage() {
     }
   }
 
+  const activeCount = sessions.filter((s) => s.isActive).length;
+
   return (
-    <div className="px-4 sm:px-6 py-6 max-w-6xl mx-auto">
-      <div className="flex items-end justify-between mb-7">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-2">Ateliers</p>
-          <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
-            <CalendarDays size={22} className="text-gray-400" />
-            Sessions atelier collectif
-          </h1>
-          <p className="text-[13px] text-gray-500 mt-2">
-            Ajoutez, modifiez ou masquez les sessions qui s&apos;affichent sur la page publique.
-          </p>
-        </div>
-        <Link
-          href="/admin/ateliers/new"
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 text-[13px] font-medium rounded-lg hover:bg-gray-800 transition"
-        >
-          <Plus size={15} /> Nouvelle session
-        </Link>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="Ateliers"
+        title="Sessions collectives"
+        subtitle={
+          loading
+            ? undefined
+            : `${sessions.length} session${sessions.length > 1 ? "s" : ""} · ${activeCount} visible${activeCount > 1 ? "s" : ""} sur le site`
+        }
+      >
+        <GoldButton href="/admin/ateliers/new">
+          <Plus size={14} /> Nouvelle session
+        </GoldButton>
+      </PageHeader>
 
       {loading ? (
-        <p className="text-gray-500">Chargement…</p>
+        <Card className="p-12 text-center text-gray-400 text-sm">Chargement…</Card>
       ) : sessions.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-16 text-center">
-          <p className="text-gray-700 mb-3">Aucune session pour le moment.</p>
-          <Link href="/admin/ateliers/new" className="text-[var(--brand-gold)] font-medium underline">
-            Créer la première session
-          </Link>
-        </div>
+        <Card>
+          <EmptyState
+            icon={<CalendarDays size={18} strokeWidth={1.5} />}
+            title="Aucune session pour le moment"
+            description="Créez votre première session d'atelier collectif."
+            action={
+              <GoldButton href="/admin/ateliers/new">
+                <Plus size={14} /> Créer une session
+              </GoldButton>
+            }
+          />
+        </Card>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <table className="w-full text-[14px]">
-            <thead className="bg-gray-50 border-b border-gray-200 text-left text-[12px] uppercase tracking-wider text-gray-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Session</th>
-                <th className="px-4 py-3 font-medium">Date</th>
-                <th className="px-4 py-3 font-medium">Lieu</th>
-                <th className="px-4 py-3 font-medium text-right">Prix</th>
-                <th className="px-4 py-3 font-medium">Statut</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {sessions.map((s) => (
-                <tr key={s._id} className={s.isActive ? "" : "opacity-60"}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {s.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={s.image} alt={s.shortTitle} className="w-12 h-12 object-cover rounded" />
-                      )}
-                      <div>
-                        <p className="font-medium text-gray-900">{s.shortTitle}</p>
-                        <p className="text-[12px] text-gray-500 truncate max-w-xs">{s.title}</p>
+        <>
+          {/* Desktop : tableau */}
+          <Card className="overflow-hidden hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[var(--brand-gold)]/15">
+                    {["Session", "Dates", "Lieu", "Prix", "Statut", ""].map((h, i) => (
+                      <th
+                        key={i}
+                        className={`px-5 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] ${i === 3 ? "text-right" : i === 5 ? "text-right" : "text-left"}`}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--brand-gold)]/10">
+                  {sessions.map((s) => {
+                    const occs = getOccurrences(s);
+                    const locs = uniqueLocations(occs);
+                    return (
+                      <tr
+                        key={s._id}
+                        className={`hover:bg-[var(--brand-cream)]/40 transition-colors ${s.isActive ? "" : "opacity-55"}`}
+                      >
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            {s.image && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={s.image} alt={s.shortTitle} className="w-12 h-12 object-cover shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{s.shortTitle}</p>
+                              <p className="text-[12px] text-gray-400 truncate max-w-[260px]">{s.title}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-gray-700">
+                          {occs.length === 0 ? (
+                            <span className="text-gray-400 italic text-[13px]">Aucune date</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <p className="text-[13px]">{occs[0].date}</p>
+                                <p className="text-[12px] text-gray-400">{occs[0].schedule}</p>
+                              </div>
+                              {occs.length > 1 && <Badge tone="gold">+{occs.length - 1}</Badge>}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-[13px] text-gray-700">
+                          {locs.length === 0 ? (
+                            <span className="text-gray-400">—</span>
+                          ) : locs.length === 1 ? (
+                            locs[0]
+                          ) : (
+                            <>
+                              {locs[0]}
+                              <span className="block text-[12px] text-gray-400">
+                                +{locs.length - 1} autre{locs.length - 1 > 1 ? "s" : ""}
+                              </span>
+                            </>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-right font-serif text-[15px] text-gray-900">
+                          {formatEUR(s.price)}
+                        </td>
+                        <td className="px-5 py-4">
+                          <Badge tone={s.isActive ? "green" : "gray"}>
+                            {s.isActive ? "Active" : "Masquée"}
+                          </Badge>
+                        </td>
+                        <td className="px-5 py-4 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => toggleActive(s)}
+                            className="p-2 text-gray-400 hover:text-[var(--brand-gold)] transition"
+                            title={s.isActive ? "Masquer" : "Afficher"}
+                          >
+                            {s.isActive ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                          <Link
+                            href={`/admin/ateliers/${s.slug}`}
+                            className="inline-flex p-2 text-gray-400 hover:text-[var(--brand-gold)] transition"
+                            title="Modifier"
+                          >
+                            <Pencil size={15} />
+                          </Link>
+                          <button
+                            onClick={() => deleteSession(s)}
+                            className="p-2 text-gray-400 hover:text-red-600 transition"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Mobile : cartes */}
+          <div className="md:hidden space-y-3">
+            {sessions.map((s) => {
+              const occs = getOccurrences(s);
+              const locs = uniqueLocations(occs);
+              return (
+                <Card key={s._id} className={`overflow-hidden ${s.isActive ? "" : "opacity-60"}`}>
+                  <div className="flex gap-3 p-4">
+                    {s.image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.image} alt={s.shortTitle} className="w-16 h-16 object-cover shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-serif text-[16px] text-gray-900 leading-tight">{s.shortTitle}</p>
+                        <span className="font-serif text-[15px] text-gray-900 shrink-0">{formatEUR(s.price)}</span>
+                      </div>
+                      <div className="mt-2">
+                        <Badge tone={s.isActive ? "green" : "gray"}>
+                          {s.isActive ? "Active" : "Masquée"}
+                        </Badge>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {(() => {
-                      const occs = getOccurrences(s);
-                      if (occs.length === 0) {
-                        return <span className="text-gray-400 italic">Aucune date</span>;
-                      }
-                      const first = occs[0];
-                      return (
-                        <>
-                          {first.date}
-                          <br />
-                          <span className="text-[12px] text-gray-400">{first.schedule}</span>
-                          {occs.length > 1 && (
-                            <span className="ml-2 inline-block bg-[var(--brand-gold)]/15 text-[var(--brand-gold)] text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded">
-                              +{occs.length - 1}
-                            </span>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {(() => {
-                      const occs = getOccurrences(s);
-                      const unique = Array.from(new Set(occs.map((o) => o.location)));
-                      if (unique.length === 0) return <span className="text-gray-400">—</span>;
-                      if (unique.length === 1) return unique[0];
-                      return (
-                        <>
-                          {unique[0]}
-                          <br />
-                          <span className="text-[12px] text-gray-400">+{unique.length - 1} autre{unique.length - 1 > 1 ? "s" : ""}</span>
-                        </>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-900 font-medium">{formatEUR(s.price)}</td>
-                  <td className="px-4 py-3">
-                    {s.isActive ? (
-                      <span className="inline-flex items-center gap-1 text-[12px] text-green-700 bg-green-50 px-2 py-0.5 rounded">
-                        Active
-                      </span>
+                  </div>
+
+                  {/* Dates & lieux */}
+                  <div className="px-4 pb-3 space-y-1.5">
+                    {occs.length === 0 ? (
+                      <p className="text-[13px] text-gray-400 italic">Aucune date programmée</p>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[12px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        Masquée
-                      </span>
+                      <>
+                        <div className="flex items-center gap-2 text-[13px] text-gray-700">
+                          <CalendarDays size={14} className="text-[var(--brand-gold)] shrink-0" />
+                          <span>
+                            {occs[0].date} · <span className="text-gray-400">{occs[0].schedule}</span>
+                          </span>
+                          {occs.length > 1 && <Badge tone="gold">+{occs.length - 1}</Badge>}
+                        </div>
+                        {locs.length > 0 && (
+                          <div className="flex items-center gap-2 text-[13px] text-gray-700">
+                            <MapPin size={14} className="text-[var(--brand-gold)] shrink-0" />
+                            <span className="truncate">
+                              {locs[0]}
+                              {locs.length > 1 && (
+                                <span className="text-gray-400"> +{locs.length - 1}</span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => toggleActive(s)}
-                      className="text-gray-500 hover:text-gray-900 p-1.5"
-                      title={s.isActive ? "Masquer" : "Afficher"}
-                    >
-                      {s.isActive ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
+                  </div>
+
+                  {/* Barre d'actions */}
+                  <div className="flex border-t border-[var(--brand-gold)]/15 divide-x divide-[var(--brand-gold)]/15">
                     <Link
                       href={`/admin/ateliers/${s.slug}`}
-                      className="text-gray-500 hover:text-gray-900 p-1.5 inline-block"
-                      title="Modifier"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 text-[12px] uppercase tracking-[0.15em] text-gray-600 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40 transition"
                     >
-                      <Pencil size={15} />
+                      <Pencil size={14} /> Modifier
                     </Link>
                     <button
-                      onClick={() => deleteSession(s)}
-                      className="text-gray-500 hover:text-red-600 p-1.5"
-                      title="Supprimer"
+                      onClick={() => toggleActive(s)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 text-[12px] uppercase tracking-[0.15em] text-gray-600 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40 transition"
                     >
-                      <Trash2 size={15} />
+                      {s.isActive ? <><EyeOff size={14} /> Masquer</> : <><Eye size={14} /> Afficher</>}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    <button
+                      onClick={() => deleteSession(s)}
+                      className="flex items-center justify-center gap-1.5 px-5 py-3 text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-red-600 hover:bg-red-50 transition"
+                      aria-label="Supprimer"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

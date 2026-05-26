@@ -19,6 +19,10 @@ import {
 import { formatPrice, formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
 import GiftCardVisual from "@/components/shop/GiftCardVisual";
+import { PageHeader, Card, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+
+const inputCls =
+  "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition";
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
@@ -28,10 +32,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  active: "bg-green-50 text-green-700",
-  used: "bg-gray-100 text-gray-500",
-  expired: "bg-amber-50 text-amber-700",
-  cancelled: "bg-red-50 text-red-600",
+  active: "border border-emerald-200 bg-emerald-50 text-emerald-700",
+  used: "border border-gray-200 bg-gray-50 text-gray-500",
+  expired: "border border-amber-200 bg-amber-50 text-amber-700",
+  cancelled: "border border-red-200 bg-red-50 text-red-600",
 };
 
 const TX_LABELS: Record<string, string> = {
@@ -131,34 +135,30 @@ export default function AdminGiftCardsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Cartes cadeaux</h1>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition"
-        >
-          <Plus size={18} /> Nouvelle carte
-        </button>
-      </div>
+      <PageHeader eyebrow="Boutique" title="Cartes cadeaux">
+        <GoldButton onClick={() => setShowCreate(true)}>
+          <Plus size={14} /> Nouvelle carte
+        </GoldButton>
+      </PageHeader>
 
       <GiftCardConfig />
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row gap-2.5 mb-5">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value.toUpperCase())}
             placeholder="Rechercher par code ou email…"
-            className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm"
+            className={`${inputCls} pl-10`}
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border rounded-lg text-sm bg-white"
+          className={`${inputCls} sm:w-48`}
         >
           <option value="">Tous les statuts</option>
           <option value="active">Actives</option>
@@ -169,48 +169,50 @@ export default function AdminGiftCardsPage() {
         <button
           onClick={() => fetchCards(pagination.page)}
           disabled={loading}
-          className="p-2.5 border rounded-lg text-gray-500 hover:text-gray-900 transition disabled:opacity-50"
+          className="p-2.5 border border-[var(--brand-gold)]/20 text-gray-500 hover:text-[var(--brand-gold)] transition disabled:opacity-50 shrink-0"
+          aria-label="Rafraîchir"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </button>
       </div>
 
       {/* Liste */}
-      <div className="bg-white rounded-xl border overflow-hidden">
+      <Card className="overflow-hidden">
         {loading && cards.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Chargement…</div>
+          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
         ) : cards.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <Gift className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-            Aucune carte cadeau.
-          </div>
+          <EmptyState
+            icon={<Gift size={18} strokeWidth={1.5} />}
+            title="Aucune carte cadeau"
+            description="Créez une carte cadeau ou activez la vente sur la boutique."
+          />
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-[var(--brand-gold)]/10">
             {cards.map((card) => (
-              <div key={card._id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+              <div key={card._id} className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-[var(--brand-cream)]/40 transition">
                 <div className="flex items-center gap-3 min-w-0">
                   <Gift className="w-5 h-5 text-[var(--brand-gold)] shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-medium text-sm">{card.code}</span>
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[card.status] || "bg-gray-100"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 font-medium uppercase tracking-[0.12em] ${STATUS_STYLES[card.status] || "border border-gray-200 bg-gray-50"}`}>
                         {STATUS_LABELS[card.status] || card.status}
                       </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
                       <span>Initial : {formatPrice(card.initialAmount)}</span>
                       <span>Solde : {formatPrice(card.balance)}</span>
-                      {card.recipient?.email && <span>{card.recipient.email}</span>}
+                      {card.recipient?.email && <span className="truncate max-w-[160px]">{card.recipient.email}</span>}
                       <span>{formatDate(card.createdAt)}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={() => openDetail(card)} className="p-1.5 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100" title="Détail">
+                  <button onClick={() => openDetail(card)} className="p-2 text-gray-400 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/60 transition" title="Détail">
                     <Eye className="w-4 h-4" />
                   </button>
                   {card.status === "active" && (
-                    <button onClick={() => cancelCard(card)} className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50" title="Annuler">
+                    <button onClick={() => cancelCard(card)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition" title="Annuler">
                       <Ban className="w-4 h-4" />
                     </button>
                   )}
@@ -219,7 +221,7 @@ export default function AdminGiftCardsPage() {
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Pagination */}
       {pagination.pages > 1 && (
@@ -227,7 +229,7 @@ export default function AdminGiftCardsPage() {
           <button
             onClick={() => fetchCards(pagination.page - 1)}
             disabled={pagination.page <= 1 || loading}
-            className="px-3 py-1.5 text-sm rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+            className="px-3 py-1.5 text-sm text-gray-600 hover:text-[var(--brand-gold)] disabled:opacity-40 transition"
           >
             ← Précédent
           </button>
@@ -235,7 +237,7 @@ export default function AdminGiftCardsPage() {
           <button
             onClick={() => fetchCards(pagination.page + 1)}
             disabled={pagination.page >= pagination.pages || loading}
-            className="px-3 py-1.5 text-sm rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+            className="px-3 py-1.5 text-sm text-gray-600 hover:text-[var(--brand-gold)] disabled:opacity-40 transition"
           >
             Suivant →
           </button>
@@ -299,23 +301,23 @@ function GiftCardConfig() {
   }
 
   return (
-    <div className="bg-white rounded-xl border mb-6 overflow-hidden">
+    <div className="bg-white border border-[var(--brand-gold)]/15 mb-6 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--brand-cream)]/40 transition"
       >
         <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-gray-500" />
+          <Settings className="w-4 h-4 text-[var(--brand-gold)]" />
           <span className="font-medium text-sm">Configuration</span>
           {!enabled && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Désactivé</span>
+            <span className="text-[10px] px-2 py-0.5 uppercase tracking-[0.12em] border border-gray-200 bg-gray-50 text-gray-500">Désactivé</span>
           )}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
 
       {open && (
-        <div className="px-5 pb-5 space-y-5 border-t">
+        <div className="px-5 pb-5 space-y-5 border-t border-[var(--brand-gold)]/15">
           {/* Toggle */}
           <div className="flex items-center justify-between pt-4">
             <div>
@@ -350,7 +352,7 @@ function GiftCardConfig() {
                       setDirty(true);
                     }}
                     placeholder="Label (ex : Découverte)"
-                    className="flex-1 px-3 py-1.5 border rounded-lg text-sm"
+                    className="flex-1 px-3 py-1.5 border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
                     maxLength={30}
                   />
                   <button
@@ -372,7 +374,7 @@ function GiftCardConfig() {
                   max={500}
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
-                  className="w-24 px-2 py-1.5 border rounded-lg text-sm"
+                  className="w-24 px-2 py-1.5 border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
                   placeholder="50"
                 />
               </div>
@@ -382,7 +384,7 @@ function GiftCardConfig() {
                   type="text"
                   value={newLabel}
                   onChange={(e) => setNewLabel(e.target.value)}
-                  className="w-full px-3 py-1.5 border rounded-lg text-sm"
+                  className="w-full px-3 py-1.5 border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
                   placeholder="Plaisir"
                   maxLength={30}
                 />
@@ -399,7 +401,7 @@ function GiftCardConfig() {
                   setNewLabel("");
                   setDirty(true);
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 bg-black text-white rounded-lg text-sm hover:bg-gray-800"
+                className="flex items-center gap-1 px-3 py-1.5 bg-[var(--brand-gold)] text-white hover:bg-[var(--brand-gold-dark)] transition text-sm"
               >
                 <Plus className="w-4 h-4" /> Ajouter
               </button>
@@ -414,20 +416,16 @@ function GiftCardConfig() {
               min={0}
               value={expiryMonths}
               onChange={(e) => { setExpiryMonths(parseInt(e.target.value) || 0); setDirty(true); }}
-              className="w-24 px-2 py-1.5 border rounded-lg text-sm"
+              className="w-24 px-2 py-1.5 border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
             />
             <p className="text-xs text-gray-500 mt-1">0 = sans expiration.</p>
           </div>
 
           {dirty && (
             <div className="flex justify-end">
-              <button
-                onClick={save}
-                disabled={saving}
-                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-              >
+              <GoldButton onClick={save} disabled={saving}>
                 {saving ? "Enregistrement…" : "Sauvegarder"}
-              </button>
+              </GoldButton>
             </div>
           )}
         </div>
@@ -487,7 +485,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
                 key={p}
                 type="button"
                 onClick={() => setAmount(p)}
-                className={`py-2 rounded-lg text-sm font-medium border-2 transition ${amount === p ? "border-black bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}
+                className={`py-2 text-sm font-medium border transition ${amount === p ? "border-[var(--brand-gold)] bg-[var(--brand-cream)]/60 text-[var(--brand-gold-dark)]" : "border-[var(--brand-gold)]/20 text-gray-600 hover:border-[var(--brand-gold)]/40"}`}
               >
                 {p}€
               </button>
@@ -499,7 +497,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             max={500}
             value={amount}
             onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 border rounded-lg text-sm"
+            className={inputCls}
           />
         </div>
 
@@ -508,17 +506,17 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             Destinataire <span className="text-gray-400 font-normal">(email = envoi automatique)</span>
           </label>
           <div className="space-y-2">
-            <input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Prénom" className="w-full px-3 py-2 border rounded-lg text-sm" />
-            <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="Email" className="w-full px-3 py-2 border rounded-lg text-sm" />
-            <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message (optionnel)" rows={2} maxLength={500} className="w-full px-3 py-2 border rounded-lg text-sm resize-none" />
+            <input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Prénom" className={inputCls} />
+            <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="Email" className={inputCls} />
+            <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message (optionnel)" rows={2} maxLength={500} className={`${inputCls} resize-none`} />
           </div>
         </div>
 
         <div className="flex gap-2 pt-2">
-          <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50">Annuler</button>
-          <button type="submit" disabled={submitting} className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50">
+          <GhostButton onClick={onClose} className="flex-1">Annuler</GhostButton>
+          <GoldButton type="submit" disabled={submitting} className="flex-1">
             {submitting ? "Création…" : `Créer (${formatPrice(Math.round(amount * 100))})`}
-          </button>
+          </GoldButton>
         </div>
       </form>
     </Overlay>
@@ -553,7 +551,7 @@ function DetailModal({ card, onClose }: { card: GiftCard; onClose: () => void })
           </button>
         </div>
 
-        <div className="space-y-2 text-sm border-t pt-4">
+        <div className="space-y-2 text-sm border-t border-[var(--brand-gold)]/15 pt-4">
           <Row label="Statut" value={STATUS_LABELS[card.status] || card.status} />
           <Row label="Montant initial" value={formatPrice(card.initialAmount)} />
           <Row label="Solde restant" value={formatPrice(card.balance)} />
@@ -563,13 +561,13 @@ function DetailModal({ card, onClose }: { card: GiftCard; onClose: () => void })
         </div>
 
         {card.transactions && card.transactions.length > 0 && (
-          <div className="border-t pt-4">
+          <div className="border-t border-[var(--brand-gold)]/15 pt-4">
             <h4 className="text-xs font-semibold mb-2">Historique ({card.transactions.length})</h4>
             <div className="space-y-1.5 max-h-48 overflow-y-auto">
               {card.transactions.map((tx, i) => {
                 const debit = tx.type === "redemption" || tx.type === "cancellation";
                 return (
-                  <div key={i} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded border">
+                  <div key={i} className="flex items-center justify-between text-xs p-2 bg-[var(--brand-cream)]/40 border border-[var(--brand-gold)]/10">
                     <div className="min-w-0">
                       <span className="font-medium">{TX_LABELS[tx.type] || tx.type}</span>
                       {tx.orderNumber && <span className="text-gray-500 ml-1">{tx.orderNumber}</span>}
@@ -585,7 +583,7 @@ function DetailModal({ card, onClose }: { card: GiftCard; onClose: () => void })
           </div>
         )}
 
-        <button onClick={onClose} className="w-full px-4 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50">Fermer</button>
+        <GhostButton onClick={onClose} className="w-full">Fermer</GhostButton>
       </div>
     </Overlay>
   );
@@ -602,14 +600,14 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function Overlay({ children, onClose, title, wide }: { children: React.ReactNode; onClose: () => void; title: string; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-[1px]" onClick={onClose}>
       <div
-        className={`bg-white rounded-xl shadow-xl w-full ${wide ? "max-w-2xl" : "max-w-md"} max-h-[90vh] overflow-y-auto`}
+        className={`bg-white shadow-xl w-full ${wide ? "max-w-2xl" : "max-w-md"} max-h-[92vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-none border border-[var(--brand-gold)]/15`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-white">
-          <h3 className="font-semibold">{title}</h3>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-900">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--brand-gold)]/15 sticky top-0 bg-white z-10">
+          <h3 className="font-serif text-lg text-gray-900">{title}</h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-[var(--brand-gold)] transition">
             <X className="w-5 h-5" />
           </button>
         </div>

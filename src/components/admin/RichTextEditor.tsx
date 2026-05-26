@@ -53,10 +53,10 @@ function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`p-1.5 rounded-lg transition-colors ${
+      className={`p-1.5 transition-colors ${
         active
-          ? "bg-gray-900 text-white"
-          : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          ? "bg-[var(--brand-cream)] text-[var(--brand-gold-dark)]"
+          : "text-gray-500 hover:bg-[var(--brand-cream)]/60 hover:text-[var(--brand-gold)]"
       } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
     >
       {children}
@@ -65,7 +65,7 @@ function ToolbarButton({
 }
 
 function ToolbarDivider() {
-  return <div className="w-px h-5 bg-gray-200 mx-0.5" />;
+  return <div className="w-px h-5 bg-[var(--brand-gold)]/15 mx-0.5" />;
 }
 
 export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
@@ -134,9 +134,9 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   if (!editor) return null;
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+    <div className="border border-[var(--brand-gold)]/20 overflow-hidden bg-white">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-gray-100 bg-gray-50/50">
+      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-[var(--brand-gold)]/15 bg-[var(--brand-cream)]/30">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}

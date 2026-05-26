@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Card } from "@/components/admin/ui";
 
 interface Customer {
   _id: string;
@@ -41,7 +42,7 @@ export default function AdminCustomerDetailPage() {
   }, [id]);
 
   if (loading) {
-    return <div className="animate-pulse h-64 bg-gray-100 rounded-xl" />;
+    return <div className="animate-pulse h-64 bg-gray-100" />;
   }
 
   if (!customer) {
@@ -52,26 +53,26 @@ export default function AdminCustomerDetailPage() {
     <div>
       <Link
         href="/admin/customers"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-black mb-6"
+        className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-6"
       >
-        <ArrowLeft size={16} /> Retour aux clients
+        <ArrowLeft size={14} /> Retour aux clients
       </Link>
 
-      <h1 className="text-2xl font-bold mb-8">{customer.name}</h1>
+      <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1] mb-8">{customer.name}</h1>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border p-6">
-          <h2 className="font-semibold mb-3">Informations</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-5 sm:p-6">
+          <h2 className="font-serif text-lg text-gray-900 mb-3">Informations</h2>
           <div className="text-sm space-y-2 text-gray-600">
             <p>{customer.email}</p>
             <p>{customer.phone || "Pas de téléphone"}</p>
             <p>Inscrit le {formatDate(customer.createdAt)}</p>
           </div>
-        </div>
+        </Card>
 
-        <div className="lg:col-span-2 bg-white rounded-xl border">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">
+        <Card className="lg:col-span-2">
+          <div className="p-5 sm:p-6 border-b border-[var(--brand-gold)]/10">
+            <h2 className="font-serif text-lg text-gray-900">
               Commandes ({orders.length})
             </h2>
           </div>
@@ -80,29 +81,29 @@ export default function AdminCustomerDetailPage() {
               Aucune commande
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-[var(--brand-gold)]/10">
               {orders.map((order) => (
                 <Link
                   key={order._id}
                   href={`/admin/orders/${order._id}`}
-                  className="p-4 flex justify-between hover:bg-gray-50"
+                  className="px-5 sm:px-6 py-4 flex justify-between gap-4 hover:bg-[var(--brand-cream)]/40 transition"
                 >
-                  <div>
-                    <p className="font-medium text-sm">
+                  <div className="min-w-0">
+                    <p className="font-serif text-[15px] text-gray-900">
                       {order.orderNumber}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-400 mt-0.5">
                       {formatDate(order.createdAt)}
                     </p>
                   </div>
-                  <p className="font-semibold text-sm">
+                  <p className="font-serif text-[15px] text-gray-900 shrink-0">
                     {formatPrice(order.total)}
                   </p>
                 </Link>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

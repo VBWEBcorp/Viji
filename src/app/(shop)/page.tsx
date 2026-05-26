@@ -8,6 +8,11 @@ import HeroSection from "@/components/shop/HeroSection";
 import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
 import PressLogoBar from "@/components/shop/PressLogoBar";
+import { getContent } from "@/lib/content";
+
+// Rendu dynamique : lit le contenu (et les catégories) à chaque visite, pour que
+// les modifications faites dans l'admin Contenu apparaissent immédiatement.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Entre Maman et Moi · Kits culinaires indiens & ateliers",
@@ -45,17 +50,19 @@ const REVIEWS = [
   { name: "YGM", initial: "Y", when: "il y a 4 mois", body: "Plats réconfortants, à consommer sans modération !" },
 ];
 
-// 6 images pour un pavage propre 4 colonnes × 2 rangées (2 grandes en bord, 4 carrées au centre)
-const ATMOSPHERE = [
-  { src: "https://i.ibb.co/j9dDKVbS/Entr-samoussas.jpg", alt: "Samoussas", className: "row-span-2" },
-  { src: "https://i.ibb.co/Kx5rKtGN/Halwa.jpg", alt: "Halwa" },
-  { src: "https://i.ibb.co/KcVCgbMz/Raita-oignon.jpg", alt: "Raïta oignon" },
-  { src: "https://i.ibb.co/8LKgk2jg/Beef-lemon-rice.jpg", alt: "Bœuf riz au citron", className: "row-span-2" },
-  { src: "https://i.ibb.co/HfXy27N9/Lassi-sucr.jpg", alt: "Lassi sucré" },
-  { src: "https://i.ibb.co/F4318X0S/Ourka-citron.jpg", alt: "Ourka au citron" },
-];
-
 export default async function HomePage() {
+  const t = await getContent();
+
+  // 6 images (hero + mosaïque) — éditables depuis l'admin Contenu.
+  const ATMOSPHERE = [
+    { src: t("home_img_1"), alt: "Samoussas", className: "row-span-2" },
+    { src: t("home_img_2"), alt: "Halwa" },
+    { src: t("home_img_3"), alt: "Raïta oignon" },
+    { src: t("home_img_4"), alt: "Bœuf riz au citron", className: "row-span-2" },
+    { src: t("home_img_5"), alt: "Lassi sucré" },
+    { src: t("home_img_6"), alt: "Ourka au citron" },
+  ];
+
   let categories: { name: string; slug: string; image?: string }[] = [];
 
   try {
@@ -76,7 +83,14 @@ export default async function HomePage() {
   return (
     <div className="bg-white">
       {/* ── HERO + BANDEAU INTERACTIF ──────────────────────────── */}
-      <HeroSection images={ATMOSPHERE} />
+      <HeroSection
+        images={ATMOSPHERE}
+        eyebrow={t("home_hero_eyebrow")}
+        title={t("home_hero_title")}
+        titleAccent={t("home_hero_title_accent")}
+        ctaPrimary={t("home_hero_cta_primary")}
+        ctaSecondary={t("home_hero_cta_secondary")}
+      />
 
       {/* ── BANDE LOGOS PRESSE ─────────────────────────────────── */}
       <PressLogoBar />
@@ -86,10 +100,10 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-20">
             <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-5">
-              Kits à faire soi-même
+              {t("home_kits_eyebrow")}
             </p>
             <h2 className="font-serif text-4xl md:text-6xl text-gray-900 leading-[1.05]">
-              Trois <span className="italic text-[var(--brand-gold)]">formules</span>
+              {t("home_kits_title")} <span className="italic text-[var(--brand-gold)]">{t("home_kits_title_accent")}</span>
             </h2>
           </div>
 
@@ -127,13 +141,13 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-5">
-              Atmosphère
+              {t("home_atmo_eyebrow")}
             </p>
             <h2 className="font-serif text-4xl md:text-6xl text-gray-900 leading-[1.05] mb-6">
-              <span className="italic text-[var(--brand-gold)]">L'Inde</span> dans l'assiette
+              <span className="italic text-[var(--brand-gold)]">{t("home_atmo_title_accent")}</span> {t("home_atmo_title_suffix")}
             </h2>
             <p className="text-[14px] text-gray-600 leading-relaxed">
-              Couleurs, parfums, gestes : un voyage sensoriel.
+              {t("home_atmo_subtitle")}
             </p>
           </div>
 
@@ -185,15 +199,20 @@ export default async function HomePage() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mb-12" />
           <p className="font-serif italic text-3xl md:text-5xl text-gray-900 leading-[1.25] mb-10">
-            «&nbsp;L'Inde se cuisine<br />avec les <span className="text-[var(--brand-gold)]">mains</span>, les sens<br />et le cœur.&nbsp;»
+            {t("home_quote").split("\n").map((line, i, arr) => (
+              <span key={i}>
+                {line}
+                {i < arr.length - 1 && <br />}
+              </span>
+            ))}
           </p>
-          <p className="font-serif italic text-xl text-[var(--brand-gold)]">Viji</p>
+          <p className="font-serif italic text-xl text-[var(--brand-gold)]">{t("home_quote_author")}</p>
           <div className="mt-10">
             <Link
               href="/pages/a-propos"
               className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
-              Découvrir plus <ArrowRight size={11} />
+              {t("home_quote_cta")} <ArrowRight size={11} />
             </Link>
           </div>
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mt-12" />
@@ -206,29 +225,29 @@ export default async function HomePage() {
           {/* Texte */}
           <div className="md:col-span-6 lg:col-span-5 order-2 md:order-1 text-center md:text-left">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-6">
-              Ateliers
+              {t("home_ateliers_eyebrow")}
             </p>
             <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.05] mb-7">
-              Apprendre<br />
-              <span className="italic text-[var(--brand-gold)]">ensemble</span>
+              {t("home_ateliers_title")}<br />
+              <span className="italic text-[var(--brand-gold)]">{t("home_ateliers_title_accent")}</span>
             </h2>
             <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
             <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
-              À domicile, en collectif ou avec une cheffe privée. Trois formules, un même esprit&nbsp;: la transmission.
+              {t("home_ateliers_text")}
             </p>
             <Link
               href="/ateliers"
               className="inline-flex items-center gap-3 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
-              Voir les ateliers <ArrowRight size={11} />
+              {t("home_ateliers_cta")} <ArrowRight size={11} />
             </Link>
           </div>
 
           {/* Vidéo encadrée */}
           <div className="md:col-span-6 lg:col-span-7 order-1 md:order-2 flex justify-center md:justify-end">
-            <FramedMedia caption="Un atelier · une transmission" rotate="-rotate-[0.6deg]" maxW="max-w-[300px] sm:max-w-[340px]">
+            <FramedMedia caption={t("home_ateliers_caption")} rotate="-rotate-[0.6deg]" maxW="max-w-[300px] sm:max-w-[340px]">
               <YouTubeShort
-                id="mBXvjsEqAZw"
+                id={t("home_ateliers_video")}
                 title="Atelier cuisine indienne"
               />
             </FramedMedia>
@@ -244,7 +263,7 @@ export default async function HomePage() {
             <FramedMedia rotate="rotate-[0.6deg]" maxW="max-w-[420px] sm:max-w-[480px]">
               <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)]">
                 <Image
-                  src="https://i.ibb.co/tTqdZjjS/Citronade-indienne.jpg"
+                  src={t("home_traiteur_image")}
                   alt="Citronnade indienne"
                   fill
                   className="object-cover hover:scale-[1.04] transition-transform duration-[1200ms] ease-out"
@@ -257,28 +276,28 @@ export default async function HomePage() {
           {/* Texte */}
           <div className="md:col-span-6 lg:col-span-5 order-2 text-center md:text-left">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-6">
-              Traiteur
+              {t("home_traiteur_eyebrow")}
             </p>
             <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.05] mb-7">
-              À emporter<br />
-              <span className="italic text-[var(--brand-gold)]">&amp; sur mesure</span>
+              {t("home_traiteur_title")}<br />
+              <span className="italic text-[var(--brand-gold)]">{t("home_traiteur_title_accent")}</span>
             </h2>
             <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
             <p className="font-serif italic text-[15px] md:text-[16px] text-gray-700 leading-[1.85] mb-9 max-w-md mx-auto md:mx-0">
-              Click &amp; Collect à Vern-sur-Seiche pour vos plats du moment. Devis sur mesure pour vos événements.
+              {t("home_traiteur_text")}
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3">
               <Link
                 href="/traiteur/emporter"
                 className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
               >
-                À emporter <ArrowRight size={11} />
+                {t("home_traiteur_cta1")} <ArrowRight size={11} />
               </Link>
               <Link
                 href="/traiteur/evenementiel"
                 className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
               >
-                Événementiel <ArrowRight size={11} />
+                {t("home_traiteur_cta2")} <ArrowRight size={11} />
               </Link>
             </div>
           </div>
@@ -315,19 +334,19 @@ export default async function HomePage() {
           {/* 3 polaroids inclinés à des hauteurs différentes */}
           <div className="relative w-full max-w-2xl mx-auto h-72 sm:h-80 md:h-96 mb-14 md:mb-16">
             <Polaroid
-              src="https://i.ibb.co/j9dDKVbS/Entr-samoussas.jpg"
+              src={t("home_histoire_img_1")}
               alt="Samoussas"
               caption="Samoussas"
               className="absolute left-0 sm:left-2 top-10 md:top-14 rotate-[-9deg] hover:rotate-[-4deg] z-10"
             />
             <Polaroid
-              src="https://i.ibb.co/Kx5rKtGN/Halwa.jpg"
+              src={t("home_histoire_img_2")}
               alt="Halwa"
               caption="Halwa"
               className="absolute left-1/2 -translate-x-1/2 top-0 rotate-[4deg] hover:rotate-0 z-20"
             />
             <Polaroid
-              src="https://i.ibb.co/HfXy27N9/Lassi-sucr.jpg"
+              src={t("home_histoire_img_3")}
               alt="Lassi sucré"
               caption="Lassi"
               className="absolute right-0 sm:right-2 top-16 md:top-20 rotate-[7deg] hover:rotate-[3deg] z-10"
@@ -335,24 +354,24 @@ export default async function HomePage() {
           </div>
 
           <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-5">
-            L&apos;histoire
+            {t("home_histoire_eyebrow")}
           </p>
           <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.05] mb-8">
-            Née dans la cuisine<br />
-            <span className="italic text-[var(--brand-gold)]">de ma mère</span>
+            {t("home_histoire_title")}<br />
+            <span className="italic text-[var(--brand-gold)]">{t("home_histoire_title_accent")}</span>
           </h2>
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mb-10" />
 
           <p className="font-serif italic text-[16px] md:text-[18px] text-gray-700 leading-[1.9] mb-6 max-w-xl mx-auto">
-            Une cuisine remplie de parfums, de gestes précis et de silences chargés d&apos;amour. Chaque mélange d&apos;épices y racontait une histoire.
+            {t("home_histoire_para1")}
           </p>
           <p className="text-[14px] md:text-[15px] text-gray-700 leading-[1.9] mb-12 max-w-xl mx-auto">
-            <em>Entre Maman et Moi</em>, c&apos;est cette transmission&nbsp;: kits, ateliers, traiteur. Un voyage sensoriel à partager.
+            {t("home_histoire_para2")}
           </p>
 
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mb-6" />
           <p className="font-serif italic text-3xl md:text-4xl text-[var(--brand-gold)] tracking-wide">
-            Viji
+            {t("home_histoire_author")}
           </p>
 
           <div className="mt-10">
@@ -360,7 +379,7 @@ export default async function HomePage() {
               href="/pages/a-propos"
               className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
-              Lire toute l&apos;histoire <ArrowRight size={11} />
+              {t("home_histoire_cta")} <ArrowRight size={11} />
             </Link>
           </div>
         </div>
@@ -376,7 +395,7 @@ export default async function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
             <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-5">
-              Ils en parlent
+              {t("home_avis_eyebrow")}
             </p>
             <div className="flex items-center justify-center gap-2 mb-1">
               <GoogleLogo size={18} />
@@ -388,8 +407,8 @@ export default async function HomePage() {
                   <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <span className="text-[13px] font-medium text-gray-900">5,0</span>
-              <span className="text-[12px] text-gray-400">· 19 avis</span>
+              <span className="text-[13px] font-medium text-gray-900">{t("home_avis_rating")}</span>
+              <span className="text-[12px] text-gray-400">· {t("home_avis_count")}</span>
             </div>
           </div>
         </div>
@@ -404,28 +423,27 @@ export default async function HomePage() {
           {/* Texte */}
           <div className="md:col-span-5 text-center md:text-left">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-5">
-              Sur les réseaux
+              {t("home_reseaux_eyebrow")}
             </p>
             <h2 className="font-serif text-3xl md:text-5xl text-gray-900 leading-[1.05] mb-7">
-              Suivez-nous au{" "}
-              <span className="italic text-[var(--brand-gold)]">quotidien</span>
+              {t("home_reseaux_title")}{" "}
+              <span className="italic text-[var(--brand-gold)]">{t("home_reseaux_title_accent")}</span>
             </h2>
             <div className="w-12 h-px bg-[var(--brand-gold)]/40 mb-7 mx-auto md:mx-0" />
             <p className="font-serif italic text-[15px] text-gray-600 leading-relaxed mb-9 max-w-md mx-auto md:mx-0">
-              Coulisses des ateliers, recettes en pas à pas et inspirations
-              indiennes. Partageons l&apos;aventure ensemble.
+              {t("home_reseaux_text")}
             </p>
             <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4">
-              <SocialIcon href="https://instagram.com/" label="Instagram">
+              <SocialIcon href={t("home_social_instagram")} label="Instagram">
                 <InstagramIcon size={15} />
               </SocialIcon>
-              <SocialIcon href="https://tiktok.com/" label="TikTok">
+              <SocialIcon href={t("home_social_tiktok")} label="TikTok">
                 <TikTokIcon size={15} />
               </SocialIcon>
-              <SocialIcon href="https://facebook.com/" label="Facebook">
+              <SocialIcon href={t("home_social_facebook")} label="Facebook">
                 <FacebookIcon size={15} />
               </SocialIcon>
-              <SocialIcon href="https://www.youtube.com/@EntreMamanetMoi" label="YouTube">
+              <SocialIcon href={t("home_social_youtube")} label="YouTube">
                 <YouTubeIcon size={15} />
               </SocialIcon>
             </div>
@@ -435,12 +453,12 @@ export default async function HomePage() {
           <div className="md:col-span-7">
             <div className="grid grid-cols-2 gap-4 md:gap-6 max-w-md mx-auto md:max-w-none items-start">
               <YouTubeShort
-                id="mBXvjsEqAZw"
+                id={t("home_reseaux_video_1")}
                 title="Aperçu réseau social · vidéo 1"
                 className="shadow-xl shadow-black/10"
               />
               <YouTubeShort
-                id="tTjZz_wRNLg"
+                id={t("home_reseaux_video_2")}
                 title="Aperçu réseau social · vidéo 2"
                 className="shadow-xl shadow-black/10 mt-8 md:mt-12"
               />
@@ -454,12 +472,12 @@ export default async function HomePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 text-center md:text-left">
           <div className="md:flex-1">
             <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-3">
-              Restons en cuisine
+              {t("home_news_eyebrow")}
             </p>
             <h2 className="font-serif text-2xl md:text-3xl text-gray-900 leading-tight">
-              Une <span className="italic text-[var(--brand-gold)]">recette</span> par mois,{" "}
+              {t("home_news_title")}{" "}
               <span className="text-gray-500 font-serif italic text-xl md:text-2xl">
-                directement chez vous.
+                {t("home_news_subtitle")}
               </span>
             </h2>
           </div>
@@ -470,7 +488,7 @@ export default async function HomePage() {
             href="/contact"
             className="group inline-flex items-center gap-3 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] font-medium border border-[var(--brand-gold)]/40 px-7 py-3.5 hover:bg-[var(--brand-gold)] hover:text-white hover:border-[var(--brand-gold)] transition shrink-0"
           >
-            S&apos;inscrire
+            {t("home_news_cta")}
             <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>

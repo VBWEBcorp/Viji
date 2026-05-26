@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 
 export default function EditProductPage() {
@@ -32,10 +34,10 @@ export default function EditProductPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-8">Modifier le produit</h1>
+        <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1] mb-8">Modifier le produit</h1>
         <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-gray-100 rounded w-1/2" />
-          <div className="h-32 bg-gray-100 rounded" />
+          <div className="h-10 bg-gray-100 w-1/2" />
+          <div className="h-32 bg-gray-100" />
         </div>
       </div>
     );
@@ -44,14 +46,20 @@ export default function EditProductPage() {
   if (!product) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-8">Produit non trouvé</h1>
+        <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1] mb-8">Produit non trouvé</h1>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-8">Modifier le produit</h1>
+      <Link
+        href="/admin/products"
+        className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-4"
+      >
+        <ArrowLeft size={14} /> Retour aux produits
+      </Link>
+      <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1] mb-8">Modifier le produit</h1>
       <ProductForm initialData={product} slug={id as string} />
     </div>
   );

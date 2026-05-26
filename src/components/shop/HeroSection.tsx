@@ -12,9 +12,21 @@ interface HeroImage {
 
 interface Props {
   images: HeroImage[];
+  eyebrow?: string;
+  title?: string;
+  titleAccent?: string;
+  ctaPrimary?: string;
+  ctaSecondary?: string;
 }
 
-export default function HeroSection({ images }: Props) {
+export default function HeroSection({
+  images,
+  eyebrow = "Cuisine indienne · Rennes",
+  title = "Voyagez au",
+  titleAccent = "cœur de l'Inde",
+  ctaPrimary = "Découvrir les kits",
+  ctaSecondary = "Voir les ateliers",
+}: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
@@ -47,25 +59,25 @@ export default function HeroSection({ images }: Props) {
         <div className="absolute inset-0 flex flex-col justify-end pb-20 md:pb-32">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full text-white">
             <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.35em] sm:tracking-[0.45em] text-white/70 mb-4 sm:mb-6">
-              Cuisine indienne · Rennes
+              {eyebrow}
             </p>
             <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-[8rem] leading-[0.95] font-normal max-w-4xl">
-              Voyagez au<br />
-              <span className="italic text-[var(--brand-gold)]">cœur de l&apos;Inde</span>
+              {title}<br />
+              <span className="italic text-[var(--brand-gold)]">{titleAccent}</span>
             </h1>
             <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4 sm:gap-6">
               <Link
                 href="/kits/decouverte"
                 className="inline-flex items-center gap-3 bg-white text-gray-900 px-6 sm:px-8 py-3.5 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] sm:tracking-[0.3em] font-medium hover:bg-[var(--brand-gold)] hover:text-white transition"
               >
-                Découvrir les kits
+                {ctaPrimary}
                 <ArrowRight size={13} />
               </Link>
               <Link
                 href="/ateliers"
                 className="inline-flex items-center gap-2 text-white text-[10px] sm:text-[11px] uppercase tracking-[0.25em] sm:tracking-[0.3em] border-b border-white/40 pb-1 hover:border-white transition"
               >
-                Voir les ateliers
+                {ctaSecondary}
               </Link>
             </div>
           </div>

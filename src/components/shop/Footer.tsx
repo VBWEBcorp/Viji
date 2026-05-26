@@ -2,8 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import SiteSettings from "@/models/SiteSettings";
 import { connectDB } from "@/lib/db";
+import { getContent } from "@/lib/content";
 
 export default async function Footer() {
+  const t = await getContent();
   let settings: {
     shopName?: string;
     social?: {
@@ -37,11 +39,11 @@ export default async function Footer() {
         {/* Centered brand */}
         <div className="text-center mb-16 md:mb-20">
           <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-6">
-            À Vern-sur-Seiche · cuisine indienne maison
+            {t("footer_eyebrow")}
           </p>
           <Link href="/" className="inline-block" aria-label={shopName}>
             <Image
-              src="https://i.ibb.co/5WWqVbC2/cropped-Entre-Maman-Et-Moi-1.png"
+              src={t("footer_logo")}
               alt={shopName}
               width={280}
               height={120}
@@ -50,14 +52,14 @@ export default async function Footer() {
           </Link>
           <div className="w-16 h-px bg-[var(--brand-gold)]/40 mx-auto mt-8" />
           <p className="font-serif italic text-lg md:text-xl text-gray-600 mt-7">
-            Voyagez au cœur de l'Inde, depuis votre cuisine.
+            {t("footer_tagline")}
           </p>
         </div>
 
         {/* 3 columns: Découvrir / S'initier / Adresse */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 max-w-5xl mx-auto">
           <FooterColumn
-            label="Nos kits"
+            label={t("footer_col1_label")}
             links={[
               { href: "/kits/decouverte", label: "Kit Découverte" },
               { href: "/kits/signature", label: "Kit Signature" },
@@ -66,7 +68,7 @@ export default async function Footer() {
           />
 
           <FooterColumn
-            label="S'initier"
+            label={t("footer_col2_label")}
             links={[
               { href: "/ateliers/a-domicile", label: "Atelier à domicile" },
               { href: "/ateliers/collectif", label: "Atelier collectif" },
@@ -78,7 +80,7 @@ export default async function Footer() {
 
           <div>
             <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-5">
-              L'atelier
+              {t("footer_col3_label")}
             </p>
             <div className="space-y-5 text-[13px] text-gray-700 leading-relaxed">
               <div>
@@ -86,9 +88,12 @@ export default async function Footer() {
                   Adresse
                 </p>
                 <p>
-                  3 rue de la Libération
-                  <br />
-                  35770 Vern-sur-Seiche · France
+                  {t("footer_address").split("\n").map((line, i, arr) => (
+                    <span key={i}>
+                      {line}
+                      {i < arr.length - 1 && <br />}
+                    </span>
+                  ))}
                 </p>
               </div>
               <div>
@@ -96,17 +101,17 @@ export default async function Footer() {
                   Email
                 </p>
                 <a
-                  href="mailto:entremamanetmoicook@gmail.com"
+                  href={`mailto:${t("footer_email")}`}
                   className="hover:text-[var(--brand-gold)] transition border-b border-transparent hover:border-[var(--brand-gold)]/40"
                 >
-                  entremamanetmoicook@gmail.com
+                  {t("footer_email")}
                 </a>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-1.5">
                   Réponse
                 </p>
-                <p>Sous 48h en moyenne</p>
+                <p>{t("footer_response")}</p>
               </div>
             </div>
           </div>
@@ -115,7 +120,7 @@ export default async function Footer() {
         {/* Socials — centered, refined */}
         <div className="mt-16 md:mt-20 text-center">
           <p className="text-[10px] uppercase tracking-[0.45em] text-gray-400 mb-6">
-            Suivez-nous
+            {t("footer_socials_label")}
           </p>
           <div className="flex items-center justify-center gap-3 sm:gap-4">
             {socials.map(({ href, label, Icon }) => (

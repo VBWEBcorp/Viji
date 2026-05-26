@@ -21,6 +21,7 @@ import {
   Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageHeader, Card, GoldButton } from "@/components/admin/ui";
 
 interface EmailTemplate {
   _id: string;
@@ -172,10 +173,10 @@ export default function AdminEmailsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Emails</h1>
+        <PageHeader eyebrow="Communication" title="Emails" />
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 h-16 animate-pulse" />
+            <div key={i} className="bg-white border border-[var(--brand-gold)]/15 h-16 animate-pulse" />
           ))}
         </div>
       </div>
@@ -186,12 +187,11 @@ export default function AdminEmailsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Emails</h1>
-        <p className="text-sm text-gray-400 mt-0.5">
-          Personnalisez les emails envoyés à vos clients · {activeCount} actif{activeCount > 1 ? "s" : ""} sur {templates.length}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Communication"
+        title="Emails"
+        subtitle={`Personnalisez les emails envoyés à vos clientes · ${activeCount} actif${activeCount > 1 ? "s" : ""} sur ${templates.length}`}
+      />
 
       {/* Templates */}
       <div className="space-y-3">
@@ -201,19 +201,16 @@ export default function AdminEmailsPage() {
           const Icon = iconMap[template.key] || Mail;
 
           return (
-            <div
-              key={template.key}
-              className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
-            >
+            <Card key={template.key} className="overflow-hidden">
               {/* En-tête */}
               <button
                 onClick={() => setOpenTemplate(isOpen ? null : template.key)}
-                className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors text-left"
+                className="w-full flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-[var(--brand-cream)]/40 transition-colors text-left"
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  template.isActive ? "bg-gray-100" : "bg-gray-50"
+                <div className={`w-10 h-10 flex items-center justify-center shrink-0 ${
+                  template.isActive ? "bg-[var(--brand-cream)]" : "bg-gray-50"
                 }`}>
-                  <Icon size={18} className={template.isActive ? "text-gray-600" : "text-gray-300"} />
+                  <Icon size={18} className={template.isActive ? "text-[var(--brand-gold)]" : "text-gray-300"} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -234,7 +231,7 @@ export default function AdminEmailsPage() {
 
               {/* Éditeur */}
               {isOpen && (
-                <div className="border-t border-gray-50 px-6 py-5 space-y-5">
+                <div className="border-t border-[var(--brand-gold)]/15 px-5 sm:px-6 py-5 space-y-5">
                   {/* Activer/désactiver */}
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -242,7 +239,7 @@ export default function AdminEmailsPage() {
                         type="checkbox"
                         checked={template.isActive}
                         onChange={() => toggleActive(template)}
-                        className="w-4 h-4 rounded border-gray-300"
+                        className="w-4 h-4 border-gray-300 accent-[var(--brand-gold)]"
                       />
                       <span className="text-sm text-gray-700">Activer cet email</span>
                     </label>
@@ -264,7 +261,7 @@ export default function AdminEmailsPage() {
                       type="text"
                       value={template.subject}
                       onChange={(e) => updateTemplate(template.key, "subject", e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
                     />
                   </div>
 
@@ -278,7 +275,7 @@ export default function AdminEmailsPage() {
                       value={template.body}
                       onChange={(e) => updateTemplate(template.key, "body", e.target.value)}
                       rows={10}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all leading-relaxed"
+                      className="w-full px-4 py-3 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition leading-relaxed"
                     />
                   </div>
 
@@ -295,9 +292,9 @@ export default function AdminEmailsPage() {
                         <button
                           key={v}
                           onClick={() => insertVariable(template.key, v)}
-                          className="inline-flex items-center gap-1.5 text-[12px] bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition cursor-pointer font-medium"
+                          className="inline-flex items-center gap-1.5 text-[12px] bg-[var(--brand-cream)] text-[var(--brand-gold-dark)] border border-[var(--brand-gold)]/20 px-3 py-1.5 hover:bg-[var(--brand-cream)]/70 hover:border-[var(--brand-gold)]/40 transition cursor-pointer font-medium"
                         >
-                          <Plus size={10} className="text-gray-400" />
+                          <Plus size={10} className="text-[var(--brand-gold)]/60" />
                           {variableButtons[v]?.label || v}
                         </button>
                       ))}
@@ -311,9 +308,9 @@ export default function AdminEmailsPage() {
                         <Eye size={13} className="inline mr-1" />
                         Aperçu de l&apos;email
                       </label>
-                      <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="border border-[var(--brand-gold)]/20 overflow-hidden">
                         {/* Barre macOS-style */}
-                        <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100 flex items-center gap-3">
+                        <div className="bg-[var(--brand-cream)]/50 px-4 py-2.5 border-b border-[var(--brand-gold)]/10 flex items-center gap-3">
                           <div className="flex gap-1.5">
                             <span className="w-3 h-3 rounded-full bg-red-300" />
                             <span className="w-3 h-3 rounded-full bg-amber-300" />
@@ -331,7 +328,7 @@ export default function AdminEmailsPage() {
                         <div className="p-6 bg-white">
                           <div className="max-w-md mx-auto">
                             <div className="text-center pb-4 mb-4 border-b border-gray-100">
-                              <h3 className="text-lg font-bold text-gray-900">Ma Boutique</h3>
+                              <h3 className="font-serif text-lg text-[var(--brand-gold)]">Entre Maman et Moi</h3>
                             </div>
                             <div
                               className="prose prose-sm max-w-none text-gray-700"
@@ -339,7 +336,7 @@ export default function AdminEmailsPage() {
                             />
                             <div className="text-center pt-4 mt-6 border-t border-gray-100">
                               <p className="text-[11px] text-gray-400">
-                                &copy; 2026 Ma Boutique. Tous droits réservés.
+                                &copy; 2026 Entre Maman et Moi. Tous droits réservés.
                               </p>
                             </div>
                           </div>
@@ -349,31 +346,27 @@ export default function AdminEmailsPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={() => saveTemplate(template)}
-                      disabled={!isModified || saving === template.key}
-                      className="inline-flex items-center gap-2 bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-                    >
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <GoldButton onClick={() => saveTemplate(template)} disabled={!isModified || saving === template.key}>
                       {saving === template.key ? (
-                        <><Check size={14} /> Sauvegardé...</>
+                        <><Check size={14} /> Sauvegardé…</>
                       ) : (
                         <><Save size={14} /> Sauvegarder</>
                       )}
-                    </button>
+                    </GoldButton>
 
                     <button
                       onClick={() => {
                         toast.success("Email de test envoyé (simulation)");
                       }}
-                      className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 transition px-3 py-2.5"
+                      className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.2em] text-gray-500 hover:text-[var(--brand-gold)] transition px-3 py-2.5"
                     >
                       <Send size={14} /> Envoyer un test
                     </button>
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

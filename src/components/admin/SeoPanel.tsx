@@ -31,16 +31,16 @@ export default function SeoPanel({
   const displayUrl = `${baseUrl || "https://votresite.fr"}${urlPath}`;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-      <div className="flex items-center gap-2">
-        <Search size={16} className="text-gray-500" />
-        <h2 className="text-[15px] font-semibold text-gray-900">Referencement SEO</h2>
+    <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6 space-y-5">
+      <div className="flex items-center gap-2 pb-3 border-b border-[var(--brand-gold)]/10">
+        <Search size={16} className="text-[var(--brand-gold)]" />
+        <h2 className="font-serif text-lg text-gray-900">Referencement SEO</h2>
       </div>
 
       {/* Meta Title */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="text-[13px] font-medium text-gray-600">
+          <label className="text-[12px] font-medium text-gray-600">
             Meta titre
           </label>
           <span
@@ -61,7 +61,7 @@ export default function SeoPanel({
           onChange={(e) => onMetaTitleChange(e.target.value)}
           placeholder="Titre pour Google (max 60 caracteres)"
           maxLength={70}
-          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+          className="w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
         />
         {titleLength > 60 && (
           <p className="text-[11px] text-red-500 mt-1">
@@ -73,7 +73,7 @@ export default function SeoPanel({
       {/* Meta Description */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="text-[13px] font-medium text-gray-600">
+          <label className="text-[12px] font-medium text-gray-600">
             Meta description
           </label>
           <span
@@ -94,7 +94,7 @@ export default function SeoPanel({
           placeholder="Description pour Google (max 160 caracteres)"
           maxLength={170}
           rows={3}
-          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+          className="w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
         />
         {descLength > 160 && (
           <p className="text-[11px] text-red-500 mt-1">
@@ -105,11 +105,11 @@ export default function SeoPanel({
 
       {/* Slug */}
       <div>
-        <label className="block text-[13px] font-medium text-gray-600 mb-1.5">
+        <label className="block text-[12px] font-medium text-gray-600 mb-1.5">
           URL (slug)
         </label>
         <div className="flex items-center">
-          <span className="text-[12px] text-gray-400 bg-gray-50 border border-r-0 border-gray-200 px-3 py-2.5 rounded-l-xl">
+          <span className="text-[12px] text-gray-400 bg-[var(--brand-cream)]/40 border border-r-0 border-[var(--brand-gold)]/20 px-3 py-2.5">
             {type === "blog" ? "/blog/" : "/products/"}
           </span>
           <input
@@ -124,25 +124,25 @@ export default function SeoPanel({
               )
             }
             placeholder="mon-article"
-            className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-r-xl text-sm font-mono focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+            className="flex-1 px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm font-mono focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
           />
         </div>
       </div>
 
       {/* Google Preview */}
       <div>
-        <label className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 mb-3">
-          <Globe size={13} className="text-gray-400" />
+        <label className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 mb-3">
+          <Globe size={13} className="text-[var(--brand-gold)]" />
           Apercu Google
         </label>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-1">
+        <div className="bg-white border border-[var(--brand-gold)]/20 p-4 space-y-1">
           {/* Favicon + site name */}
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center">
-              <Globe size={14} className="text-gray-400" />
+            <div className="w-7 h-7 bg-[var(--brand-cream)]/70 rounded-full flex items-center justify-center">
+              <Globe size={14} className="text-[var(--brand-gold)]" />
             </div>
             <div>
-              <p className="text-[12px] text-gray-800 leading-tight">Ma Boutique</p>
+              <p className="text-[12px] text-gray-800 leading-tight">Entre Maman et Moi</p>
               <p className="text-[11px] text-gray-500 leading-tight truncate max-w-[400px]">
                 {displayUrl}
               </p>

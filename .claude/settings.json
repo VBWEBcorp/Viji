@@ -40,7 +40,19 @@
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3000,3001,3002 -ErrorAction SilentlyContinue | Select-Object LocalPort,OwningProcess\")",
       "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
       "PowerShell(Stop-Process -Force)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3000,3001,3002 -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000,3001,3002 -ErrorAction SilentlyContinue)",
+      "Bash(timeout 60 bash -c 'until grep -qE \"Ready in|started server|Local:|Error|EADDRINUSE\" \"/c/Users/conta/AppData/Local/Temp/claude/c--Users-conta-OneDrive-Desktop-Cursor-Viji/22045efd-3449-48e1-abdc-ee8e52bdd861/tasks/bn7l85avf.output\" 2>/dev/null; do sleep 1; done; echo \"---DETECTED---\"')",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000,3001 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess, @{N='Proc';E={\\(Get-Process -Id $_.OwningProcess\\).ProcessName}})",
+      "Bash(timeout 90 bash -c 'until grep -qE \"Ready in|Local:|Error:\" \"/c/Users/conta/AppData/Local/Temp/claude/c--Users-conta-OneDrive-Desktop-Cursor-Viji/22045efd-3449-48e1-abdc-ee8e52bdd861/tasks/bpwzl44rn.output\" 2>/dev/null; do sleep 1; done; sleep 3; echo \"---READY---\"')",
+      "Bash(npx --no-install netlify --version)",
+      "Bash(npx --no-install netlify status)",
+      "Bash(npx --no-install netlify sites:list)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(npx eslint *)",
+      "Bash(grep -qE \"Compiled successfully|Failed to compile|error|Error:\" \"C:\\\\Users\\\\conta\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\8ca330e0-32fa-44f0-b16f-19ddbc97ea4e\\\\tasks\\\\bw792pu3f.output\")",
+      "Bash(break)",
+      "Bash(grep -nE \"^\\\\s*[┌├└][^ ]* \\(/|/blog\\)\\( |$\\)|Route \\\\\\(app\\\\\\)|○|●|ƒ\" \"C:\\\\Users\\\\conta\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\8ca330e0-32fa-44f0-b16f-19ddbc97ea4e\\\\tasks\\\\bw792pu3f.output\")",
+      "Bash(echo \"===EXIT $?===\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\conta\\OneDrive\\Desktop\\Cursor\\Viji\\src\\app\\(shop)\\box"

@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
+import { getContent } from "@/lib/content";
 import type { Metadata } from "next";
+
+// Rendu dynamique pour refléter immédiatement les modifications de contenu.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Blog · Recettes & guides de cuisine indienne",
@@ -14,6 +18,7 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   await connectDB();
+  const t = await getContent();
 
   const posts = await BlogPost.find({ isPublished: true })
     .sort({ publishedAt: -1 })
@@ -26,15 +31,15 @@ export default async function BlogPage() {
       <section className="bg-[var(--brand-cream)]/40 py-14 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-5">
-            Le carnet
+            {t("blog_eyebrow")}
           </p>
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.05] mb-7">
-            Recettes &{" "}
-            <span className="italic text-[var(--brand-gold)]">conseils</span>
+            {t("blog_title")}{" "}
+            <span className="italic text-[var(--brand-gold)]">{t("blog_title_accent")}</span>
           </h1>
           <div className="w-12 h-px bg-[var(--brand-gold)]/50 mx-auto mb-7" />
           <p className="font-serif italic text-[15px] md:text-lg text-gray-600 leading-relaxed max-w-xl mx-auto">
-            Recettes traditionnelles, guides d&apos;épices et conseils pour faire entrer l&apos;Inde dans votre cuisine.
+            {t("blog_subtitle")}
           </p>
         </div>
       </section>
@@ -43,7 +48,7 @@ export default async function BlogPage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-20">
         {posts.length === 0 ? (
           <p className="font-serif italic text-gray-500 text-center py-20">
-            Aucun article pour le moment.
+            {t("blog_empty")}
           </p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14">

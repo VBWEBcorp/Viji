@@ -6,6 +6,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import { ArrowLeft, Truck, Package, FileDown } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { Card } from "@/components/admin/ui";
 
 interface Order {
   _id: string;
@@ -41,6 +42,9 @@ interface Order {
   notes?: string;
   createdAt: string;
 }
+
+const selectCls =
+  "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams();
@@ -78,8 +82,8 @@ export default function AdminOrderDetailPage() {
   if (loading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-100 rounded w-1/3" />
-        <div className="h-64 bg-gray-100 rounded" />
+        <div className="h-8 bg-gray-100 w-1/3" />
+        <div className="h-64 bg-gray-100" />
       </div>
     );
   }
@@ -92,17 +96,17 @@ export default function AdminOrderDetailPage() {
     <div>
       <Link
         href="/admin/orders"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-black mb-6"
+        className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-6"
       >
-        <ArrowLeft size={16} /> Retour aux commandes
+        <ArrowLeft size={14} /> Retour aux commandes
       </Link>
 
-      <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div className="min-w-0">
+          <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1]">
             Commande {order.orderNumber}
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-[13px] text-gray-500 mt-2">
             {formatDate(order.createdAt)}
           </p>
         </div>
@@ -110,68 +114,68 @@ export default function AdminOrderDetailPage() {
           href={`/api/orders/${order._id}/invoice`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition px-4 py-2 rounded-lg"
+          className="inline-flex items-center justify-center gap-2 border border-[var(--brand-gold)]/25 text-gray-600 text-[11px] uppercase tracking-[0.25em] font-medium px-4 py-2.5 hover:text-[var(--brand-gold)] hover:border-[var(--brand-gold)]/50 transition shrink-0"
         >
-          <FileDown size={14} /> Telecharger la facture
+          <FileDown size={14} /> Télécharger la facture
         </a>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Détails commande */}
         <div className="lg:col-span-2 space-y-6">
           {/* Articles */}
-          <div className="bg-white rounded-xl border">
-            <div className="p-4 border-b flex items-center gap-2">
-              <Package size={18} />
-              <h2 className="font-semibold">Articles</h2>
+          <Card>
+            <div className="p-5 sm:p-6 border-b border-[var(--brand-gold)]/10 flex items-center gap-2.5">
+              <Package size={18} className="text-[var(--brand-gold)]" />
+              <h2 className="font-serif text-lg text-gray-900">Articles</h2>
             </div>
-            <div className="divide-y">
+            <div className="divide-y divide-[var(--brand-gold)]/10">
               {order.items.map((item, i) => (
-                <div key={i} className="p-4 flex justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{item.name}</p>
+                <div key={i} className="p-5 sm:p-6 flex justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-gray-900">{item.name}</p>
                     {item.variant && (
-                      <p className="text-xs text-gray-500">{item.variant}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.variant}</p>
                     )}
-                    <p className="text-xs text-gray-500">
-                      Qté: {item.quantity}
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Qté : {item.quantity}
                     </p>
                   </div>
-                  <p className="font-semibold text-sm">
+                  <p className="font-serif text-[15px] text-gray-900 shrink-0">
                     {formatPrice(item.unitPrice * item.quantity)}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t space-y-1 text-sm">
+            <div className="p-5 sm:p-6 border-t border-[var(--brand-gold)]/10 space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Sous-total</span>
-                <span>{formatPrice(order.subtotal)}</span>
+                <span className="text-gray-700">{formatPrice(order.subtotal)}</span>
               </div>
               {order.discount > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-emerald-700">
                   <span>Réduction</span>
                   <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Livraison</span>
-                <span>{formatPrice(order.shippingCost)}</span>
+                <span className="text-gray-700">{formatPrice(order.shippingCost)}</span>
               </div>
-              <div className="flex justify-between font-bold text-base pt-2 border-t">
+              <div className="flex justify-between font-serif text-lg text-gray-900 pt-2.5 border-t border-[var(--brand-gold)]/10">
                 <span>Total</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Statuts */}
-          <div className="bg-white rounded-xl border p-6 space-y-4">
-            <h2 className="font-semibold">Gestion</h2>
+          <Card className="p-5 sm:p-6 space-y-5">
+            <h2 className="font-serif text-lg text-gray-900">Gestion</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[12px] font-medium text-gray-600 mb-1.5">
                   Statut paiement
                 </label>
                 <select
@@ -180,7 +184,7 @@ export default function AdminOrderDetailPage() {
                     updateStatus("paymentStatus", e.target.value)
                   }
                   disabled={updating}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className={selectCls}
                 >
                   <option value="pending">En attente</option>
                   <option value="paid">Payé</option>
@@ -189,7 +193,7 @@ export default function AdminOrderDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[12px] font-medium text-gray-600 mb-1.5">
                   Statut livraison
                 </label>
                 <select
@@ -198,7 +202,7 @@ export default function AdminOrderDetailPage() {
                     updateStatus("fulfillmentStatus", e.target.value)
                   }
                   disabled={updating}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className={selectCls}
                 >
                   <option value="pending">En attente</option>
                   <option value="processing">En préparation</option>
@@ -211,10 +215,10 @@ export default function AdminOrderDetailPage() {
 
             {/* Tracking */}
             {order.tracking?.trackingNumber && (
-              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                <Truck size={18} className="text-blue-600" />
-                <div className="text-sm">
-                  <p className="font-medium">
+              <div className="flex items-center gap-3 p-4 bg-[var(--brand-cream)]/50 border border-[var(--brand-gold)]/15">
+                <Truck size={18} className="text-[var(--brand-gold)] shrink-0" />
+                <div className="text-sm min-w-0">
+                  <p className="font-medium text-gray-900">
                     {order.tracking.carrier} · {order.tracking.trackingNumber}
                   </p>
                   {order.tracking.trackingUrl && (
@@ -222,7 +226,7 @@ export default function AdminOrderDetailPage() {
                       href={order.tracking.trackingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] hover:underline transition"
                     >
                       Suivre le colis
                     </a>
@@ -230,24 +234,24 @@ export default function AdminOrderDetailPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Client */}
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="font-semibold mb-3">Client</h2>
-            <p className="text-sm font-medium">{order.user?.name}</p>
+          <Card className="p-5 sm:p-6">
+            <h2 className="font-serif text-lg text-gray-900 mb-3">Client</h2>
+            <p className="text-sm font-medium text-gray-900">{order.user?.name}</p>
             <p className="text-sm text-gray-500">{order.user?.email}</p>
             {order.user?.phone && (
               <p className="text-sm text-gray-500">{order.user.phone}</p>
             )}
-          </div>
+          </Card>
 
           {/* Adresse */}
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="font-semibold mb-3">Adresse de livraison</h2>
+          <Card className="p-5 sm:p-6">
+            <h2 className="font-serif text-lg text-gray-900 mb-3">Adresse de livraison</h2>
             <div className="text-sm text-gray-600 space-y-1">
               <p>{order.shippingAddress.name}</p>
               <p>{order.shippingAddress.street}</p>
@@ -259,15 +263,15 @@ export default function AdminOrderDetailPage() {
                 <p>{order.shippingAddress.phone}</p>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Paiement */}
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="font-semibold mb-3">Paiement</h2>
+          <Card className="p-5 sm:p-6">
+            <h2 className="font-serif text-lg text-gray-900 mb-3">Paiement</h2>
             <p className="text-sm text-gray-600 capitalize">
               {order.paymentMethod}
             </p>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

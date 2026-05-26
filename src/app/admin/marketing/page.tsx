@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Megaphone, Image as ImageIcon, Type, Upload, X, Eye, Save, Check } from "lucide-react";
+import { Megaphone, Image as ImageIcon, Upload, X, Eye, Save, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageHeader, GoldButton } from "@/components/admin/ui";
+
+const inputCls =
+  "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
+const labelCls = "block text-[12px] font-medium text-gray-600 mb-1.5";
 
 interface MarketingData {
   popup: {
@@ -100,36 +105,30 @@ export default function AdminMarketingPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Marketing</h1>
-        <div className="bg-white rounded-2xl border border-gray-100 h-96 animate-pulse" />
+        <PageHeader eyebrow="Diffusion" title="Marketing" />
+        <div className="bg-white border border-[var(--brand-gold)]/15 h-96 animate-pulse" />
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Marketing</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            Gérez vos pop-ups promotionnels et votre bannière défilante
-          </p>
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="inline-flex items-center gap-2 bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-        >
+      <PageHeader
+        eyebrow="Diffusion"
+        title="Marketing"
+        subtitle="Gérez vos pop-ups promotionnels et votre bannière défilante"
+      >
+        <GoldButton onClick={handleSave} disabled={saving}>
           {saving ? <><Check size={14} /> Sauvegardé</> : <><Save size={14} /> Sauvegarder</>}
-        </button>
-      </div>
+        </GoldButton>
+      </PageHeader>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--brand-cream)]/50 border border-[var(--brand-gold)]/15 p-1 w-fit">
         <button
           onClick={() => setTab("popup")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
-            tab === "popup" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium transition ${
+            tab === "popup" ? "bg-white text-[var(--brand-gold-dark)] shadow-sm" : "text-gray-500 hover:text-[var(--brand-gold)]"
           }`}
         >
           <ImageIcon size={14} />
@@ -138,8 +137,8 @@ export default function AdminMarketingPage() {
         </button>
         <button
           onClick={() => setTab("banner")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
-            tab === "banner" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium transition ${
+            tab === "banner" ? "bg-white text-[var(--brand-gold-dark)] shadow-sm" : "text-gray-500 hover:text-[var(--brand-gold)]"
           }`}
         >
           <Megaphone size={14} />
@@ -155,15 +154,15 @@ export default function AdminMarketingPage() {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Formulaire */}
           <div className="space-y-5">
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+            <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-gray-900">Pop-up promotionnel</h2>
+                <h2 className="font-serif text-lg sm:text-xl text-gray-900">Pop-up promotionnel</h2>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={data.popup.isActive}
                     onChange={(e) => setData({ ...data, popup: { ...data.popup, isActive: e.target.checked } })}
-                    className="w-4 h-4 rounded border-gray-300"
+                    className="w-4 h-4 accent-[var(--brand-gold)]"
                   />
                   <span className="text-sm text-gray-700">Actif</span>
                 </label>
@@ -171,26 +170,26 @@ export default function AdminMarketingPage() {
 
               {/* Image */}
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Image</label>
+                <label className={labelCls}>Image</label>
                 {data.popup.image ? (
                   <div className="relative mb-3 inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={data.popup.image} alt="Pop-up" className="max-h-48 rounded-xl border border-gray-100 object-cover" />
+                    <img src={data.popup.image} alt="Pop-up" className="max-h-48 border border-[var(--brand-gold)]/15 object-cover" />
                     <button
                       onClick={() => setData({ ...data, popup: { ...data.popup, image: "" } })}
-                      className="absolute top-2 right-2 bg-white/90 backdrop-blur p-1.5 rounded-lg text-gray-500 hover:text-red-500 shadow-sm"
+                      className="absolute top-2 right-2 bg-white/90 backdrop-blur p-1.5 text-gray-500 hover:text-red-500 shadow-sm"
                     >
                       <X size={14} />
                     </button>
                   </div>
                 ) : null}
-                <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition">
+                <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-[var(--brand-gold)]/25 cursor-pointer hover:border-[var(--brand-gold)]/50 hover:bg-[var(--brand-cream)]/40 transition">
                   <div className="text-center">
                     {uploading ? (
                       <p className="text-[12px] text-gray-400">Upload...</p>
                     ) : (
                       <>
-                        <Upload size={20} className="mx-auto text-gray-300 mb-1" />
+                        <Upload size={20} className="mx-auto text-[var(--brand-gold)]/50 mb-1" />
                         <p className="text-[12px] text-gray-400">600x400px recommandé</p>
                       </>
                     )}
@@ -201,54 +200,54 @@ export default function AdminMarketingPage() {
 
               {/* Titre */}
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Titre</label>
+                <label className={labelCls}>Titre</label>
                 <input
                   type="text"
                   value={data.popup.title}
                   onChange={(e) => setData({ ...data, popup: { ...data.popup, title: e.target.value } })}
                   placeholder="Ex: -20% sur tout le site !"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                  className={inputCls}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Description</label>
+                <label className={labelCls}>Description</label>
                 <textarea
                   value={data.popup.description}
                   onChange={(e) => setData({ ...data, popup: { ...data.popup, description: e.target.value } })}
                   placeholder="Profitez de notre offre exceptionnelle..."
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                  className={inputCls}
                 />
               </div>
 
               {/* Bouton */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Texte du bouton</label>
+                  <label className={labelCls}>Texte du bouton</label>
                   <input
                     type="text"
                     value={data.popup.buttonText}
                     onChange={(e) => setData({ ...data, popup: { ...data.popup, buttonText: e.target.value } })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+                    className={inputCls}
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Lien du bouton</label>
+                  <label className={labelCls}>Lien du bouton</label>
                   <input
                     type="text"
                     value={data.popup.buttonUrl}
                     onChange={(e) => setData({ ...data, popup: { ...data.popup, buttonUrl: e.target.value } })}
                     placeholder="/products"
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                    className={inputCls}
                   />
                 </div>
               </div>
 
               {/* Délai */}
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">
+                <label className={labelCls}>
                   Délai avant affichage : {data.popup.delay}s
                 </label>
                 <input
@@ -257,7 +256,7 @@ export default function AdminMarketingPage() {
                   max={30}
                   value={data.popup.delay}
                   onChange={(e) => setData({ ...data, popup: { ...data.popup, delay: parseInt(e.target.value) } })}
-                  className="w-full accent-gray-900"
+                  className="w-full accent-[var(--brand-gold)]"
                 />
                 <div className="flex justify-between text-[11px] text-gray-400">
                   <span>1s</span>
@@ -269,10 +268,10 @@ export default function AdminMarketingPage() {
 
           {/* Aperçu pop-up */}
           <div>
-            <label className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 mb-3">
-              <Eye size={13} /> Aperçu
+            <label className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 mb-3">
+              <Eye size={13} className="text-[var(--brand-gold)]" /> Aperçu
             </label>
-            <div className="bg-gray-100 rounded-2xl p-8 flex items-center justify-center min-h-[400px]">
+            <div className="bg-[var(--brand-cream)]/50 border border-[var(--brand-gold)]/15 p-8 flex items-center justify-center min-h-[400px]">
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full">
                 {data.popup.image && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -301,15 +300,15 @@ export default function AdminMarketingPage() {
       ═══════════════════════════════ */}
       {tab === "banner" && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+          <div className="bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-gray-900">Bannière promotionnelle</h2>
+              <h2 className="font-serif text-lg sm:text-xl text-gray-900">Bannière promotionnelle</h2>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={data.banner.isActive}
                   onChange={(e) => setData({ ...data, banner: { ...data.banner, isActive: e.target.checked } })}
-                  className="w-4 h-4 rounded border-gray-300"
+                  className="w-4 h-4 accent-[var(--brand-gold)]"
                 />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
@@ -321,7 +320,7 @@ export default function AdminMarketingPage() {
 
             {/* Texte */}
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">
+              <label className={labelCls}>
                 Texte de la bannière
               </label>
               <input
@@ -329,43 +328,43 @@ export default function AdminMarketingPage() {
                 value={data.banner.text}
                 onChange={(e) => setData({ ...data, banner: { ...data.banner, text: e.target.value } })}
                 placeholder="Ex: 🔥 SOLDES -30% avec le code PROMO30 · Livraison offerte dès 50€"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                className={inputCls}
               />
             </div>
 
             {/* Couleurs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Couleur de fond</label>
+                <label className={labelCls}>Couleur de fond</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={data.banner.backgroundColor}
                     onChange={(e) => setData({ ...data, banner: { ...data.banner, backgroundColor: e.target.value } })}
-                    className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                    className="w-10 h-10 border border-[var(--brand-gold)]/20 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={data.banner.backgroundColor}
                     onChange={(e) => setData({ ...data, banner: { ...data.banner, backgroundColor: e.target.value } })}
-                    className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono"
+                    className={`${inputCls} flex-1 font-mono`}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Couleur du texte</label>
+                <label className={labelCls}>Couleur du texte</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={data.banner.textColor}
                     onChange={(e) => setData({ ...data, banner: { ...data.banner, textColor: e.target.value } })}
-                    className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                    className="w-10 h-10 border border-[var(--brand-gold)]/20 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={data.banner.textColor}
                     onChange={(e) => setData({ ...data, banner: { ...data.banner, textColor: e.target.value } })}
-                    className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono"
+                    className={`${inputCls} flex-1 font-mono`}
                   />
                 </div>
               </div>
@@ -373,7 +372,7 @@ export default function AdminMarketingPage() {
 
             {/* Lien */}
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">
+              <label className={labelCls}>
                 Lien au clic (optionnel)
               </label>
               <input
@@ -381,13 +380,13 @@ export default function AdminMarketingPage() {
                 value={data.banner.linkUrl}
                 onChange={(e) => setData({ ...data, banner: { ...data.banner, linkUrl: e.target.value } })}
                 placeholder="/products?promo=true"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                className={inputCls}
               />
             </div>
 
             {/* Vitesse */}
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">
+              <label className={labelCls}>
                 Vitesse de défilement : {data.banner.speed}s
               </label>
               <input
@@ -396,7 +395,7 @@ export default function AdminMarketingPage() {
                 max={60}
                 value={data.banner.speed}
                 onChange={(e) => setData({ ...data, banner: { ...data.banner, speed: parseInt(e.target.value) } })}
-                className="w-full accent-gray-900"
+                className="w-full accent-[var(--brand-gold)]"
               />
               <div className="flex justify-between text-[11px] text-gray-400">
                 <span>Rapide</span>
@@ -407,10 +406,10 @@ export default function AdminMarketingPage() {
 
           {/* Aperçu bannière */}
           <div>
-            <label className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 mb-3">
-              <Eye size={13} /> Aperçu de la bannière
+            <label className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 mb-3">
+              <Eye size={13} className="text-[var(--brand-gold)]" /> Aperçu de la bannière
             </label>
-            <div className="rounded-2xl overflow-hidden border border-gray-200">
+            <div className="overflow-hidden border border-[var(--brand-gold)]/20">
               <div
                 className="py-2.5 overflow-hidden"
                 style={{ backgroundColor: data.banner.backgroundColor }}
@@ -431,8 +430,8 @@ export default function AdminMarketingPage() {
                 </div>
               </div>
               {/* Faux header en dessous */}
-              <div className="bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-900">Ma Boutique</span>
+              <div className="bg-white border-t border-[var(--brand-gold)]/10 px-6 py-3 flex items-center justify-between">
+                <span className="font-serif text-sm text-gray-900">Entre Maman et Moi</span>
                 <span className="text-xs text-gray-400">← le header sera ici</span>
               </div>
             </div>

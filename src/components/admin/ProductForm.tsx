@@ -55,6 +55,12 @@ const defaultData: ProductFormData = {
   seo: { metaTitle: "", metaDescription: "" },
 };
 
+const fieldCls =
+  "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
+const labelCls = "block text-[12px] font-medium text-gray-600 mb-1.5";
+const sectionCls = "bg-white border border-[var(--brand-gold)]/15 p-5 sm:p-6 space-y-4";
+const sectionTitleCls = "font-serif text-lg sm:text-xl text-gray-900";
+
 export default function ProductForm({ initialData, slug }: ProductFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ProductFormData>({
@@ -225,11 +231,11 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
       {/* Informations principales */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h2 className="text-[15px] font-semibold text-gray-900">Informations</h2>
+      <div className={sectionCls}>
+        <h2 className={sectionTitleCls}>Informations</h2>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelCls}>
             Nom du produit *
           </label>
           <input
@@ -237,24 +243,24 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             value={form.name}
             onChange={(e) => updateField("name", e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+            className={fieldCls}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelCls}>
             Description courte
           </label>
           <input
             type="text"
             value={form.shortDescription}
             onChange={(e) => updateField("shortDescription", e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+            className={fieldCls}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelCls}>
             Description complète *
           </label>
           <textarea
@@ -262,19 +268,19 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             onChange={(e) => updateField("description", e.target.value)}
             required
             rows={6}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+            className={`${fieldCls} leading-relaxed`}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelCls}>
             Catégorie *
           </label>
           <select
             value={form.category}
             onChange={(e) => updateField("category", e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+            className={fieldCls}
           >
             <option value="">Sélectionner...</option>
             {categories.map((cat) => (
@@ -287,12 +293,12 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
       </div>
 
       {/* Prix */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h2 className="text-[15px] font-semibold text-gray-900">Prix & Stock</h2>
+      <div className={sectionCls}>
+        <h2 className={sectionTitleCls}>Prix &amp; Stock</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               Prix (€) *
             </label>
             <input
@@ -302,11 +308,11 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               value={form.price}
               onChange={(e) => updateField("price", parseFloat(e.target.value) || 0)}
               required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+              className={fieldCls}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               Prix barré (€)
             </label>
             <input
@@ -317,14 +323,14 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               onChange={(e) =>
                 updateField("compareAtPrice", parseFloat(e.target.value) || 0)
               }
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+              className={fieldCls}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               Stock
             </label>
             <input
@@ -334,22 +340,22 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               onChange={(e) =>
                 updateField("stock", parseInt(e.target.value) || 0)
               }
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+              className={fieldCls}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               SKU
             </label>
             <input
               type="text"
               value={form.sku}
               onChange={(e) => updateField("sku", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+              className={fieldCls}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={labelCls}>
               Poids (g)
             </label>
             <input
@@ -359,24 +365,24 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               onChange={(e) =>
                 updateField("weight", parseInt(e.target.value) || 0)
               }
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+              className={fieldCls}
             />
           </div>
         </div>
       </div>
 
       {/* Images */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h2 className="text-[15px] font-semibold text-gray-900">Images</h2>
+      <div className={sectionCls}>
+        <h2 className={sectionTitleCls}>Images</h2>
 
         <div>
-          <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition">
+          <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-[var(--brand-gold)]/30 cursor-pointer hover:border-[var(--brand-gold)]/50 hover:bg-[var(--brand-cream)]/40 transition">
             <div className="text-center">
               {uploading ? (
                 <p className="text-sm text-gray-500">Upload en cours...</p>
               ) : (
                 <>
-                  <Plus size={24} className="mx-auto text-gray-400 mb-1" />
+                  <Plus size={24} className="mx-auto text-[var(--brand-gold)] mb-1" />
                   <p className="text-sm text-gray-500">Cliquer ou glisser des images</p>
                   <p className="text-xs text-gray-400">JPG, PNG, WebP · max 5MB</p>
                 </>
@@ -397,7 +403,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {form.images.map((img, i) => (
               <div key={i} className="relative group">
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <div className="aspect-square bg-[var(--brand-cream)]/50 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={img.url}
@@ -419,39 +425,39 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
       </div>
 
       {/* Variantes */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-gray-900">Variantes</h2>
+      <div className={sectionCls}>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className={sectionTitleCls}>Variantes</h2>
           <button
             type="button"
             onClick={addVariant}
-            className="flex items-center gap-1 text-sm text-gray-600 hover:text-black"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] transition"
           >
-            <Plus size={16} /> Ajouter une variante
+            <Plus size={14} /> Ajouter une variante
           </button>
         </div>
 
         {form.variants.map((variant, vi) => (
-          <div key={vi} className="border rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
+          <div key={vi} className="border border-[var(--brand-gold)]/15 p-4 space-y-3 bg-[var(--brand-cream)]/30">
+            <div className="flex items-center justify-between gap-3">
               <input
                 type="text"
                 value={variant.name}
                 onChange={(e) => updateVariant(vi, "name", e.target.value)}
                 placeholder="Nom (ex: Taille, Couleur)"
-                className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+                className={fieldCls}
               />
               <button
                 type="button"
                 onClick={() => removeVariant(vi)}
-                className="p-1 text-red-400 hover:text-red-600"
+                className="p-1 text-gray-400 hover:text-red-600 transition shrink-0"
               >
                 <Trash2 size={16} />
               </button>
             </div>
 
             {variant.options.map((option, oi) => (
-              <div key={oi} className="flex items-center gap-2 pl-4">
+              <div key={oi} className="flex items-center gap-2 sm:pl-4">
                 <input
                   type="text"
                   value={option.value}
@@ -459,7 +465,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
                     updateVariantOption(vi, oi, "value", e.target.value)
                   }
                   placeholder="Valeur (ex: M, L, XL)"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className={`flex-1 min-w-0 ${fieldCls}`}
                 />
                 <input
                   type="number"
@@ -473,7 +479,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
                     )
                   }
                   placeholder="Stock"
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className={`w-20 shrink-0 ${fieldCls}`}
                 />
                 <input
                   type="number"
@@ -488,12 +494,12 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
                     )
                   }
                   placeholder="+/- €"
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className={`w-24 shrink-0 ${fieldCls}`}
                 />
                 <button
                   type="button"
                   onClick={() => removeVariantOption(vi, oi)}
-                  className="p-1 text-gray-400 hover:text-red-600"
+                  className="p-1 text-gray-400 hover:text-red-600 transition shrink-0"
                 >
                   <X size={14} />
                 </button>
@@ -503,7 +509,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             <button
               type="button"
               onClick={() => addVariantOption(vi)}
-              className="ml-4 text-sm text-gray-500 hover:text-black"
+              className="sm:ml-4 text-[13px] text-gray-500 hover:text-[var(--brand-gold)] transition"
             >
               + Ajouter une option
             </button>
@@ -512,8 +518,8 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
       </div>
 
       {/* Options */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h2 className="text-[15px] font-semibold text-gray-900">Options</h2>
+      <div className={sectionCls}>
+        <h2 className={sectionTitleCls}>Options</h2>
 
         <div className="flex items-center gap-6">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -521,9 +527,9 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => updateField("isActive", e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300"
+              className="w-4 h-4 accent-[var(--brand-gold)]"
             />
-            <span className="text-sm">Produit actif</span>
+            <span className="text-sm text-gray-700">Produit actif</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -531,14 +537,14 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
               type="checkbox"
               checked={form.isFeatured}
               onChange={(e) => updateField("isFeatured", e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300"
+              className="w-4 h-4 accent-[var(--brand-gold)]"
             />
-            <span className="text-sm">En vedette</span>
+            <span className="text-sm text-gray-700">En vedette</span>
           </label>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelCls}>
             Type de fulfillment
           </label>
           <select
@@ -549,7 +555,7 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
                 e.target.value as "self" | "dropship"
               )
             }
-            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+            className={fieldCls}
           >
             <option value="self">Expédié par nous</option>
             <option value="dropship">Dropshipping</option>
@@ -568,25 +574,25 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
         type="product"
       />
 
-      {/* Submit */}
-      <div className="flex items-center gap-4">
+      {/* Barre d'action — collante en bas sur mobile pour rester accessible */}
+      <div className="sticky bottom-0 -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-2 bg-[var(--brand-cream)]/80 sm:bg-transparent backdrop-blur sm:backdrop-blur-none border-t border-[var(--brand-gold)]/15 sm:border-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-start gap-2.5">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="px-5 py-3 sm:py-2.5 text-[11px] uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--brand-gold)] transition border border-[var(--brand-gold)]/25 text-center"
+        >
+          Annuler
+        </button>
         <button
           type="submit"
           disabled={loading}
-          className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 bg-[var(--brand-gold)] text-white px-6 py-3 sm:py-2.5 text-[11px] uppercase tracking-[0.25em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60"
         >
           {loading
             ? "Enregistrement..."
             : isEditing
             ? "Mettre à jour"
             : "Créer le produit"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          Annuler
         </button>
       </div>
     </form>

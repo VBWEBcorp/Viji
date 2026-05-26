@@ -56,17 +56,19 @@ export default async function EditAtelierSessionPage({
   };
 
   return (
-    <div className="px-4 sm:px-6 py-6 max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <Link
         href="/admin/ateliers"
-        className="inline-flex items-center gap-2 text-[13px] text-gray-500 hover:text-gray-900 transition mb-6"
+        className="inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-[var(--brand-gold)] transition mb-6"
       >
         <ArrowLeft size={14} /> Retour aux sessions
       </Link>
 
       <div className="mb-8">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-2">Ateliers</p>
-        <h1 className="text-2xl font-semibold text-gray-900">Modifier la session</h1>
+        <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 mb-2">Ateliers</p>
+        <h1 className="font-serif text-[28px] sm:text-4xl text-gray-900 leading-[1.1]">
+          Modifier la session
+        </h1>
         <p className="text-[13px] text-gray-500 mt-2 truncate">{doc.title}</p>
       </div>
 

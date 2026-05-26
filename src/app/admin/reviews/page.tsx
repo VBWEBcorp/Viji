@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Star, Check, X, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { PageHeader, Card, Badge, EmptyState } from "@/components/admin/ui";
 
 interface Review {
   _id: string;
@@ -66,17 +67,14 @@ export default function AdminReviewsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Avis clients</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {reviews.length} avis dont {pendingCount} en attente
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Réputation"
+        title="Avis clients"
+        subtitle={loading ? undefined : `${reviews.length} avis · ${pendingCount} en attente`}
+      />
 
-      {/* Filters */}
-      <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1 w-fit">
+      {/* Filtres */}
+      <div className="inline-flex bg-white border border-[var(--brand-gold)]/15 p-1 mb-5 max-w-full overflow-x-auto scrollbar-hide">
         {[
           { value: "all" as const, label: "Tous" },
           { value: "pending" as const, label: `En attente (${pendingCount})` },
@@ -85,10 +83,10 @@ export default function AdminReviewsPage() {
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
+            className={`px-3.5 py-2 text-[11px] uppercase tracking-[0.2em] whitespace-nowrap transition ${
               filter === f.value
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-[var(--brand-gold)] text-white"
+                : "text-gray-500 hover:text-[var(--brand-gold)]"
             }`}
           >
             {f.label}
@@ -98,55 +96,44 @@ export default function AdminReviewsPage() {
 
       <div className="space-y-3">
         {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400 text-sm">
-            Chargement...
-          </div>
+          <Card className="p-12 text-center text-gray-400 text-sm">Chargement…</Card>
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-            <Star size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">Aucun avis</p>
-          </div>
+          <Card>
+            <EmptyState icon={<Star size={18} strokeWidth={1.5} />} title="Aucun avis" />
+          </Card>
         ) : (
           filtered.map((review) => (
-            <div key={review._id} className="bg-white rounded-2xl border border-gray-100 p-5">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+            <Card key={review._id} className="p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star
                           key={s}
                           size={14}
-                          className={s <= review.rating ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}
+                          className={s <= review.rating ? "fill-[var(--brand-gold)] text-[var(--brand-gold)]" : "fill-gray-200 text-gray-200"}
                         />
                       ))}
                     </div>
-                    {review.isVerified && (
-                      <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
-                        Verifie
-                      </span>
-                    )}
-                    {!review.isApproved && (
-                      <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                        En attente
-                      </span>
-                    )}
+                    {review.isVerified && <Badge tone="green">Vérifié</Badge>}
+                    {!review.isApproved && <Badge tone="amber">En attente</Badge>}
                   </div>
                   <h3 className="text-[14px] font-semibold text-gray-900">{review.title}</h3>
                   <p className="text-[13px] text-gray-600 mt-1">{review.comment}</p>
-                  <div className="flex items-center gap-3 mt-2 text-[12px] text-gray-400">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-2 text-[12px] text-gray-400">
                     <span>{review.user?.name}</span>
                     <span>sur {review.product?.name}</span>
                     <span>{formatDate(review.createdAt)}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 ml-4">
+                <div className="flex items-center gap-1 shrink-0">
                   {!review.isApproved && (
                     <button
                       onClick={() => updateReview(review._id, true)}
-                      className="p-2 rounded-lg text-emerald-500 hover:bg-emerald-50 transition"
-                      title="Approuvér"
+                      className="p-2 text-emerald-500 hover:bg-emerald-50 transition"
+                      title="Approuver"
                     >
                       <Check size={16} />
                     </button>
@@ -154,22 +141,22 @@ export default function AdminReviewsPage() {
                   {review.isApproved && (
                     <button
                       onClick={() => updateReview(review._id, false)}
-                      className="p-2 rounded-lg text-amber-500 hover:bg-amber-50 transition"
-                      title="Rejetér"
+                      className="p-2 text-amber-500 hover:bg-amber-50 transition"
+                      title="Rejeter"
                     >
                       <X size={16} />
                     </button>
                   )}
                   <button
                     onClick={() => deleteReview(review._id)}
-                    className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                     title="Supprimer"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
           ))
         )}
       </div>

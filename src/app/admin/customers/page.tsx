@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
-import { Eye, Users } from "lucide-react";
+import { Users, ChevronRight } from "lucide-react";
+import { PageHeader, Card, EmptyState } from "@/components/admin/ui";
 
 interface Customer {
   _id: string;
@@ -11,6 +12,14 @@ interface Customer {
   email: string;
   phone?: string;
   createdAt: string;
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <div className="w-9 h-9 rounded-full bg-[var(--brand-cream)] text-[var(--brand-gold)] flex items-center justify-center text-[13px] font-medium shrink-0">
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
 }
 
 export default function AdminCustomersPage() {
@@ -28,62 +37,88 @@ export default function AdminCustomersPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Clients</h1>
-        <p className="text-sm text-gray-400 mt-0.5">
-          {customers.length} client{customers.length > 1 ? "s" : ""}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Répertoire"
+        title="Clients"
+        subtitle={loading ? undefined : `${customers.length} client${customers.length > 1 ? "s" : ""}`}
+      />
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement...</div>
+          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
         ) : customers.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">Aucun client inscrit</p>
-          </div>
+          <EmptyState
+            icon={<Users size={18} strokeWidth={1.5} />}
+            title="Aucun client inscrit"
+            description="Vos clients apparaîtront ici après leur première inscription."
+          />
         ) : (
-          <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px]">
-            <thead>
-              <tr className="border-b border-gray-50">
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Client</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Telephone</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Inscrit le</th>
-                <th className="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
+          <>
+            {/* Desktop : tableau */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[var(--brand-gold)]/15">
+                    {["Client", "Email", "Téléphone", "Inscrit le", ""].map((h, i) => (
+                      <th
+                        key={i}
+                        className={`px-5 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] ${i === 4 ? "text-right" : "text-left"}`}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--brand-gold)]/10">
+                  {customers.map((customer) => (
+                    <tr key={customer._id} className="hover:bg-[var(--brand-cream)]/40 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={customer.name} />
+                          <span className="text-[13px] font-medium text-gray-900">{customer.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-[13px] text-gray-500">{customer.email}</td>
+                      <td className="px-5 py-4 text-[13px] text-gray-400">{customer.phone || "·"}</td>
+                      <td className="px-5 py-4 text-[12px] text-gray-400">{formatDate(customer.createdAt)}</td>
+                      <td className="px-5 py-4 text-right">
+                        <Link
+                          href={`/admin/customers/${customer._id}`}
+                          className="inline-flex p-2 text-[var(--brand-gold)]/40 hover:text-[var(--brand-gold)] transition"
+                          aria-label="Voir le client"
+                        >
+                          <ChevronRight size={16} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile : cartes */}
+            <div className="md:hidden divide-y divide-[var(--brand-gold)]/10">
               {customers.map((customer) => (
-                <tr key={customer._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-xs font-bold text-white">
-                        {customer.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-[13px] font-medium text-gray-900">{customer.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-[13px] text-gray-500">{customer.email}</td>
-                  <td className="px-5 py-3.5 text-[13px] text-gray-400">{customer.phone || "·"}</td>
-                  <td className="px-5 py-3.5 text-[12px] text-gray-400">{formatDate(customer.createdAt)}</td>
-                  <td className="px-5 py-3.5 text-right">
-                    <Link
-                      href={`/admin/customers/${customer._id}`}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition inline-block"
-                    >
-                      <Eye size={14} />
-                    </Link>
-                  </td>
-                </tr>
+                <Link
+                  key={customer._id}
+                  href={`/admin/customers/${customer._id}`}
+                  className="flex items-center gap-3 px-4 py-4 hover:bg-[var(--brand-cream)]/40 transition"
+                >
+                  <Avatar name={customer.name} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-medium text-gray-900 truncate">{customer.name}</p>
+                    <p className="text-[12px] text-gray-500 truncate">{customer.email}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {customer.phone ? `${customer.phone} · ` : ""}Inscrit le {formatDate(customer.createdAt)}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="text-[var(--brand-gold)]/40 shrink-0" />
+                </Link>
               ))}
-            </tbody>
-          </table>
-          </div>
+            </div>
+          </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

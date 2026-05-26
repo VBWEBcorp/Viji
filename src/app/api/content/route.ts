@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import Content from "@/models/Content";
+
+/**
+ * Vide le cache de rendu de tout le site (toutes les routes sous le layout
+ * racine) pour que les modifications de contenu — y compris le footer présent
+ * sur chaque page — apparaissent immédiatement après enregistrement.
+ */
+function revalidateSite() {
+  try {
+    revalidatePath("/", "layout");
+  } catch {
+    // revalidation best-effort : ne bloque jamais la sauvegarde.
+  }
+}
 
 // GET /api/content — Liste ou single par key
 export async function GET(req: NextRequest) {
@@ -43,6 +57,7 @@ export async function POST(req: NextRequest) {
       { upsert: true, new: true, runValidators: true }
     );
 
+    revalidateSite();
     return NextResponse.json(content);
   } catch (error) {
     console.error("POST /api/content error:", error);
@@ -62,6 +77,7 @@ export async function DELETE(req: NextRequest) {
     const { key } = await req.json();
 
     await Content.findOneAndDelete({ key });
+    revalidateSite();
     return NextResponse.json({ message: "Contenu supprimé" });
   } catch (error) {
     console.error("DELETE /api/content error:", error);

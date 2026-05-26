@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ChevronRight, ChevronDown, FolderTree, X, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
+import { Card, Badge, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+
+const fieldCls =
+  "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
+const labelCls = "block text-[12px] font-medium text-gray-600 mb-1.5";
 
 interface Filter {
   _id?: string;
@@ -174,13 +179,13 @@ export default function CategoriesManager() {
     return (
       <div key={cat._id}>
         <div
-          className={`flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors ${
-            depth > 0 ? "border-l-2 border-gray-100 ml-6" : ""
+          className={`flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-[var(--brand-cream)]/40 transition-colors ${
+            depth > 0 ? "border-l-2 border-[var(--brand-gold)]/15 ml-6" : ""
           }`}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0" style={{ paddingLeft: depth > 0 ? 0 : undefined }}>
             {hasChildren ? (
-              <button onClick={() => toggleExpand(cat._id)} className="p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={() => toggleExpand(cat._id)} className="p-1 text-gray-400 hover:text-[var(--brand-gold)] transition">
                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </button>
             ) : (
@@ -191,19 +196,15 @@ export default function CategoriesManager() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-gray-900">{cat.name}</span>
-                <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${
-                  cat.isActive
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-gray-50 text-gray-500 border-gray-200"
-                }`}>
+                <span className="text-[14px] font-medium text-gray-900">{cat.name}</span>
+                <Badge tone={cat.isActive ? "green" : "gray"}>
                   {cat.isActive ? "Active" : "Inactive"}
-                </span>
+                </Badge>
               </div>
               {cat.filters.length > 0 && (
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex flex-wrap items-center gap-1.5 mt-1">
                   {cat.filters.map((f, i) => (
-                    <span key={i} className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+                    <span key={i} className="text-[10px] bg-[var(--brand-cream)]/70 text-[var(--brand-gold-dark)] border border-[var(--brand-gold)]/20 px-1.5 py-0.5">
                       {f.name}
                     </span>
                   ))}
@@ -215,13 +216,13 @@ export default function CategoriesManager() {
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => startEdit(cat)}
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+              className="p-2 text-gray-400 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/60 transition"
             >
               <Pencil size={14} />
             </button>
             <button
               onClick={() => deleteCategory(cat._id)}
-              className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
             >
               <Trash2 size={14} />
             </button>
@@ -237,29 +238,23 @@ export default function CategoriesManager() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Categories</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {categories.length} catégorie{categories.length > 1 ? "s" : ""} · Gérez vos catégories, sous-catégories et filtres
-          </p>
-        </div>
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm px-4 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-        >
-          <Plus size={16} /> Nouvelle categorie
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <p className="text-[13px] text-gray-500">
+          {`${categories.length} catégorie${categories.length > 1 ? "s" : ""} · Gérez vos catégories, sous-catégories et filtres`}
+        </p>
+        <GoldButton onClick={() => { resetForm(); setShowForm(true); }}>
+          <Plus size={16} /> Nouvelle catégorie
+        </GoldButton>
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-gray-900">
-              {editId ? "Modifier la categorie" : "Nouvelle categorie"}
+        <Card className="p-5 sm:p-6 mb-6 space-y-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-serif text-lg sm:text-xl text-gray-900">
+              {editId ? "Modifier la catégorie" : "Nouvelle catégorie"}
             </h2>
-            <button onClick={resetForm} className="p-1 text-gray-400 hover:text-gray-600">
+            <button onClick={resetForm} className="p-1 text-gray-400 hover:text-[var(--brand-gold)] transition">
               <X size={16} />
             </button>
           </div>
@@ -267,24 +262,24 @@ export default function CategoriesManager() {
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Nom *</label>
+                <label className={labelCls}>Nom *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
                   placeholder="Ex: T-shirts, Chaussures, Accessoires..."
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                  className={fieldCls}
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Categorie parente</label>
+                <label className={labelCls}>Catégorie parente</label>
                 <select
                   value={form.parent}
                   onChange={(e) => setForm({ ...form, parent: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all"
+                  className={fieldCls}
                 >
-                  <option value="">Aucune (categorie principale)</option>
+                  <option value="">Aucune (catégorie principale)</option>
                   {rootCategories
                     .filter((c) => c._id !== editId)
                     .map((c) => (
@@ -295,58 +290,58 @@ export default function CategoriesManager() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Description</label>
+              <label className={labelCls}>Description</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
-                placeholder="Description de la categorie (optionnel)"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                placeholder="Description de la catégorie (optionnel)"
+                className={`${fieldCls} leading-relaxed`}
               />
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Image (URL)</label>
+              <label className={labelCls}>Image (URL)</label>
               <input
                 type="url"
                 value={form.image}
                 onChange={(e) => setForm({ ...form, image: e.target.value })}
                 placeholder="https://..."
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300"
+                className={fieldCls}
               />
             </div>
 
             {/* Dynamic Filters */}
-            <div className="border-t border-gray-100 pt-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="border-t border-[var(--brand-gold)]/10 pt-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                 <div>
-                  <h3 className="text-[14px] font-semibold text-gray-900">Filtres personnalises</h3>
-                  <p className="text-[11px] text-gray-400">
-                    Definissez les filtres que les clients pourront utiliser (taille, couleur, matiere, etc.)
+                  <h3 className="font-serif text-lg text-gray-900">Filtres personnalisés</h3>
+                  <p className="text-[12px] text-gray-500">
+                    Définissez les filtres que les clients pourront utiliser (taille, couleur, matière, etc.)
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={addFilter}
-                  className="inline-flex items-center gap-1.5 text-[12px] text-gray-600 hover:text-gray-900 font-medium border border-gray-200 px-3 py-1.5 rounded-lg hover:border-gray-300 transition"
+                  className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:text-[var(--brand-gold-dark)] transition shrink-0"
                 >
-                  <Plus size={12} /> Ajouter un filtre
+                  <Plus size={14} /> Ajouter un filtre
                 </button>
               </div>
 
               {form.filters.length === 0 ? (
-                <div className="bg-gray-50 rounded-xl p-6 text-center">
-                  <p className="text-[12px] text-gray-400 mb-2">Aucun filtre defini</p>
+                <div className="bg-[var(--brand-cream)]/40 border border-[var(--brand-gold)]/15 p-6 text-center">
+                  <p className="text-[13px] text-gray-500 mb-2">Aucun filtre défini</p>
                   <p className="text-[11px] text-gray-400">
-                    Exemples : Taille (S, M, L, XL), Couleur, Matiere, Poids...
+                    Exemples : Taille (S, M, L, XL), Couleur, Matière, Poids...
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {form.filters.map((filter, fi) => (
-                    <div key={fi} className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div key={fi} className="bg-[var(--brand-cream)]/30 border border-[var(--brand-gold)]/15 p-4 space-y-3">
                       <div className="flex items-start gap-3">
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block text-[11px] font-medium text-gray-500 mb-1">Nom du filtre</label>
                             <input
@@ -354,7 +349,7 @@ export default function CategoriesManager() {
                               value={filter.name}
                               onChange={(e) => updateFilter(fi, "name", e.target.value)}
                               placeholder="Ex: Taille, Couleur..."
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all placeholder:text-gray-300"
+                              className={fieldCls}
                             />
                           </div>
                           <div>
@@ -362,29 +357,29 @@ export default function CategoriesManager() {
                             <select
                               value={filter.type}
                               onChange={(e) => updateFilter(fi, "type", e.target.value)}
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all"
+                              className={fieldCls}
                             >
-                              <option value="select">Liste deroulante</option>
+                              <option value="select">Liste déroulante</option>
                               <option value="multiselect">Choix multiples</option>
                               <option value="range">Plage (min-max)</option>
                               <option value="color">Couleurs</option>
                             </select>
                           </div>
                           <div>
-                            <label className="block text-[11px] font-medium text-gray-500 mb-1">Unite (optionnel)</label>
+                            <label className="block text-[11px] font-medium text-gray-500 mb-1">Unité (optionnel)</label>
                             <input
                               type="text"
                               value={filter.unit || ""}
                               onChange={(e) => updateFilter(fi, "unit", e.target.value)}
                               placeholder="kg, cm, ml..."
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all placeholder:text-gray-300"
+                              className={fieldCls}
                             />
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeFilter(fi)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 mt-5"
+                          className="p-1.5 text-gray-400 hover:text-red-500 transition mt-5 shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -404,12 +399,12 @@ export default function CategoriesManager() {
                                   value={opt}
                                   onChange={(e) => updateFilterOption(fi, oi, e.target.value)}
                                   placeholder={filter.type === "color" ? "Rouge" : "XL"}
-                                  className="w-24 px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition-all placeholder:text-gray-300"
+                                  className="w-24 px-2.5 py-1.5 bg-white border border-[var(--brand-gold)]/20 text-xs focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => removeFilterOption(fi, oi)}
-                                  className="text-gray-300 hover:text-red-500"
+                                  className="text-gray-300 hover:text-red-500 transition"
                                 >
                                   <X size={12} />
                                 </button>
@@ -418,7 +413,7 @@ export default function CategoriesManager() {
                             <button
                               type="button"
                               onClick={() => addFilterOption(fi)}
-                              className="px-2.5 py-1.5 text-[11px] text-gray-500 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-700 transition"
+                              className="px-2.5 py-1.5 text-[11px] text-gray-500 border border-dashed border-[var(--brand-gold)]/30 hover:border-[var(--brand-gold)]/50 hover:text-[var(--brand-gold)] transition"
                             >
                               + Ajouter
                             </button>
@@ -436,48 +431,39 @@ export default function CategoriesManager() {
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300"
+                className="w-4 h-4 accent-[var(--brand-gold)]"
               />
-              <span className="text-sm text-gray-700">Categorie active</span>
+              <span className="text-sm text-gray-700">Catégorie active</span>
             </label>
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                className="bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-              >
-                {editId ? "Enregistrer" : "Créer la categorie"}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-[13px] text-gray-500 hover:text-gray-700 px-4 py-2.5 transition"
-              >
+            <div className="flex flex-wrap gap-2.5 pt-2">
+              <GoldButton type="submit">
+                {editId ? "Enregistrer" : "Créer la catégorie"}
+              </GoldButton>
+              <GhostButton type="button" onClick={resetForm}>
                 Annuler
-              </button>
+              </GhostButton>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
       {/* Categories tree */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <Card className="overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-400 text-sm">Chargement...</div>
         ) : categories.length === 0 ? (
-          <div className="p-12 text-center">
-            <FolderTree size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400 mb-1">Aucune categorie</p>
-            <p className="text-[12px] text-gray-400">
-              Creez des categories pour organiser vos produits
-            </p>
-          </div>
+          <EmptyState
+            icon={<FolderTree size={18} strokeWidth={1.5} />}
+            title="Aucune catégorie"
+            description="Créez des catégories pour organiser vos produits."
+          />
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[var(--brand-gold)]/10">
             {tree.map((cat) => renderCategory(cat))}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

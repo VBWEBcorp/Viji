@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { Eye, ShoppingCart } from "lucide-react";
+import { ShoppingCart, ChevronRight } from "lucide-react";
+import { PageHeader, Card, Badge, EmptyState } from "@/components/admin/ui";
 
 interface Order {
   _id: string;
@@ -15,29 +16,27 @@ interface Order {
   createdAt: string;
 }
 
-const badge = (status: string, map: Record<string, { label: string; cls: string }>) => {
-  const s = map[status] || { label: status, cls: "bg-gray-50 text-gray-600 border-gray-200" };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full border ${s.cls}`}>
-      {s.label}
-    </span>
-  );
+type Tone = "gold" | "green" | "amber" | "red" | "gray" | "blue";
+
+const paymentMap: Record<string, { label: string; tone: Tone }> = {
+  pending: { label: "En attente", tone: "amber" },
+  paid: { label: "Payé", tone: "green" },
+  failed: { label: "Échoué", tone: "red" },
+  refunded: { label: "Remboursé", tone: "gray" },
 };
 
-const paymentMap: Record<string, { label: string; cls: string }> = {
-  pending: { label: "En attente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  paid: { label: "Paye", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  failed: { label: "Échoué", cls: "bg-red-50 text-red-700 border-red-200" },
-  refunded: { label: "Remboursé", cls: "bg-gray-50 text-gray-600 border-gray-200" },
+const fulfillmentMap: Record<string, { label: string; tone: Tone }> = {
+  pending: { label: "En attente", tone: "gray" },
+  processing: { label: "Préparation", tone: "blue" },
+  shipped: { label: "Expédié", tone: "gold" },
+  delivered: { label: "Livré", tone: "green" },
+  returned: { label: "Retourné", tone: "red" },
 };
 
-const fulfillmentMap: Record<string, { label: string; cls: string }> = {
-  pending: { label: "En attente", cls: "bg-gray-50 text-gray-600 border-gray-200" },
-  processing: { label: "Preparation", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  shipped: { label: "Expédié", cls: "bg-purple-50 text-purple-700 border-purple-200" },
-  delivered: { label: "Livre", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  returned: { label: "Retourne", cls: "bg-red-50 text-red-700 border-red-200" },
-};
+function StatusBadge({ status, map }: { status: string; map: Record<string, { label: string; tone: Tone }> }) {
+  const s = map[status] || { label: status, tone: "gray" as Tone };
+  return <Badge tone={s.tone}>{s.label}</Badge>;
+}
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -54,68 +53,110 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Commandes</h1>
-        <p className="text-sm text-gray-400 mt-0.5">
-          {orders.length} commande{orders.length > 1 ? "s" : ""}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Activité"
+        title="Commandes"
+        subtitle={loading ? undefined : `${orders.length} commande${orders.length > 1 ? "s" : ""}`}
+      />
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement...</div>
+          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
         ) : orders.length === 0 ? (
-          <div className="p-12 text-center">
-            <ShoppingCart size={40} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">Aucune commande pour le moment</p>
-          </div>
+          <EmptyState
+            icon={<ShoppingCart size={18} strokeWidth={1.5} />}
+            title="Aucune commande pour le moment"
+            description="Les commandes apparaîtront ici dès le premier achat."
+          />
         ) : (
-          <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead>
-              <tr className="border-b border-gray-50">
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Commande</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Client</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Total</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Paiement</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Livraison</th>
-                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900">
-                    {order.orderNumber}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="text-[13px] text-gray-700">{order.user?.name || "·"}</p>
-                    <p className="text-[11px] text-gray-400">{order.user?.email}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900">
-                    {formatPrice(order.total)}
-                  </td>
-                  <td className="px-5 py-3.5">{badge(order.paymentStatus, paymentMap)}</td>
-                  <td className="px-5 py-3.5">{badge(order.fulfillmentStatus, fulfillmentMap)}</td>
-                  <td className="px-5 py-3.5 text-[12px] text-gray-400">
-                    {formatDate(order.createdAt)}
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <Link
-                      href={`/admin/orders/${order._id}`}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition inline-block"
+          <>
+            {/* Desktop : tableau */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[var(--brand-gold)]/15">
+                    {["Commande", "Client", "Total", "Paiement", "Livraison", "Date", ""].map((h, i) => (
+                      <th
+                        key={i}
+                        className={`px-5 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] ${i === 6 ? "text-right" : "text-left"}`}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--brand-gold)]/10">
+                  {orders.map((order) => (
+                    <tr
+                      key={order._id}
+                      className="hover:bg-[var(--brand-cream)]/40 transition-colors"
                     >
-                      <Eye size={14} />
-                    </Link>
-                  </td>
-                </tr>
+                      <td className="px-5 py-4 font-serif text-[15px] text-gray-900">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-5 py-4">
+                        <p className="text-[13px] text-gray-700">{order.user?.name || "·"}</p>
+                        <p className="text-[11px] text-gray-400">{order.user?.email}</p>
+                      </td>
+                      <td className="px-5 py-4 font-serif text-[15px] text-gray-900">
+                        {formatPrice(order.total)}
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={order.paymentStatus} map={paymentMap} />
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={order.fulfillmentStatus} map={fulfillmentMap} />
+                      </td>
+                      <td className="px-5 py-4 text-[12px] text-gray-400">
+                        {formatDate(order.createdAt)}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <Link
+                          href={`/admin/orders/${order._id}`}
+                          className="inline-flex p-2 text-[var(--brand-gold)]/40 hover:text-[var(--brand-gold)] transition"
+                          aria-label="Voir la commande"
+                        >
+                          <ChevronRight size={16} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile : cartes */}
+            <div className="md:hidden divide-y divide-[var(--brand-gold)]/10">
+              {orders.map((order) => (
+                <Link
+                  key={order._id}
+                  href={`/admin/orders/${order._id}`}
+                  className="flex items-center gap-3 px-4 py-4 hover:bg-[var(--brand-cream)]/40 transition"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="font-serif text-[15px] text-gray-900">
+                        {order.orderNumber}
+                      </span>
+                      <span className="font-serif text-[15px] text-gray-900 ml-auto">
+                        {formatPrice(order.total)}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-gray-500 truncate mb-2">
+                      {order.user?.name || order.user?.email || "Client"} · {formatDate(order.createdAt)}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <StatusBadge status={order.paymentStatus} map={paymentMap} />
+                      <StatusBadge status={order.fulfillmentStatus} map={fulfillmentMap} />
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-[var(--brand-gold)]/40 shrink-0" />
+                </Link>
               ))}
-            </tbody>
-          </table>
-          </div>
+            </div>
+          </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
