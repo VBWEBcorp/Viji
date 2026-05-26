@@ -9,7 +9,12 @@ const AUTH_SECRET =
     : undefined);
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: AUTH_SECRET });
+  // En prod (HTTPS), Auth.js v5 préfixe le cookie de session : `__Secure-authjs.session-token`.
+  // getToken doit donc savoir s'il faut chercher le cookie sécurisé, sinon il ne trouve jamais
+  // le token et toutes les routes /admin sont rejetées vers /login.
+  const secureCookie =
+    process.env.NODE_ENV === "production" || req.nextUrl.protocol === "https:";
+  const token = await getToken({ req, secret: AUTH_SECRET, secureCookie });
   const { pathname } = req.nextUrl;
 
   // Protection des routes admin
