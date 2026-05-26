@@ -89,7 +89,7 @@ const PAGES: PageDef[] = [
       { key: "homepage_trust_1_title", title: "Avantage 1 · titre", type: "text", description: "Premier avantage", placeholder: "Expedition express" },
       { key: "homepage_trust_1_desc", title: "Avantage 1 · description", type: "text", description: "", placeholder: "Commandez avant 14h, livraison sous 24-48h." },
       { key: "homepage_trust_2_title", title: "Avantage 2 · titre", type: "text", description: "", placeholder: "Paiement securise" },
-      { key: "homepage_trust_2_desc", title: "Avantage 2 · description", type: "text", description: "", placeholder: "Stripe, PayPal, CB. Donnees chiffrees." },
+      { key: "homepage_trust_2_desc", title: "Avantage 2 · description", type: "text", description: "", placeholder: "Stripe, CB. Donnees chiffrees." },
       { key: "homepage_trust_3_title", title: "Avantage 3 · titre", type: "text", description: "", placeholder: "Retours gratuits" },
       { key: "homepage_trust_3_desc", title: "Avantage 3 · description", type: "text", description: "", placeholder: "14 jours pour changer d'avis. Sans condition." },
       { key: "homepage_trust_4_title", title: "Avantage 4 · titre", type: "text", description: "", placeholder: "Qualite premium" },

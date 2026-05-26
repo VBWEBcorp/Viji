@@ -60,8 +60,6 @@ export interface ISiteSettings extends Document {
     stripeSecretKey?: string;
     stripePublishableKey?: string;
     stripeWebhookSecret?: string;
-    paypalClientId?: string;
-    paypalClientSecret?: string;
     sendcloudPublicKey?: string;
     sendcloudSecretKey?: string;
     resendApiKey?: string;
@@ -135,8 +133,6 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       stripeSecretKey: { type: String },
       stripePublishableKey: { type: String },
       stripeWebhookSecret: { type: String },
-      paypalClientId: { type: String },
-      paypalClientSecret: { type: String },
       sendcloudPublicKey: { type: String },
       sendcloudSecretKey: { type: String },
       resendApiKey: { type: String },

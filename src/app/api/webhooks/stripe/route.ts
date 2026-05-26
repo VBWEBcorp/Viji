@@ -6,6 +6,9 @@ import Order from "@/models/Order";
 import Cart from "@/models/Cart";
 import Product from "@/models/Product";
 import PromoCode from "@/models/PromoCode";
+import User from "@/models/User";
+import { sendEmail } from "@/lib/resend";
+import { generateOrderConfirmationEmail } from "@/components/emails/OrderConfirmation";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -55,7 +58,38 @@ export async function POST(req: NextRequest) {
       // Vider le panier
       await Cart.findOneAndDelete({ user: order.user });
 
-      // TODO: Envoyer email de confirmation via Resend
+      // Email de confirmation (best-effort : ne doit jamais faire échouer le webhook)
+      try {
+        const customer = await User.findById(order.user).select("email").lean();
+        if (customer?.email) {
+          await sendEmail({
+            to: customer.email,
+            subject: `Confirmation de votre commande ${order.orderNumber}`,
+            html: generateOrderConfirmationEmail({
+              orderNumber: order.orderNumber,
+              customerName: order.shippingAddress.name,
+              items: order.items.map((i) => ({
+                name: i.name,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice,
+              })),
+              subtotal: order.subtotal,
+              shippingCost: order.shippingCost,
+              discount: order.discount,
+              total: order.total,
+              shippingAddress: {
+                name: order.shippingAddress.name,
+                street: order.shippingAddress.street,
+                city: order.shippingAddress.city,
+                zip: order.shippingAddress.zip,
+                country: order.shippingAddress.country,
+              },
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("Order confirmation email failed:", err);
+      }
     }
   }
 

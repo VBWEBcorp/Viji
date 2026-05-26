@@ -42,7 +42,7 @@ export interface IOrder extends Document {
   billingAddress: IOrderAddress;
   shippingMethod: "home" | "pickup";
   pickupPoint?: IPickupPoint;
-  paymentMethod: "stripe" | "paypal";
+  paymentMethod: "stripe";
   paymentId?: string;
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
   fulfillmentStatus:
@@ -129,7 +129,7 @@ const OrderSchema = new Schema<IOrder>(
     pickupPoint: { type: PickupPointSchema },
     paymentMethod: {
       type: String,
-      enum: ["stripe", "paypal"],
+      enum: ["stripe"],
       required: true,
     },
     paymentId: { type: String },

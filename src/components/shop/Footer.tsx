@@ -162,7 +162,6 @@ export default async function Footer() {
             <PaymentBadge label="Visa"><VisaMark /></PaymentBadge>
             <PaymentBadge label="Mastercard"><MastercardMark /></PaymentBadge>
             <PaymentBadge label="Maestro"><MaestroMark /></PaymentBadge>
-            <PaymentBadge label="PayPal"><PaypalMark /></PaymentBadge>
             <PaymentBadge label="Apple Pay"><ApplePayMark /></PaymentBadge>
           </div>
         </div>
@@ -265,26 +264,6 @@ function MaestroMark() {
         d="M18 5.4a8 8 0 0 1 0 11.2 8 8 0 0 1 0-11.2Z"
         fill="#6C6BBD"
       />
-    </svg>
-  );
-}
-
-function PaypalMark() {
-  return (
-    <svg viewBox="0 0 64 18" className="h-3 w-auto" aria-hidden="true">
-      <text
-        x="32"
-        y="14"
-        textAnchor="middle"
-        fontFamily="Geist, Arial, sans-serif"
-        fontWeight="800"
-        fontStyle="italic"
-        fontSize="14"
-        letterSpacing="-0.3"
-      >
-        <tspan fill="#003087">Pay</tspan>
-        <tspan fill="#009CDE">Pal</tspan>
-      </text>
     </svg>
   );
 }

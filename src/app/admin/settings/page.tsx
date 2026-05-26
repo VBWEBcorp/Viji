@@ -62,8 +62,6 @@ interface Settings {
     stripeSecretKey: string;
     stripePublishableKey: string;
     stripeWebhookSecret: string;
-    paypalClientId: string;
-    paypalClientSecret: string;
     sendcloudPublicKey: string;
     sendcloudSecretKey: string;
     resendApiKey: string;
@@ -107,8 +105,6 @@ const defaultSettings: Settings = {
     stripeSecretKey: "",
     stripePublishableKey: "",
     stripeWebhookSecret: "",
-    paypalClientId: "",
-    paypalClientSecret: "",
     sendcloudPublicKey: "",
     sendcloudSecretKey: "",
     resendApiKey: "",
@@ -217,8 +213,6 @@ export default function AdminSettingsPage() {
               stripeSecretKey: data.apiKeys?.stripeSecretKey || "",
               stripePublishableKey: data.apiKeys?.stripePublishableKey || "",
               stripeWebhookSecret: data.apiKeys?.stripeWebhookSecret || "",
-              paypalClientId: data.apiKeys?.paypalClientId || "",
-              paypalClientSecret: data.apiKeys?.paypalClientSecret || "",
               sendcloudPublicKey: data.apiKeys?.sendcloudPublicKey || "",
               sendcloudSecretKey: data.apiKeys?.sendcloudSecretKey || "",
               resendApiKey: data.apiKeys?.resendApiKey || "",
@@ -399,36 +393,6 @@ export default function AdminSettingsPage() {
                 <SecretInput value={settings.apiKeys.stripeWebhookSecret}
                   onChange={(v) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, stripeWebhookSecret: v } })}
                   placeholder="whsec_..." />
-              </div>
-            </div>
-
-            {/* PayPal */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
-                  <CreditCard size={16} /> PayPal
-                </h2>
-                {settings.apiKeys.paypalClientId && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    <Check size={10} /> Configure
-                  </span>
-                )}
-              </div>
-              <p className="text-[12px] text-gray-400">
-                Paiement PayPal. Creez une app sur developer.paypal.com → Dashboard → My Apps.
-              </p>
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Client ID</label>
-                <input type="text" value={settings.apiKeys.paypalClientId}
-                  onChange={(e) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, paypalClientId: e.target.value } })}
-                  placeholder="AX..."
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 focus:bg-white outline-none transition-all placeholder:text-gray-300" />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Client Secret</label>
-                <SecretInput value={settings.apiKeys.paypalClientSecret}
-                  onChange={(v) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, paypalClientSecret: v } })}
-                  placeholder="EK..." />
               </div>
             </div>
 

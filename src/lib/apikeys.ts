@@ -5,8 +5,6 @@ interface ApiKeys {
   stripeSecretKey: string;
   stripePublishableKey: string;
   stripeWebhookSecret: string;
-  paypalClientId: string;
-  paypalClientSecret: string;
   sendcloudPublicKey: string;
   sendcloudSecretKey: string;
   resendApiKey: string;
@@ -35,10 +33,6 @@ export async function getApiKeys(): Promise<ApiKeys> {
       dbKeys.stripePublishableKey || process.env.STRIPE_PUBLISHABLE_KEY || "",
     stripeWebhookSecret:
       dbKeys.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET || "",
-    paypalClientId:
-      dbKeys.paypalClientId || process.env.PAYPAL_CLIENT_ID || "",
-    paypalClientSecret:
-      dbKeys.paypalClientSecret || process.env.PAYPAL_CLIENT_SECRET || "",
     sendcloudPublicKey:
       dbKeys.sendcloudPublicKey || process.env.SENDCLOUD_PUBLIC_KEY || "",
     sendcloudSecretKey:

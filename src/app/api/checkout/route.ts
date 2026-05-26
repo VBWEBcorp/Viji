@@ -6,7 +6,6 @@ import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
 import SiteSettings from "@/models/SiteSettings";
 import { getStripe } from "@/lib/stripe";
-import { createPayPalOrder } from "@/lib/paypal";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/resend";
 import { cookies } from "next/headers";
@@ -61,7 +60,7 @@ const checkoutSchema = z.object({
     country: z.string().min(1).default("FR"),
     phone: z.string().optional(),
   }),
-  paymentMethod: z.enum(["stripe", "paypal"]),
+  paymentMethod: z.enum(["stripe"]),
   shippingMethod: z.enum(["home", "pickup"]).default("home"),
   pickupPoint: z
     .object({
@@ -296,45 +295,28 @@ export async function POST(req: NextRequest) {
       }).catch((err) => console.error("Password setup email failed:", err));
     }
 
-    // Initier le paiement
-    if (validated.paymentMethod === "stripe") {
-      const stripeClient = await getStripe();
-      const paymentIntent = await stripeClient.paymentIntents.create({
-        amount: total,
-        currency: "eur",
-        metadata: {
-          orderId: order._id.toString(),
-          orderNumber,
-        },
-      });
-
-      order.paymentId = paymentIntent.id;
-      await order.save();
-
-      return NextResponse.json({
-        orderId: order._id,
+    // Initier le paiement (Stripe)
+    const stripeClient = await getStripe();
+    const paymentIntent = await stripeClient.paymentIntents.create({
+      amount: total,
+      currency: "eur",
+      metadata: {
+        orderId: order._id.toString(),
         orderNumber,
-        clientSecret: paymentIntent.client_secret,
-        paymentMethod: "stripe",
-        isNewAccount,
-        accountHasPassword,
-      });
-    } else {
-      // PayPal
-      const paypalOrder = await createPayPalOrder(total);
+      },
+    });
 
-      order.paymentId = paypalOrder.id;
-      await order.save();
+    order.paymentId = paymentIntent.id;
+    await order.save();
 
-      return NextResponse.json({
-        orderId: order._id,
-        orderNumber,
-        paypalOrderId: paypalOrder.id,
-        paymentMethod: "paypal",
-        isNewAccount,
-        accountHasPassword,
-      });
-    }
+    return NextResponse.json({
+      orderId: order._id,
+      orderNumber,
+      clientSecret: paymentIntent.client_secret,
+      paymentMethod: "stripe",
+      isNewAccount,
+      accountHasPassword,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
