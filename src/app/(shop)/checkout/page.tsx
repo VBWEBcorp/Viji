@@ -9,6 +9,8 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import MondialRelayPicker from "@/components/shop/MondialRelayPicker";
 import { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
+import GiftCardInput, { type AppliedGiftCard } from "@/components/shop/GiftCardInput";
+import PromoCodeInput, { type AppliedPromo } from "@/components/shop/PromoCodeInput";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
 
@@ -40,7 +42,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
-  const [promoCode, setPromoCode] = useState("");
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
+  const [giftCard, setGiftCard] = useState<AppliedGiftCard | null>(null);
 
   const [email, setEmail] = useState("");
   // Mot de passe optionnel : si le client en saisit un, on crée son compte
@@ -85,6 +88,9 @@ export default function CheckoutPage() {
   // État du paiement : la commande et l'intention Stripe sont créées au passage
   // à l'étape « paiement », pour pouvoir afficher le PaymentElement de Stripe.
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  // Montant réellement prélevé par carte (calculé par le serveur, après prise en
+  // compte de la carte cadeau et du minimum facturable Stripe).
+  const [payAmount, setPayAmount] = useState<number | null>(null);
   const [paidOrderNumber, setPaidOrderNumber] = useState<string | null>(null);
   // Indique si le client a créé son compte avec un mot de passe pendant le
   // checkout : si oui, on le connecte automatiquement après paiement réussi.
@@ -101,17 +107,27 @@ export default function CheckoutPage() {
     }
   }, [step]);
 
-  // Mondial Relay only.
+  // Remise code promo (sur le sous-total) — calculée par /api/promos/validate.
+  // Le serveur reste l'autorité finale lors du checkout.
+  const discount = promo ? Math.min(promo.discount, cartTotal) : 0;
+  const discountedSubtotal = Math.max(0, cartTotal - discount);
+
+  // Mondial Relay only. Le seuil de gratuité s'apprécie après remise (comme le serveur).
   const shippingCost =
-    shippingRates.pickupFreeThreshold > 0 && cartTotal >= shippingRates.pickupFreeThreshold
+    shippingRates.pickupFreeThreshold > 0 && discountedSubtotal >= shippingRates.pickupFreeThreshold
       ? 0
       : shippingRates.pickupRate;
 
-  const taxableBase = cartTotal + shippingCost;
+  const taxableBase = discountedSubtotal + shippingCost;
   const taxAmount = taxConfig.pricesIncludeTax
     ? Math.round(taxableBase - taxableBase / (1 + taxConfig.rate / 100))
     : Math.round(taxableBase * (taxConfig.rate / 100));
   const total = taxConfig.pricesIncludeTax ? taxableBase : taxableBase + taxAmount;
+
+  // Carte cadeau : déduction du montant à régler par carte (le serveur reste
+  // l'autorité — ici c'est uniquement l'affichage indicatif).
+  const giftCardAmount = giftCard ? Math.min(giftCard.balance, total) : 0;
+  const amountDue = Math.max(0, total - giftCardAmount);
 
   // Pas de pré-remplissage automatique : un compte admin (ex. Viji en train
   // de tester) verrait son nom et son email s'écrire dans la commande, ce qui
@@ -209,7 +225,8 @@ export default function CheckoutPage() {
                 carrier: "mondialrelay",
               }
             : undefined,
-          promoCode: promoCode || undefined,
+          promoCode: promo?.code || undefined,
+          giftCardCode: giftCard?.code || undefined,
         }),
       });
 
@@ -221,8 +238,26 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Commande intégralement réglée par carte cadeau : aucun paiement Stripe,
+      // la commande est déjà validée côté serveur.
+      if (data.paid) {
+        setPaidOrderNumber(data.orderNumber);
+        setAccountReadyForLogin(Boolean(data.accountHasPassword));
+        setCreatedNewAccount(Boolean(data.isNewAccount));
+        if (Boolean(data.accountHasPassword) && password) {
+          try {
+            await signIn("credentials", { email, password, redirect: false });
+          } catch {
+            // ignore
+          }
+        }
+        setStep("confirmation");
+        return;
+      }
+
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
+        setPayAmount(typeof data.amountDue === "number" ? data.amountDue : null);
         setPaidOrderNumber(data.orderNumber);
         setAccountReadyForLogin(Boolean(data.accountHasPassword));
         setCreatedNewAccount(Boolean(data.isNewAccount));
@@ -582,7 +617,7 @@ export default function CheckoutPage() {
                       }
                     >
                       <PaymentForm
-                        total={total}
+                        total={payAmount ?? amountDue}
                         onSuccess={async () => {
                           // Auto-connexion si le client a choisi un mot de passe
                           // pendant le checkout. Best-effort : si ça échoue,
@@ -645,6 +680,12 @@ export default function CheckoutPage() {
                   label={`Sous-total${taxConfig.pricesIncludeTax ? " TTC" : " HT"}`}
                   value={formatPrice(cartTotal)}
                 />
+                {discount > 0 && (
+                  <SummaryRow
+                    label={`Réduction${promo ? ` (${promo.code})` : ""}`}
+                    value={<span className="text-[var(--brand-gold)]">-{formatPrice(discount)}</span>}
+                  />
+                )}
                 <SummaryRow
                   label="Livraison"
                   value={
@@ -671,6 +712,49 @@ export default function CheckoutPage() {
                 <span className="font-serif text-2xl text-gray-900">
                   {formatPrice(total)}
                 </span>
+              </div>
+
+              {/* Code promo */}
+              <div className="border-t border-[var(--brand-gold)]/15 mt-5 pt-5">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-3">
+                  Code promo
+                </p>
+                <PromoCodeInput
+                  subtotal={cartTotal}
+                  appliedPromo={promo}
+                  onApply={(p) => setPromo(p)}
+                  onRemove={() => setPromo(null)}
+                  disabled={step === "payment"}
+                />
+              </div>
+
+              {/* Carte cadeau */}
+              <div className="border-t border-[var(--brand-gold)]/15 mt-5 pt-5">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-3">
+                  Carte cadeau
+                </p>
+                <GiftCardInput
+                  appliedCard={giftCard}
+                  onApply={(c) => setGiftCard(c)}
+                  onRemove={() => setGiftCard(null)}
+                  disabled={step === "payment"}
+                />
+                {giftCard && (
+                  <div className="mt-4 space-y-2">
+                    <SummaryRow
+                      label="Carte cadeau"
+                      value={<span className="text-[var(--brand-gold)]">-{formatPrice(giftCardAmount)}</span>}
+                    />
+                    <div className="flex items-end justify-between pt-2 border-t border-[var(--brand-gold)]/10">
+                      <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400">
+                        Reste à payer
+                      </span>
+                      <span className="font-serif text-xl text-gray-900">
+                        {formatPrice(amountDue)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {session?.user?.email && (

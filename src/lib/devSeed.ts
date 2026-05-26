@@ -170,6 +170,32 @@ const BLOG_POSTS = [
   },
 ];
 
+// Compte admin de la boutique. En dev la base est en mémoire (recréée à chaque
+// démarrage), donc on ré-assure l'admin à chaque seed. Création via le modèle
+// User pour déclencher le hook pre-save qui hashe le mot de passe (un updateOne
+// stockerait le mot de passe en clair et casserait la connexion).
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "entremamanetmoicook@gmail.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change-me";
+const ADMIN_NAME = process.env.ADMIN_NAME || "Viji Tinot";
+
+async function ensureAdminUser() {
+  const existing = await User.findOne({ email: ADMIN_EMAIL });
+  if (existing) {
+    if (existing.role !== "admin") {
+      existing.role = "admin";
+      await existing.save();
+    }
+    return;
+  }
+  await User.create({
+    email: ADMIN_EMAIL,
+    name: ADMIN_NAME,
+    passwordHash: ADMIN_PASSWORD, // hashé par le hook pre-save du modèle User
+    role: "admin",
+  });
+  console.log(`[db] Compte admin créé : ${ADMIN_EMAIL}`);
+}
+
 async function ensureBlogPosts() {
   const adminUser = await User.findOne({ email: "admin@demo.com" });
   if (!adminUser) return;
@@ -475,6 +501,7 @@ async function ensureAtelierSessions() {
 export async function ensureDevSeed(_uri: string) {
   if (process.env.NODE_ENV === "production") return;
 
+  await ensureAdminUser();
   await ensureBlogPosts();
   await ensureAtelierSessions();
 
@@ -561,6 +588,18 @@ export async function ensureDevSeed(_uri: string) {
     // Entrepreneur individuel récemment créé : par défaut en franchise en base de TVA
     // (à confirmer avec Viji — si elle est assujettie, basculer rate sur 20).
     tax: { rate: 0, pricesIncludeTax: true, label: "TVA non applicable, art. 293 B du CGI" },
+    // Cartes cadeaux activées par défaut en dev pour pouvoir tester la page
+    // publique /cartes-cadeaux sans étape manuelle (le seed ne tourne qu'en dev).
+    giftCards: {
+      enabled: true,
+      presets: [
+        { amount: 2500, label: "Découverte" },
+        { amount: 5000, label: "Plaisir" },
+        { amount: 7500, label: "Gourmand" },
+        { amount: 10000, label: "Prestige" },
+      ],
+      expiryMonths: 0,
+    },
     invoice: { enabled: false, prefix: "FAC-", nextNumber: 1 },
     analytics: {},
     integrations: {},

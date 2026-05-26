@@ -21,10 +21,28 @@ const KIT_TAGLINES: Record<string, string> = {
   familiale: "Le festin partagé",
 };
 
+// Avis Google réels de "Entre Maman et Moi" (Viji Tinot). Textes fidèles aux avis
+// publics, tronqués à la dernière phrase complète quand l'original l'était.
 const REVIEWS = [
-  { name: "Thierry", initial: "T", when: "il y a 2 mois", body: "Recommandé par des amis. Disponibilité, savoir-faire, excellente ambiance." },
-  { name: "Julie", initial: "J", when: "il y a 3 mois", body: "Explications claires, étape par étape. Le riz au citron : une pure merveille." },
-  { name: "Léna", initial: "L", when: "il y a 5 mois", body: "On sent l'authenticité et la passion. Le chutney mangue, une folie." },
+  { name: "Audrey Nico", initial: "A", when: "il y a 5 jours", body: "La cuisine de Viji est tout simplement exquise, je la recommande chaleureusement !" },
+  { name: "Jérémy Porcher", initial: "J", when: "il y a un mois", body: "Je recommande ! Nous nous sommes régalés, les produits sont frais et Viji est adorable. Merci !" },
+  { name: "Lisa L", initial: "L", when: "il y a 4 semaines", body: "Première fois que je commande et je ne suis pas déçue. Un repas indien qui sort de l'ordinaire. Je recommande à 100 %. La qualité et la quantité sont au rendez-vous." },
+  { name: "Aurore Morin", initial: "A", when: "il y a 4 mois", body: "J'ai découvert Entre Maman et Moi grâce à Viji et franchement, gros coup de cœur ! Les box culinaires indiennes sont juste incroyables." },
+  { name: "job lise", initial: "L", when: "il y a un mois", body: "J'ai participé à un atelier de cuisine indienne animé par Viji et c'était une expérience absolument incroyable ! Viji est passionnée, pédagogue et très chaleureuse. Elle prend le temps d'expliquer chaque étape et partage des astuces." },
+  { name: "Clarisse Antonucci", initial: "C", when: "il y a 2 mois", body: "Si vous souhaitez découvrir une cuisine indienne authentique, n'hésitez pas à solliciter Viji, cheffe à domicile. Elle nous a proposé plusieurs possibilités de menus, y compris végétarien et flexitarien." },
+  { name: "Emeline Longuet", initial: "E", when: "il y a 3 mois", body: "J'ai eu la chance de découvrir la cuisine indienne grâce à Viji, et quelle découverte ! Elle nous a proposé plusieurs plats, tous différents, chacun avec sa personnalité : des épices parfumées, parfois douces, parfois plus intenses." },
+  { name: "Stéphane Noa", initial: "S", when: "il y a 4 mois", body: "Super expérience ! Les différentes box culinaires indiennes sont originales, bien expliquées et pleines de saveurs. Les épices sont de qualité et les recettes faciles à suivre." },
+  { name: "Lena Ory", initial: "L", when: "il y a un mois", body: "J'ai fait appel une seconde fois aux services de Viji, cette fois-ci pour mes 30 ans. Formule traiteur + installation : Viji s'est occupée de tout, j'ai vraiment pu profiter de ma soirée l'esprit apaisé." },
+  { name: "Floriane Doudies", initial: "F", when: "il y a 3 mois", body: "Nous avons commandé la box familiale Poori, Aloo et Raita, reçue très rapidement. Des épices parfaitement dosées, des recettes savoureuses et même quelques petites attentions." },
+  { name: "Thierry Billet", initial: "T", when: "il y a 3 mois", body: "Recommandé par des amis. Viji a su se rendre disponible pour toutes nos questions et nous a transmis son savoir-faire lors de son cours de cuisine, toujours avec le sourire." },
+  { name: "Clémencia Duclos", initial: "C", when: "il y a 4 mois", body: "J'ai fait un cours de cuisine avec Viji et ça a été un réel plaisir. J'ai découvert des saveurs que je ne connaissais pas du tout et appris de nouvelles techniques dans une ambiance conviviale et détendue." },
+  { name: "Hugo Bricier", initial: "H", when: "il y a 2 mois", body: "Des plats bons et appétissants avec une super préparation et un super service à distance. Je recommande fortement Entre Maman et Moi, beaucoup plus premium que les restaurants indiens classiques." },
+  { name: "Créâmélys", initial: "C", when: "il y a 3 mois", body: "Une superbe découverte ! Des plats variés, riches en saveurs, et un vrai moment de partage grâce aux explications données tout au long de l'atelier." },
+  { name: "Flo Elchau", initial: "F", when: "il y a un mois", body: "C'était une très belle expérience qui m'a permis de découvrir la cuisine indienne. On a très bien mangé. Je recommande vivement." },
+  { name: "Rudolf Tino", initial: "R", when: "il y a un mois", body: "Nous avons commandé la box pour faire des samosas. Recette très bien expliquée, facile à réaliser. À essayer !" },
+  { name: "DjZamo", initial: "D", when: "il y a un mois", body: "Une cuisine saine, simple et équilibrée. On sent vraiment derrière cette cuisine une personne très impliquée. Viji est une jeune femme rayonnante et dynamique." },
+  { name: "Victor Béasse", initial: "V", when: "il y a 4 mois", body: "Vraiment top !" },
+  { name: "YGM", initial: "Y", when: "il y a 4 mois", body: "Plats réconfortants, à consommer sans modération !" },
 ];
 
 // 6 images pour un pavage propre 4 colonnes × 2 rangées (2 grandes en bord, 4 carrées au centre)
@@ -371,7 +389,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <span className="text-[13px] font-medium text-gray-900">5,0</span>
-              <span className="text-[12px] text-gray-400">· 18 avis</span>
+              <span className="text-[12px] text-gray-400">· 19 avis</span>
             </div>
           </div>
         </div>

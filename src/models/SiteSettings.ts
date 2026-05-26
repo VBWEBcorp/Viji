@@ -23,6 +23,11 @@ export interface ISiteSettings extends Document {
     pricesIncludeTax?: boolean; // true = prix produits TTC, false = HT
     label?: string; // ex: "TVA"
   };
+  giftCards: {
+    enabled?: boolean; // active l'achat/utilisation des cartes cadeaux
+    presets?: { amount: number; label?: string }[]; // montants suggérés (centimes)
+    expiryMonths?: number; // durée de validité en mois (0 = sans expiration)
+  };
   invoice: {
     enabled?: boolean;
     prefix?: string; // ex: "FAC-"
@@ -96,6 +101,25 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       rate: { type: Number, default: 20 },
       pricesIncludeTax: { type: Boolean, default: true },
       label: { type: String, default: "TVA" },
+    },
+    giftCards: {
+      enabled: { type: Boolean, default: false },
+      presets: {
+        type: [
+          {
+            _id: false,
+            amount: { type: Number, required: true }, // centimes
+            label: { type: String },
+          },
+        ],
+        default: [
+          { amount: 2500, label: "Découverte" },
+          { amount: 5000, label: "Plaisir" },
+          { amount: 7500, label: "Gourmand" },
+          { amount: 10000, label: "Prestige" },
+        ],
+      },
+      expiryMonths: { type: Number, default: 0 },
     },
     invoice: {
       enabled: { type: Boolean, default: true },

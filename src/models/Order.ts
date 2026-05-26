@@ -38,6 +38,13 @@ export interface IOrder extends Document {
   tax: number;
   total: number;
   promoCode?: mongoose.Types.ObjectId;
+  // Carte cadeau appliquée au paiement (réduit le montant prélevé par carte
+  // bancaire ; ne modifie pas total/TVA). amount = centimes débités.
+  giftCard?: {
+    card: mongoose.Types.ObjectId;
+    code: string;
+    amount: number;
+  };
   shippingAddress: IOrderAddress;
   billingAddress: IOrderAddress;
   shippingMethod: "home" | "pickup";
@@ -118,6 +125,17 @@ const OrderSchema = new Schema<IOrder>(
     tax: { type: Number, default: 0, min: 0 },
     total: { type: Number, required: true, min: 0 },
     promoCode: { type: Schema.Types.ObjectId, ref: "PromoCode" },
+    giftCard: {
+      type: new Schema(
+        {
+          card: { type: Schema.Types.ObjectId, ref: "GiftCard", required: true },
+          code: { type: String, required: true },
+          amount: { type: Number, required: true, min: 0 },
+        },
+        { _id: false }
+      ),
+      default: undefined,
+    },
     shippingAddress: { type: OrderAddressSchema, required: true },
     billingAddress: { type: OrderAddressSchema, required: true },
     shippingMethod: {

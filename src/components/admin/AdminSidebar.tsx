@@ -21,6 +21,7 @@ import {
   Mail,
   Megaphone,
   CalendarDays,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const menuItems = [
   { href: "/admin/customers", label: "Clients", icon: Users },
   { href: "/admin/reviews", label: "Avis", icon: Star },
   { href: "/admin/promos", label: "Codes promo", icon: Tag },
+  { href: "/admin/gift-cards", label: "Cartes cadeaux", icon: Gift },
   { href: "/admin/blog", label: "Blog", icon: PenSquare },
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/emails", label: "Emails", icon: Mail },

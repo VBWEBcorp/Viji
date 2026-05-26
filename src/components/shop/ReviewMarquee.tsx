@@ -17,6 +17,11 @@ export default function ReviewMarquee({ reviews }: Props) {
   // must be identical to the first). 4 copies = first half is 2 sets, plenty of width.
   const loop = [...reviews, ...reviews, ...reviews, ...reviews];
 
+  // Vitesse de défilement constante quel que soit le nombre d'avis : ~14 s par
+  // avis. Plus il y a d'avis, plus la durée augmente → la vitesse ressentie
+  // (pixels/seconde) reste lente et lisible.
+  const durationSeconds = Math.max(45, reviews.length * 14);
+
   return (
     <div className="relative overflow-hidden">
       {/* Soft fade on edges */}
@@ -25,7 +30,7 @@ export default function ReviewMarquee({ reviews }: Props) {
 
       <div
         className="flex gap-6 md:gap-8 animate-marquee-reverse w-max"
-        style={{ animationDuration: "60s" }}
+        style={{ animationDuration: `${durationSeconds}s` }}
       >
         {loop.map((r, i) => (
           <article

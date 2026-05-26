@@ -183,6 +183,10 @@ export default function Header() {
               pathname={pathname}
             />
 
+            <NavLink href="/cartes-cadeaux" active={pathname === "/cartes-cadeaux"}>
+              Carte cadeau
+            </NavLink>
+
             <NavLink href="/contact" active={pathname === "/contact"}>
               Contact
             </NavLink>
@@ -457,6 +461,14 @@ function MobileDrawer({
             onClose={onClose}
             pathname={pathname}
           />
+
+          <DrawerLink
+            href="/cartes-cadeaux"
+            active={pathname === "/cartes-cadeaux"}
+            onClick={onClose}
+          >
+            Carte cadeau
+          </DrawerLink>
 
           <DrawerLink
             href="/contact"

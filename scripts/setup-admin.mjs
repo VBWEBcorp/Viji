@@ -20,9 +20,9 @@ if (!URI) {
 }
 
 const REAL_ADMIN = {
-  email: "entremamanetmoicook@gmail.com",
-  name: "Viji Tinot",
-  password: "Leonore35770.",
+  email: env.ADMIN_EMAIL || "entremamanetmoicook@gmail.com",
+  name: env.ADMIN_NAME || "Viji Tinot",
+  password: env.ADMIN_PASSWORD || "change-me",
   role: "admin",
 };
 

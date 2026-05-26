@@ -5,6 +5,7 @@ interface OrderConfirmationProps {
   subtotal: number;
   shippingCost: number;
   discount: number;
+  giftCardAmount?: number;
   total: number;
   shippingAddress: {
     name: string;
@@ -68,7 +69,9 @@ export function generateOrderConfirmationEmail(
       <p style="margin: 5px 0;">Sous-total: ${formatPrice(props.subtotal)}</p>
       ${props.discount > 0 ? `<p style="margin: 5px 0; color: #22c55e;">Réduction: -${formatPrice(props.discount)}</p>` : ""}
       <p style="margin: 5px 0;">Livraison: ${props.shippingCost === 0 ? "Gratuit" : formatPrice(props.shippingCost)}</p>
+      ${props.giftCardAmount && props.giftCardAmount > 0 ? `<p style="margin: 5px 0; color: #b08438;">Carte cadeau: -${formatPrice(props.giftCardAmount)}</p>` : ""}
       <p style="margin: 10px 0; font-size: 18px; font-weight: bold;">Total: ${formatPrice(props.total)}</p>
+      ${props.giftCardAmount && props.giftCardAmount > 0 ? `<p style="margin: 5px 0; font-size: 13px; color: #666;">Réglé par carte bancaire: ${formatPrice(Math.max(0, props.total - props.giftCardAmount))}</p>` : ""}
     </div>
 
     <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 20px;">
