@@ -175,6 +175,9 @@ export default function MondialRelayWidget({
             EnableGmap: false,
             DisplayMapInfo: true,
             ShowResultsOnMap: true,
+            // Mode responsive natif du widget : liste + carte s'adaptent à la
+            // largeur de l'écran au lieu d'imposer une mise en page « bureau ».
+            Responsive: true,
             OnParcelShopSelected: (data: MondialRelayPoint) => {
               if (data && data.ID) onSelectRef.current(data);
             },
@@ -214,7 +217,7 @@ export default function MondialRelayWidget({
         id="MR-Widget-Container"
         ref={containerRef}
         style={{ minHeight: 500 }}
-        className="overflow-hidden border border-gray-200"
+        className="max-w-full overflow-x-auto border border-gray-200"
       />
       <input type="hidden" id="MR-Widget-Result" />
     </div>

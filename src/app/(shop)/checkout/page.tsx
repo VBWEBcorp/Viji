@@ -7,7 +7,8 @@ import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import MondialRelayWidget, { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
+import MondialRelayPicker from "@/components/shop/MondialRelayPicker";
+import { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
 
@@ -338,7 +339,7 @@ export default function CheckoutPage() {
 
         <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Main column */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 min-w-0">
             {step === "shipping" && (
               <>
                 {/* Coordonnées + adresse */}
@@ -458,28 +459,13 @@ export default function CheckoutPage() {
                 {/* Sélecteur point relais Mondial Relay (gratuit) */}
                 <Card eyebrow="Retrait" title="Choisissez votre point relais">
                   <p className="font-serif italic text-[13px] text-gray-500 mb-6">
-                    Toutes les commandes sont expédiées via Mondial Relay. La carte cherche par défaut autour de votre code postal, vous pouvez le modifier directement dans le widget.
+                    Toutes les commandes sont expédiées gratuitement via Mondial Relay. Choisissez le point relais où récupérer votre commande.
                   </p>
 
-                  {pickupPoint && (
-                    <div className="flex items-start gap-3 px-4 py-3 mb-5 border border-[var(--brand-gold)] bg-[var(--brand-cream)]/50">
-                      <Check size={14} strokeWidth={1.5} className="text-[var(--brand-gold)] mt-1 shrink-0" />
-                      <div className="text-[13px] leading-relaxed flex-1 min-w-0">
-                        <p className="font-serif text-gray-900">{pickupPoint.Nom}</p>
-                        <p className="text-gray-600">
-                          {pickupPoint.Adresse1}
-                          {pickupPoint.Adresse2 ? `, ${pickupPoint.Adresse2}` : ""}, {pickupPoint.CP} {pickupPoint.Ville}
-                        </p>
-                      </div>
-                      <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] shrink-0">
-                        Sélectionné
-                      </span>
-                    </div>
-                  )}
-
-                  <MondialRelayWidget
+                  <MondialRelayPicker
                     brandCode={mondialRelayBrandCode}
                     postCode={shippingAddress.zip}
+                    value={pickupPoint}
                     onSelect={(p) => setPickupPoint(p)}
                   />
                 </Card>
@@ -627,7 +613,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Récapitulatif sticky */}
-          <aside className="lg:col-span-1">
+          <aside className="lg:col-span-1 min-w-0">
             <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-7 py-7 lg:sticky lg:top-28">
               <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
                 Votre sélection
