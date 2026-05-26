@@ -170,31 +170,8 @@ const BLOG_POSTS = [
   },
 ];
 
-// Compte admin de la boutique. En dev la base est en mémoire (recréée à chaque
-// démarrage), donc on ré-assure l'admin à chaque seed. Création via le modèle
-// User pour déclencher le hook pre-save qui hashe le mot de passe (un updateOne
-// stockerait le mot de passe en clair et casserait la connexion).
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "entremamanetmoicook@gmail.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change-me";
-const ADMIN_NAME = process.env.ADMIN_NAME || "Viji Tinot";
-
-async function ensureAdminUser() {
-  const existing = await User.findOne({ email: ADMIN_EMAIL });
-  if (existing) {
-    if (existing.role !== "admin") {
-      existing.role = "admin";
-      await existing.save();
-    }
-    return;
-  }
-  await User.create({
-    email: ADMIN_EMAIL,
-    name: ADMIN_NAME,
-    passwordHash: ADMIN_PASSWORD, // hashé par le hook pre-save du modèle User
-    role: "admin",
-  });
-  console.log(`[db] Compte admin créé : ${ADMIN_EMAIL}`);
-}
+// NB : le compte admin est désormais géré par src/lib/ensureAdmin.ts (appelé
+// depuis connectDB, en dev ET en prod) à partir des variables d'environnement.
 
 async function ensureBlogPosts() {
   const adminUser = await User.findOne({ email: "admin@demo.com" });
@@ -501,7 +478,6 @@ async function ensureAtelierSessions() {
 export async function ensureDevSeed(_uri: string) {
   if (process.env.NODE_ENV === "production") return;
 
-  await ensureAdminUser();
   await ensureBlogPosts();
   await ensureAtelierSessions();
 

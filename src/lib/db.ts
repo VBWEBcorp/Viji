@@ -50,6 +50,9 @@ export async function connectDB() {
   if (!cached.promise) {
     cached.promise = resolveUri().then(async (uri) => {
       const conn = await mongoose.connect(uri, { bufferCommands: false });
+      // Compte admin depuis les variables d'env (dev ET prod) — idempotent.
+      const { ensureAdminUser } = await import("./ensureAdmin");
+      await ensureAdminUser();
       // Auto-seed in dev (in-memory or real Atlas). Production is protected inside the seed function.
       if (process.env.NODE_ENV !== "production") {
         const { ensureDevSeed } = await import("./devSeed");
