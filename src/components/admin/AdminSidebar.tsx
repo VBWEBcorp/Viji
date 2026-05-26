@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -42,6 +43,7 @@ const menuItems = [
 ];
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
+const LOGO_SRC = "https://i.ibb.co/5WWqVbC2/cropped-Entre-Maman-Et-Moi-1.png";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -195,11 +197,16 @@ export default function AdminSidebar() {
         >
           <Menu size={20} strokeWidth={1.75} />
         </button>
-        <Link
-          href="/admin"
-          className="font-serif text-[12px] tracking-[0.18em] text-[var(--brand-gold)] uppercase"
-        >
-          Entre Maman et Moi
+        <Link href="/admin" aria-label="Entre Maman et Moi" className="flex items-center">
+          <Image
+            src={LOGO_SRC}
+            alt="Entre Maman et Moi"
+            width={240}
+            height={96}
+            priority
+            className="h-8 object-contain"
+            style={{ width: "auto" }}
+          />
         </Link>
         <div className="w-9 h-9 rounded-full bg-[var(--brand-cream)] text-[var(--brand-gold)] flex items-center justify-center text-[12px] font-medium">
           {userInitial}
@@ -222,11 +229,15 @@ export default function AdminSidebar() {
         )}
       >
         <div className="px-4 py-5 border-b border-[var(--brand-gold)]/15 flex items-center justify-between gap-2">
-          <Link
-            href="/admin"
-            className="block font-serif text-[13px] tracking-[0.18em] text-[var(--brand-gold)] uppercase leading-tight"
-          >
-            Entre Maman<br />et Moi
+          <Link href="/admin" aria-label="Entre Maman et Moi" className="flex items-center min-w-0">
+            <Image
+              src={LOGO_SRC}
+              alt="Entre Maman et Moi"
+              width={240}
+              height={96}
+              className="h-10 object-contain"
+              style={{ width: "auto" }}
+            />
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
@@ -248,15 +259,21 @@ export default function AdminSidebar() {
         )}
       >
         <div className="px-4 py-6 border-b border-[var(--brand-gold)]/15 flex items-center justify-between gap-2">
-          <Link href="/admin" className="block min-w-0" title="Entre Maman et Moi">
+          <Link href="/admin" className="flex items-center min-w-0" title="Entre Maman et Moi">
             {collapsed ? (
               <span className="font-serif text-xl text-[var(--brand-gold)] tracking-[0.05em]">
                 EM
               </span>
             ) : (
-              <span className="block font-serif text-[13px] tracking-[0.18em] text-[var(--brand-gold)] uppercase leading-tight">
-                Entre Maman<br />et Moi
-              </span>
+              <Image
+                src={LOGO_SRC}
+                alt="Entre Maman et Moi"
+                width={240}
+                height={96}
+                priority
+                className="h-11 object-contain"
+                style={{ width: "auto" }}
+              />
             )}
           </Link>
           <button
