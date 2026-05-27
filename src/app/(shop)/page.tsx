@@ -236,7 +236,7 @@ export default async function HomePage() {
               {t("home_ateliers_text")}
             </p>
             <Link
-              href="/ateliers"
+              href="/ateliers/a-domicile"
               className="inline-flex items-center gap-3 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
               {t("home_ateliers_cta")} <ArrowRight size={11} />

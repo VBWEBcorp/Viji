@@ -287,10 +287,10 @@ export default async function AtelierTypePage({ params }: { params: Promise<{ ty
             <span className="italic text-[var(--brand-gold)]">autres formules</span>
           </h2>
           <Link
-            href="/ateliers"
+            href="/ateliers/collectif"
             className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
           >
-            Voir tous les ateliers <ArrowRight size={11} />
+            Voir les ateliers collectifs <ArrowRight size={11} />
           </Link>
         </div>
       </section>

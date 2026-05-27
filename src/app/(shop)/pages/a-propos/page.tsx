@@ -211,7 +211,7 @@ export default function AboutPage() {
               <ArrowRight size={13} />
             </Link>
             <Link
-              href="/ateliers"
+              href="/ateliers/a-domicile"
               className="inline-flex items-center gap-2 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] border-b border-[var(--brand-gold)]/40 pb-1 hover:border-[var(--brand-gold)] transition"
             >
               Voir les ateliers

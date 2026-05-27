@@ -74,7 +74,7 @@ export default function HeroSection({
                 <ArrowRight size={13} />
               </Link>
               <Link
-                href="/ateliers"
+                href="/ateliers/a-domicile"
                 className="inline-flex items-center gap-2 text-white text-[10px] sm:text-[11px] uppercase tracking-[0.25em] sm:tracking-[0.3em] border-b border-white/40 pb-1 hover:border-white transition"
               >
                 {ctaSecondary}

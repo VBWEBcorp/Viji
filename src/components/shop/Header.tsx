@@ -166,7 +166,7 @@ export default function Header() {
             <Dropdown
               label="Ateliers"
               links={ATELIER_LINKS}
-              groupHref="/ateliers"
+              groupHref="/ateliers/a-domicile"
               isOpen={openDropdown === "ateliers"}
               onOpen={() => setOpenDropdown("ateliers")}
               onClose={() => setOpenDropdown(null)}
