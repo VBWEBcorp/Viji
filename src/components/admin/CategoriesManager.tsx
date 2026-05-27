@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ChevronRight, ChevronDown, FolderTree, X, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card, Badge, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 const fieldCls =
   "w-full px-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
@@ -300,16 +301,12 @@ export default function CategoriesManager() {
               />
             </div>
 
-            <div>
-              <label className={labelCls}>Image (URL)</label>
-              <input
-                type="url"
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                placeholder="https://..."
-                className={fieldCls}
-              />
-            </div>
+            <ImageUploader
+              label="Image"
+              value={form.image || ""}
+              onChange={(v) => setForm({ ...form, image: v })}
+              aspect="4 / 3"
+            />
 
             {/* Dynamic Filters */}
             <div className="border-t border-[var(--brand-gold)]/10 pt-5">

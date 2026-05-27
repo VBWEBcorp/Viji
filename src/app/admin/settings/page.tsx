@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Store, Mail, Truck, CreditCard, Shield, Eye, EyeOff, Check, Key, MapPin, BarChart3, FileText, Receipt, Plug } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, Card, GoldButton, Badge } from "@/components/admin/ui";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 const inputCls =
   "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
@@ -299,20 +300,20 @@ export default function AdminSettingsPage() {
               <h2 className={sectionTitleCls}>
                 <Store size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Boutique
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>Nom</label>
-                  <input type="text" value={settings.shopName}
-                    onChange={(e) => setSettings({ ...settings, shopName: e.target.value })}
-                    className={inputCls} />
-                </div>
-                <div>
-                  <label className={labelCls}>Logo (URL)</label>
-                  <input type="url" value={settings.shopLogo}
-                    onChange={(e) => setSettings({ ...settings, shopLogo: e.target.value })}
-                    className={inputCls} />
-                </div>
+              <div>
+                <label className={labelCls}>Nom</label>
+                <input type="text" value={settings.shopName}
+                  onChange={(e) => setSettings({ ...settings, shopName: e.target.value })}
+                  className={inputCls} />
               </div>
+              <ImageUploader
+                label="Logo de la boutique"
+                value={settings.shopLogo}
+                onChange={(v) => setSettings({ ...settings, shopLogo: v })}
+                aspect="5 / 2"
+                fit="contain"
+                help="Affiché dans l'en-tête et l'admin — PNG transparent recommandé. Compressé à l'import."
+              />
               <div>
                 <label className={labelCls}>Description</label>
                 <textarea value={settings.shopDescription} rows={3}

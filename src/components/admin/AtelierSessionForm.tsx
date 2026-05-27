@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save } from "lucide-react";
 import toast from "react-hot-toast";
+import ImageUploader from "./ImageUploader";
 
 export type ProgramBlock = { title: string; body: string };
 
@@ -188,12 +189,12 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           required
           placeholder="Poulet aux pommes de terre & riz au citron"
         />
-        <Field
-          label="Photo (URL)"
+        <ImageUploader
+          label="Photo"
           value={data.image}
           onChange={(v) => update("image", v)}
           required
-          placeholder="https://i.ibb.co/..."
+          aspect="5 / 4"
         />
       </Card>
 
