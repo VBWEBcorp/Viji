@@ -36,11 +36,26 @@ export async function sendEmail({
 
   const keys = await getApiKeys();
 
-  return client.emails.send({
+  const result = await client.emails.send({
     from: keys.resendFromEmail,
     to,
     subject,
     html,
     ...(replyTo ? { replyTo } : {}),
   });
+
+  // Le SDK Resend ne lève pas d'exception : il renvoie { data, error }.
+  // Sans ce contrôle, un envoi rejeté (domaine non vérifié, destinataire non
+  // autorisé en mode test, etc.) passait silencieusement. On journalise l'échec
+  // pour qu'il soit visible, sans pour autant faire planter le flux appelant
+  // (ex. une réservation déjà payée ne doit pas échouer si l'email admin bounce).
+  if (result.error) {
+    console.error(
+      `Resend a refusé l'email (to=${to}, from=${keys.resendFromEmail}):`,
+      result.error
+    );
+    return null;
+  }
+
+  return result;
 }

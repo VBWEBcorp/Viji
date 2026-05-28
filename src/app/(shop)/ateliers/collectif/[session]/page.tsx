@@ -231,8 +231,8 @@ export default async function AtelierSessionDetailPage({
             </h2>
             <p className="text-[14px] text-gray-600 leading-relaxed max-w-md mx-auto">
               {hasMultiple
-                ? "Choisissez la date et le lieu, indiquez le nombre de participants, je reviens vers vous pour confirmer."
-                : "Indiquez le nombre de participants et vos coordonnées. Je reviens vers vous pour confirmer votre place."}
+                ? "Choisissez la date et le lieu, indiquez le nombre de participants et réglez votre place en ligne."
+                : "Indiquez le nombre de participants, vos coordonnées et réglez votre place en ligne."}
             </p>
           </div>
 
@@ -240,6 +240,7 @@ export default async function AtelierSessionDetailPage({
             <AtelierReservationForm
               sessionSlug={data.slug}
               sessionTitle={data.title}
+              price={data.price}
               occurrences={data.occurrences}
             />
           </div>

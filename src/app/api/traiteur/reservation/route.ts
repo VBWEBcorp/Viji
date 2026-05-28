@@ -1,41 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendEmail } from "@/lib/resend";
+import { connectDB } from "@/lib/db";
+import { getStripe } from "@/lib/stripe";
+import { computeTraiteurAmount } from "@/lib/traiteur";
 
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "entremamanetmoicook@gmail.com";
 
-const itemSchema = z.object({
-  name: z.string().min(1).max(200),
-  quantity: z.number().int().min(1).max(99),
-  unitPrice: z.number().int().min(0),
+const schema = z.object({
+  name: z.string().min(1, "Nom requis").max(120),
+  phone: z.string().min(6, "Téléphone requis").max(40),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  pickupDate: z.string().min(1, "Date de retrait requise"),
+  pickupTime: z.string().min(1, "Créneau de retrait requis"),
+  /** Plats sélectionnés : identifiants + quantités. Les prix sont recalculés en base. */
+  items: z
+    .array(z.object({ id: z.string().min(1), quantity: z.number().int().min(1).max(99) }))
+    .min(1, "Sélectionnez au moins un plat."),
+  /** Commentaire libre du client (allergies, demandes particulières, etc.). */
+  comment: z.string().max(2000).optional().or(z.literal("")),
+  // Paiement Stripe confirmé côté client : on le re-vérifie ici avant d'enregistrer.
+  stripePaymentIntentId: z.string().regex(/^pi_/, "Paiement invalide"),
+  // Anti-spam honeypot
+  website: z.string().max(0).optional(),
 });
-
-const schema = z
-  .object({
-    name: z.string().min(1, "Nom requis").max(120),
-    phone: z.string().min(6, "Téléphone requis").max(40),
-    email: z.string().email("Email invalide").optional().or(z.literal("")),
-    pickupDate: z.string().min(1, "Date de retrait requise"),
-    pickupTime: z.string().min(1, "Créneau de retrait requis"),
-    /** Liste structurée des plats sélectionnés (depuis la grille). */
-    items: z.array(itemSchema).optional(),
-    /** Commentaire libre du client (allergies, demandes particulières, etc.). */
-    comment: z.string().max(2000).optional().or(z.literal("")),
-    /** Ancien champ « commande en texte libre » (rétrocompat / cas sans menu). */
-    order: z.string().max(2000).optional().or(z.literal("")),
-    // Anti-spam honeypot
-    website: z.string().max(0).optional(),
-  })
-  .refine(
-    (d) =>
-      (d.items && d.items.length > 0) ||
-      (d.order && d.order.trim().length > 0) ||
-      (d.comment && d.comment.trim().length > 0),
-    {
-      message: "Sélectionnez au moins un plat ou détaillez votre commande.",
-      path: ["items"],
-    }
-  );
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
@@ -54,12 +42,46 @@ export async function POST(req: NextRequest) {
 
     if (data.website) return NextResponse.json({ ok: true });
 
-    const items = data.items ?? [];
-    const total = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    await connectDB();
 
-    const itemsHtml =
-      items.length > 0
-        ? `<table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;margin-top:8px;">
+    // Recalcule montant + lignes (nom, prix) depuis la base : les valeurs envoyées
+    // par le client ne sont jamais utilisées pour le montant ni l'email.
+    const computed = await computeTraiteurAmount(data.items);
+    if (!computed) {
+      return NextResponse.json(
+        { error: "Un plat sélectionné n'est plus disponible." },
+        { status: 400 }
+      );
+    }
+
+    // Vérification du paiement auprès de Stripe.
+    const stripe = await getStripe();
+    const pi = await stripe.paymentIntents.retrieve(data.stripePaymentIntentId);
+
+    if (pi.metadata?.kind !== "traiteur") {
+      return NextResponse.json({ error: "Paiement invalide" }, { status: 400 });
+    }
+    if (pi.metadata?.fulfilled === "true") {
+      // Anti-rejeu : ce paiement a déjà donné lieu à une commande enregistrée.
+      return NextResponse.json({ ok: true, alreadyProcessed: true });
+    }
+    if (pi.status !== "succeeded") {
+      return NextResponse.json(
+        { error: `Le paiement n'a pas été confirmé (statut : ${pi.status})` },
+        { status: 400 }
+      );
+    }
+    if (pi.amount !== computed.amount) {
+      return NextResponse.json(
+        { error: "Montant du paiement incorrect" },
+        { status: 400 }
+      );
+    }
+
+    const items = computed.lines;
+    const total = computed.amount;
+
+    const itemsHtml = `<table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;margin-top:8px;">
             <thead>
               <tr style="border-bottom:1px solid #e5e7eb;">
                 <th style="text-align:left;padding:8px 0;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#6b7280;font-weight:600;">Plat</th>
@@ -78,10 +100,9 @@ export async function POST(req: NextRequest) {
                     </tr>`
                 )
                 .join("")}
-              <tr><td colspan="3" style="padding:14px 0 0;text-align:right;font-weight:700;color:#111827;">Total estimé : ${formatEUR(total)}</td></tr>
+              <tr><td colspan="3" style="padding:14px 0 0;text-align:right;font-weight:700;color:#15803d;">Payé en ligne : ${formatEUR(total)}</td></tr>
             </tbody>
-          </table>`
-        : "";
+          </table>`;
 
     const commentBlock =
       data.comment && data.comment.trim().length > 0
@@ -91,18 +112,10 @@ export async function POST(req: NextRequest) {
           </div>`
         : "";
 
-    const legacyOrderBlock =
-      items.length === 0 && data.order && data.order.trim().length > 0
-        ? `<div style="margin-top:24px;padding:16px;background:#faf6ee;border-left:3px solid #b08438;">
-            <p style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#6b7280;margin:0 0 8px;">Commande</p>
-            <p style="font-size:14px;color:#374151;line-height:1.7;margin:0;white-space:pre-wrap;">${escapeHtml(data.order)}</p>
-          </div>`
-        : "";
-
     const html = `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf6ee;margin:0;padding:0;">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;padding:40px 32px;">
-    <p style="font-size:11px;letter-spacing:0.4em;text-transform:uppercase;color:#b08438;margin:0 0 16px;">Nouvelle réservation</p>
+    <p style="font-size:11px;letter-spacing:0.4em;text-transform:uppercase;color:#b08438;margin:0 0 16px;">Nouvelle commande payée</p>
     <h1 style="font-family:Georgia,serif;font-size:24px;color:#111827;margin:0 0 24px;">Click &amp; Collect · Entre Maman et Moi</h1>
     <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
       <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Nom complet</td><td style="padding:8px 0;color:#111827;font-weight:600;">${escapeHtml(data.name)}</td></tr>
@@ -111,8 +124,7 @@ export async function POST(req: NextRequest) {
       <tr><td style="padding:8px 0;color:#6b7280;">Date de retrait</td><td style="padding:8px 0;color:#111827;font-weight:600;">${escapeHtml(data.pickupDate)}</td></tr>
       <tr><td style="padding:8px 0;color:#6b7280;">Créneau</td><td style="padding:8px 0;color:#111827;font-weight:600;">${escapeHtml(data.pickupTime)}</td></tr>
     </table>
-    ${itemsHtml ? `<div style="margin-top:24px;"><p style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#6b7280;margin:0;">Sélection</p>${itemsHtml}</div>` : ""}
-    ${legacyOrderBlock}
+    <div style="margin-top:24px;"><p style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#6b7280;margin:0;">Sélection</p>${itemsHtml}</div>
     ${commentBlock}
     <p style="font-size:12px;color:#9ca3af;margin-top:32px;">Envoyé depuis le formulaire Click &amp; Collect du site.</p>
   </div>
@@ -123,9 +135,14 @@ export async function POST(req: NextRequest) {
 
     await sendEmail({
       to: TO_EMAIL,
-      subject: `Click & Collect – ${data.name} – ${data.pickupDate} ${data.pickupTime}`,
+      subject: `Click & Collect PAYÉ – ${data.name} – ${data.pickupDate} ${data.pickupTime}`,
       html,
       ...(replyToValue ? { replyTo: replyToValue } : {}),
+    });
+
+    // Marque le paiement comme traité pour empêcher tout rejeu.
+    await stripe.paymentIntents.update(data.stripePaymentIntentId, {
+      metadata: { ...pi.metadata, fulfilled: "true" },
     });
 
     return NextResponse.json({ ok: true });

@@ -2,7 +2,19 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Minus, Plus, X, ClipboardList } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Minus, Plus, X, ClipboardList, ShieldCheck } from "lucide-react";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
+
+const stripePromise: Promise<Stripe | null> | null =
+  typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+    : null;
 
 export type Dish = {
   _id: string;
@@ -130,6 +142,13 @@ export default function EmporterFlow({ items }: Props) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Paiement : on passe à l'étape carte après validation du formulaire.
+  const [paying, setPaying] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [amountDue, setAmountDue] = useState<number>(0);
+
+  // Étape 1 → 2 : valide la commande puis crée l'intention de paiement.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -146,23 +165,11 @@ export default function EmporterFlow({ items }: Props) {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/traiteur/reservation", {
+      const res = await fetch("/api/traiteur/reservation/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
-          phone,
-          email,
-          pickupDate,
-          pickupTime,
-          // Plats structurés : rendus en table dans l'email reçu par Viji
-          items: selectedEntries.map((e) => ({
-            name: e.dish.name,
-            quantity: e.qty,
-            unitPrice: e.dish.price,
-          })),
-          comment: comment.trim() || undefined,
-          website,
+          items: selectedEntries.map((e) => ({ id: e.dish._id, quantity: e.qty })),
         }),
       });
 
@@ -172,12 +179,42 @@ export default function EmporterFlow({ items }: Props) {
         setSubmitting(false);
         return;
       }
-      setDone(true);
+      setClientSecret(data.clientSecret);
+      setPaymentIntentId(data.paymentIntentId);
+      setAmountDue(typeof data.amount === "number" ? data.amount : selectionTotal);
+      setPaying(true);
       setSubmitting(false);
     } catch {
       setError("Erreur réseau, réessayez.");
       setSubmitting(false);
     }
+  }
+
+  // Étape 2 → 3 : appelée après confirmation du paiement par Stripe.
+  async function finalizeReservation() {
+    const res = await fetch("/api/traiteur/reservation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        phone,
+        email,
+        pickupDate,
+        pickupTime,
+        items: selectedEntries.map((e) => ({ id: e.dish._id, quantity: e.qty })),
+        comment: comment.trim() || undefined,
+        stripePaymentIntentId: paymentIntentId,
+        website,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Le paiement a réussi mais l'enregistrement a échoué. Contactez-nous.");
+      return;
+    }
+    setDone(true);
+    setPaying(false);
   }
 
   const selectionCount = selectedEntries.reduce((sum, e) => sum + e.qty, 0);
@@ -374,10 +411,84 @@ export default function EmporterFlow({ items }: Props) {
                   <Check size={20} strokeWidth={1.5} />
                 </div>
                 <p className="font-serif italic text-[18px] text-gray-800 mb-2">
-                  Commande envoyée
+                  Commande payée
                 </p>
                 <p className="text-[13px] text-gray-600 max-w-md mx-auto leading-relaxed">
-                  Je reviens vers vous très vite pour confirmer votre commande et le créneau de retrait.
+                  Votre commande est réglée et confirmée. Un reçu de paiement vous a été envoyé par email. Présentez-vous au créneau choisi pour le retrait.
+                </p>
+              </div>
+            ) : paying ? (
+              <div className="space-y-6">
+                <div className="bg-[var(--brand-cream)]/40 border border-[var(--brand-gold)]/15 px-6 py-5 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 mb-1">
+                    Montant à régler
+                  </p>
+                  <p className="font-serif text-3xl text-[var(--brand-gold-dark)]">
+                    {formatEUR(amountDue)}
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="px-4 py-3 border border-red-200 bg-red-50/50 text-red-700 text-[13px] font-serif italic">
+                    {error}
+                  </div>
+                )}
+
+                {!stripePromise && (
+                  <p className="font-serif italic text-[13px] text-red-600">
+                    Clé publique Stripe manquante (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY).
+                  </p>
+                )}
+                {stripePromise && clientSecret && (
+                  <Elements
+                    stripe={stripePromise}
+                    options={
+                      {
+                        clientSecret,
+                        appearance: {
+                          theme: "flat",
+                          variables: {
+                            colorPrimary: "#b08438",
+                            colorBackground: "#ffffff",
+                            colorText: "#111827",
+                            colorDanger: "#b91c1c",
+                            fontFamily: "ui-sans-serif, system-ui, sans-serif",
+                            borderRadius: "0px",
+                            spacingUnit: "4px",
+                          },
+                          rules: {
+                            ".Input": { border: "1px solid #e5e7eb", padding: "10px 12px" },
+                            ".Input:focus": { border: "1px solid #b08438", boxShadow: "none" },
+                            ".Label": {
+                              fontSize: "10px",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3em",
+                              color: "#6b7280",
+                            },
+                          },
+                        },
+                      } as StripeElementsOptions
+                    }
+                  >
+                    <PaymentForm
+                      amountCents={amountDue}
+                      onSuccess={finalizeReservation}
+                      onBack={() => {
+                        setPaying(false);
+                        setClientSecret(null);
+                        setPaymentIntentId(null);
+                        setError(null);
+                      }}
+                    />
+                  </Elements>
+                )}
+
+                <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400">
+                  <ShieldCheck size={13} />
+                  <span>Paiement sécurisé par Stripe.</span>
+                </div>
+                <p className="font-serif italic text-[12px] text-gray-400 text-center">
+                  Carte de test : 4242 4242 4242 4242 · date future · CVC au choix.
                 </p>
               </div>
             ) : (
@@ -555,7 +666,7 @@ export default function EmporterFlow({ items }: Props) {
                 </div>
 
                 <p className="text-[12px] text-gray-500 leading-relaxed">
-                  Retrait à <span className="text-gray-800">3 rue de la Libération, 35770 Vern-sur-Seiche</span>. Paiement à la remise (espèces ou virement).
+                  Retrait à <span className="text-gray-800">3 rue de la Libération, 35770 Vern-sur-Seiche</span>. Paiement en ligne sécurisé pour confirmer votre commande.
                 </p>
 
                 <button
@@ -563,7 +674,7 @@ export default function EmporterFlow({ items }: Props) {
                   disabled={submitting || selectedEntries.length === 0}
                   className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Envoi en cours…" : <>Envoyer ma commande <ArrowRight size={13} /></>}
+                  {submitting ? "Préparation du paiement…" : <>Commander et payer {formatEUR(selectionTotal)} <ArrowRight size={13} /></>}
                 </button>
               </form>
             )}
@@ -614,6 +725,71 @@ export default function EmporterFlow({ items }: Props) {
         </>
       )}
     </>
+  );
+}
+
+function PaymentForm({
+  amountCents,
+  onSuccess,
+  onBack,
+}: {
+  amountCents: number;
+  onSuccess: () => Promise<void>;
+  onBack: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError(null);
+
+    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.href },
+      redirect: "if_required",
+    });
+
+    if (stripeError) {
+      setError(stripeError.message || "Erreur lors du paiement");
+      setSubmitting(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === "succeeded") {
+      await onSuccess();
+    } else {
+      setError("Paiement non finalisé. Merci de réessayer.");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      {error && <p className="text-[13px] text-red-600 font-serif italic">{error}</p>}
+      <div className="flex items-center gap-4 pt-2">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={submitting}
+          className="px-5 py-4 border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] hover:bg-[var(--brand-gold)]/5 transition disabled:opacity-60"
+        >
+          <ArrowLeft size={14} />
+        </button>
+        <button
+          type="submit"
+          disabled={!stripe || submitting}
+          className="flex-1 inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Paiement en cours…" : <>Payer {formatEUR(amountCents)} <ArrowRight size={13} /></>}
+        </button>
+      </div>
+    </form>
   );
 }
 

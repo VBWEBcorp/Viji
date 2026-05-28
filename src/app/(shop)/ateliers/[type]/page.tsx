@@ -270,6 +270,7 @@ export default async function AtelierTypePage({ params }: { params: Promise<{ ty
                 productId={atelier?._id}
                 productName={data.title}
                 atelierSlug={`atelier-${type}`}
+                price={price}
               />
             )}
           </div>
