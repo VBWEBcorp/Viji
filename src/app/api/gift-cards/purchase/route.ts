@@ -117,6 +117,7 @@ export async function POST(req: NextRequest) {
         code: giftCard.code,
         amount: giftCard.initialAmount,
         recipient: giftCard.recipient,
+        expiresAt: giftCard.expiresAt,
       },
       { status: 201 }
     );

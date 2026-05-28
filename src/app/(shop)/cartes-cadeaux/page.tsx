@@ -23,7 +23,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
-import GiftCardVisual from "@/components/shop/GiftCardVisual";
+import GiftCardVisual, { type GiftCardTemplate } from "@/components/shop/GiftCardVisual";
 
 const stripePromise: Promise<Stripe | null> | null =
   typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -44,6 +44,7 @@ interface PurchaseResult {
   code: string;
   amount: number; // centimes
   recipient?: { name?: string; email?: string; message?: string };
+  expiresAt?: string | null;
 }
 
 export default function GiftCardPurchasePage() {
@@ -53,6 +54,7 @@ export default function GiftCardPurchasePage() {
   const [enabled, setEnabled] = useState(false);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [shopName, setShopName] = useState("Ma Boutique");
+  const [template, setTemplate] = useState<GiftCardTemplate>({});
 
   const [step, setStep] = useState<Step>("details");
   const [loading, setLoading] = useState(false);
@@ -77,6 +79,7 @@ export default function GiftCardPurchasePage() {
         const ps: Preset[] = data?.giftCards?.presets || [];
         setPresets(ps);
         setShopName(data?.shopName || "Ma Boutique");
+        setTemplate(data?.giftCards?.template || {});
         if (ps.length > 0) setAmountEuros(ps[0].amount / 100);
       })
       .catch(() => {})
@@ -183,7 +186,7 @@ export default function GiftCardPurchasePage() {
 
   // ── Confirmation ──────────────────────────────────────────────
   if (step === "confirmation" && result) {
-    return <Confirmation result={result} shopName={shopName} />;
+    return <Confirmation result={result} shopName={shopName} template={template} />;
   }
 
   return (
@@ -431,7 +434,7 @@ export default function GiftCardPurchasePage() {
   );
 }
 
-function Confirmation({ result, shopName }: { result: PurchaseResult; shopName: string }) {
+function Confirmation({ result, shopName, template }: { result: PurchaseResult; shopName: string; template?: GiftCardTemplate }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] py-16 px-4">
@@ -457,6 +460,8 @@ function Confirmation({ result, shopName }: { result: PurchaseResult; shopName: 
             code={result.code}
             recipientName={result.recipient?.name}
             message={result.recipient?.message}
+            expiresAt={result.expiresAt}
+            template={template}
           />
         </div>
 

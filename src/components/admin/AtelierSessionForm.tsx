@@ -52,9 +52,30 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
   const isEdit = Boolean(initialSlug);
   const [data, setData] = useState<SessionPayload>(initial);
   const [submitting, setSubmitting] = useState(false);
+  // Tant que l'admin n'a pas édité le slug à la main, on le dérive du titre court.
+  const [slugTouched, setSlugTouched] = useState(false);
 
   function update<K extends keyof SessionPayload>(key: K, value: SessionPayload[K]) {
     setData((d) => ({ ...d, [key]: value }));
+  }
+
+  // Met à jour un titre (court ou complet) ET, tant que le slug n'a pas été
+  // édité à la main, régénère l'URL automatiquement. Ainsi modifier l'un OU
+  // l'autre des titres met à jour le slug (corrige : l'URL suit le titre).
+  function updateShortTitle(v: string) {
+    setData((d) => ({
+      ...d,
+      shortTitle: v,
+      slug: slugTouched ? d.slug : slugify(v),
+    }));
+  }
+
+  function updateTitle(v: string) {
+    setData((d) => ({
+      ...d,
+      title: v,
+      slug: slugTouched ? d.slug : slugify(v),
+    }));
   }
 
   function updateProgram(i: number, field: keyof ProgramBlock, value: string) {
@@ -171,21 +192,26 @@ export default function AtelierSessionForm({ initialSlug, initial }: Props) {
           <Field
             label="Titre court (carte)"
             value={data.shortTitle}
-            onChange={(v) => update("shortTitle", v)}
+            onChange={updateShortTitle}
             required
             placeholder="Poulet & riz au citron"
           />
-          <Field
-            label="Slug URL"
-            value={data.slug}
-            onChange={(v) => update("slug", slugify(v))}
-            placeholder="(généré depuis le titre)"
-          />
+          <div>
+            <Field
+              label="Slug URL"
+              value={data.slug}
+              onChange={(v) => { setSlugTouched(true); update("slug", slugify(v)); }}
+              placeholder="(généré depuis le titre)"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Généré depuis le titre. Modifier l&apos;URL change le lien public de la page.
+            </p>
+          </div>
         </Row>
         <Field
           label="Titre complet (page détail)"
           value={data.title}
-          onChange={(v) => update("title", v)}
+          onChange={updateTitle}
           required
           placeholder="Poulet aux pommes de terre & riz au citron"
         />

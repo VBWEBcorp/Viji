@@ -14,11 +14,12 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
+  Printer,
   X,
 } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
-import GiftCardVisual from "@/components/shop/GiftCardVisual";
+import GiftCardVisual, { type GiftCardTemplate } from "@/components/shop/GiftCardVisual";
 import { PageHeader, Card, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
 
 const inputCls =
@@ -265,6 +266,9 @@ function GiftCardConfig() {
   const [enabled, setEnabled] = useState(false);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [expiryMonths, setExpiryMonths] = useState(0);
+  const [template, setTemplate] = useState<GiftCardTemplate>({});
+  const [shopName, setShopName] = useState("Ma Boutique");
+  const [uploading, setUploading] = useState<"logo" | "bg" | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newAmount, setNewAmount] = useState("");
@@ -277,9 +281,33 @@ function GiftCardConfig() {
         setEnabled(Boolean(data?.giftCards?.enabled));
         setPresets(data?.giftCards?.presets || []);
         setExpiryMonths(data?.giftCards?.expiryMonths || 0);
+        setTemplate(data?.giftCards?.template || {});
+        setShopName(data?.shopName || "Ma Boutique");
       })
       .catch(() => {});
   }, []);
+
+  function patchTemplate(patch: Partial<GiftCardTemplate>) {
+    setTemplate((t) => ({ ...t, ...patch }));
+    setDirty(true);
+  }
+
+  async function uploadImage(file: File, target: "logo" | "bg") {
+    setUploading(target);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        patchTemplate(target === "logo" ? { logoUrl: data.url } : { backgroundImageUrl: data.url });
+      } else {
+        toast.error(data.error || "Échec de l'upload");
+      }
+    } finally {
+      setUploading(null);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -287,7 +315,7 @@ function GiftCardConfig() {
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ giftCards: { enabled, presets, expiryMonths } }),
+        body: JSON.stringify({ giftCards: { enabled, presets, expiryMonths, template } }),
       });
       if (res.ok) {
         toast.success("Configuration enregistrée");
@@ -413,12 +441,114 @@ function GiftCardConfig() {
             <label className="block text-sm font-medium mb-1">Validité (mois)</label>
             <input
               type="number"
-              min={0}
-              value={expiryMonths}
-              onChange={(e) => { setExpiryMonths(parseInt(e.target.value) || 0); setDirty(true); }}
+              min={1}
+              value={expiryMonths || 12}
+              onChange={(e) => { setExpiryMonths(parseInt(e.target.value) || 12); setDirty(true); }}
               className="w-24 px-2 py-1.5 border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition"
             />
-            <p className="text-xs text-gray-500 mt-1">0 = sans expiration.</p>
+            <p className="text-xs text-gray-500 mt-1">Par défaut 12 (1 an).</p>
+          </div>
+
+          {/* Personnalisation du visuel */}
+          <div className="border-t border-[var(--brand-gold)]/15 pt-5">
+            <p className="text-sm font-medium mb-1">Personnalisation de la carte</p>
+            <p className="text-xs text-gray-500 mb-4">Logo, couleurs, image de fond et textes, appliqués au visuel web, à l&apos;email et au PDF imprimable.</p>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Champs */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Titre affiché</label>
+                  <input
+                    type="text"
+                    value={template.headline || ""}
+                    onChange={(e) => patchTemplate({ headline: e.target.value })}
+                    placeholder="Carte cadeau"
+                    maxLength={40}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Texte en bas (optionnel)</label>
+                  <input
+                    type="text"
+                    value={template.footerText || ""}
+                    onChange={(e) => patchTemplate({ footerText: e.target.value })}
+                    placeholder="Merci et à bientôt !"
+                    maxLength={120}
+                    className={inputCls}
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Couleur d&apos;accent</label>
+                    <input
+                      type="color"
+                      value={template.primaryColor || "#b08438"}
+                      onChange={(e) => patchTemplate({ primaryColor: e.target.value })}
+                      className="h-10 w-16 border border-[var(--brand-gold)]/20 cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Couleur de fond</label>
+                    <input
+                      type="color"
+                      value={template.backgroundColor || "#faf6ee"}
+                      onChange={(e) => patchTemplate({ backgroundColor: e.target.value })}
+                      className="h-10 w-16 border border-[var(--brand-gold)]/20 cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Logo</label>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 px-3 py-1.5 border border-[var(--brand-gold)]/25 text-[11px] uppercase tracking-[0.15em] text-gray-600 hover:border-[var(--brand-gold)]/50 cursor-pointer transition">
+                      {uploading === "logo" ? "Envoi…" : "Choisir un logo"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, "logo"); }}
+                      />
+                    </label>
+                    {template.logoUrl && (
+                      <button onClick={() => patchTemplate({ logoUrl: "" })} className="text-xs text-gray-400 hover:text-red-600">Retirer</button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Image de fond (optionnel)</label>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 px-3 py-1.5 border border-[var(--brand-gold)]/25 text-[11px] uppercase tracking-[0.15em] text-gray-600 hover:border-[var(--brand-gold)]/50 cursor-pointer transition">
+                      {uploading === "bg" ? "Envoi…" : "Choisir une image"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, "bg"); }}
+                      />
+                    </label>
+                    {template.backgroundImageUrl && (
+                      <button onClick={() => patchTemplate({ backgroundImageUrl: "" })} className="text-xs text-gray-400 hover:text-red-600">Retirer</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Aperçu en direct */}
+              <div>
+                <p className="text-xs text-gray-500 mb-2">Aperçu</p>
+                <GiftCardVisual
+                  shopName={shopName}
+                  amount={5000}
+                  code="GC-XXXX-XXXX"
+                  recipientName="Marie"
+                  message="Joyeux anniversaire"
+                  expiresAt={expiryMonths > 0 ? new Date(Date.now() + expiryMonths * 30 * 864e5) : null}
+                  template={template}
+                />
+              </div>
+            </div>
           </div>
 
           {dirty && (
@@ -583,7 +713,17 @@ function DetailModal({ card, onClose }: { card: GiftCard; onClose: () => void })
           </div>
         )}
 
-        <GhostButton onClick={onClose} className="w-full">Fermer</GhostButton>
+        <div className="flex gap-2 pt-2">
+          <a
+            href={`/api/gift-cards/${card._id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 inline-flex items-center justify-center gap-2 bg-[var(--brand-gold)] text-white text-[11px] uppercase tracking-[0.25em] font-medium px-4 py-2.5 hover:bg-[var(--brand-gold-dark)] transition"
+          >
+            <Printer className="w-4 h-4" /> Imprimer le PDF
+          </a>
+          <GhostButton onClick={onClose} className="flex-1">Fermer</GhostButton>
+        </div>
       </div>
     </Overlay>
   );

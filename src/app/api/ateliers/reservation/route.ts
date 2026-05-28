@@ -4,6 +4,8 @@ import { sendEmail } from "@/lib/resend";
 import { connectDB } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { resolveAtelierUnitPrice } from "@/lib/ateliers";
+import Reservation from "@/models/Reservation";
+import { generateReservationNumber } from "@/lib/utils";
 
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "entremamanetmoicook@gmail.com";
 
@@ -78,6 +80,31 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dédoublonnage robuste : si une réservation existe déjà pour ce paiement,
+    // on ne recrée pas (ex. double soumission réseau).
+    const already = await Reservation.findOne({ paymentId: pi.id }).lean();
+    if (already) {
+      return NextResponse.json({ ok: true, alreadyProcessed: true });
+    }
+
+    // Persistance : la réservation devient visible dans l'admin (source de vérité).
+    await Reservation.create({
+      reservationNumber: generateReservationNumber(),
+      type: "atelier",
+      customerName: data.name,
+      customerPhone: data.phone,
+      customerEmail: data.email || undefined,
+      atelierSlug: data.sessionSlug,
+      atelierTitle: data.sessionTitle,
+      sessionDate: data.sessionDate,
+      sessionLocation: data.sessionLocation || undefined,
+      participants: data.participants,
+      notes: data.notes || undefined,
+      amount: pi.amount,
+      paymentId: pi.id,
+      status: "pending",
+    });
 
     const html = `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf6ee;margin:0;padding:0;">

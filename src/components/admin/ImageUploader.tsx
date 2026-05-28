@@ -131,7 +131,7 @@ export default function ImageUploader({
             className={inputCls}
           />
           <p className="text-[11px] text-gray-400">
-            {help || "JPG, PNG ou WebP — compressé automatiquement à l'import."}
+            {help || "JPG, PNG ou WebP, compressé automatiquement à l'import."}
           </p>
         </div>
       </div>

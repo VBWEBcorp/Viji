@@ -27,6 +27,15 @@ export interface ISiteSettings extends Document {
     enabled?: boolean; // active l'achat/utilisation des cartes cadeaux
     presets?: { amount: number; label?: string }[]; // montants suggérés (centimes)
     expiryMonths?: number; // durée de validité en mois (0 = sans expiration)
+    // Template personnalisable de la carte cadeau (visuel web, email, PDF).
+    template?: {
+      logoUrl?: string;
+      primaryColor?: string; // couleur d'accent (titres, montant)
+      backgroundColor?: string; // fond de la carte
+      backgroundImageUrl?: string; // image de fond optionnelle
+      headline?: string; // titre affiché (ex: "Carte cadeau")
+      footerText?: string; // petit texte en bas de carte
+    };
   };
   invoice: {
     enabled?: boolean;
@@ -119,7 +128,15 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
           { amount: 10000, label: "Prestige" },
         ],
       },
-      expiryMonths: { type: Number, default: 0 },
+      expiryMonths: { type: Number, default: 12 },
+      template: {
+        logoUrl: { type: String },
+        primaryColor: { type: String },
+        backgroundColor: { type: String },
+        backgroundImageUrl: { type: String },
+        headline: { type: String },
+        footerText: { type: String },
+      },
     },
     invoice: {
       enabled: { type: Boolean, default: true },

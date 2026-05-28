@@ -1,4 +1,5 @@
 import type { IGiftCard } from "@/models/GiftCard";
+import type { GiftCardTemplate } from "@/components/shop/GiftCardVisual";
 
 const GOLD = "#b8923c";
 const GOLD_DARK = "#9c7a2e";
@@ -21,28 +22,44 @@ function esc(s: string): string {
  * Visuel HTML de la carte cadeau (compatible email : table + styles inline).
  * Réutilisé dans les emails acheteur et destinataire.
  */
+function fmtDate(d: Date | string): string {
+  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function cardVisual(opts: {
   shopName: string;
   amount: number;
   code: string;
   recipientName?: string;
   message?: string;
+  expiresAt?: Date | string | null;
+  template?: GiftCardTemplate;
 }): string {
-  const { shopName, amount, code, recipientName, message } = opts;
+  const { shopName, amount, code, recipientName, message, expiresAt, template } = opts;
+  const primary = template?.primaryColor || GOLD;
+  const bg = template?.backgroundColor || CREAM;
+  const headline = template?.headline || "Carte cadeau";
+  const logo = template?.logoUrl;
+  const footer = template?.footerText;
+  const header = logo
+    ? `<img src="${esc(logo)}" alt="${esc(shopName)}" style="max-height:40px; margin:0 auto 16px; display:block;" />`
+    : `<p style="font-size:10px; letter-spacing:0.4em; text-transform:uppercase; color:${primary}; margin:0 0 18px;">${esc(shopName)}</p>`;
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
     <tr><td align="center">
-      <table role="presentation" width="440" cellpadding="0" cellspacing="0" style="max-width:440px; width:100%; background:linear-gradient(135deg, #fffdf8 0%, ${CREAM} 100%); border:1px solid ${GOLD}33; border-radius:0;">
+      <table role="presentation" width="440" cellpadding="0" cellspacing="0" style="max-width:440px; width:100%; background:linear-gradient(135deg, #fffdf8 0%, ${bg} 100%); border:1px solid ${primary}33; border-radius:0;">
         <tr><td style="padding:36px 32px; text-align:center;">
-          <p style="font-size:10px; letter-spacing:0.4em; text-transform:uppercase; color:${GOLD}; margin:0 0 18px;">${esc(shopName)}</p>
-          <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:0.25em; text-transform:uppercase; color:#6b7280; margin:0 0 6px;">Carte cadeau</p>
+          ${header}
+          <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:0.25em; text-transform:uppercase; color:#6b7280; margin:0 0 6px;">${esc(headline)}</p>
           ${recipientName ? `<p style="font-family:Georgia, serif; font-size:20px; color:#111827; margin:8px 0 0;">Pour ${esc(recipientName)}</p>` : ""}
           <p style="font-family:Georgia, serif; font-size:48px; font-weight:bold; color:${GOLD_DARK}; margin:14px 0 6px;">${fmt(amount)}</p>
           ${message ? `<p style="font-family:Georgia, serif; font-style:italic; font-size:13px; color:#6b7280; margin:6px 0 16px;">«&nbsp;${esc(message)}&nbsp;»</p>` : ""}
-          <div style="margin-top:18px; padding:12px; border-top:1px solid ${GOLD}33;">
+          <div style="margin-top:18px; padding:12px; border-top:1px solid ${primary}33;">
             <p style="font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:#9ca3af; margin:0 0 6px;">Code</p>
             <p style="font-family:'Courier New', monospace; font-size:22px; font-weight:bold; letter-spacing:0.18em; color:#111827; margin:0;">${esc(code)}</p>
           </div>
+          ${expiresAt ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#9ca3af; margin:16px 0 0;">Valable jusqu'au ${fmtDate(expiresAt)}</p>` : ""}
+          ${footer ? `<p style="font-size:11px; color:#6b7280; margin:12px 0 0;">${esc(footer)}</p>` : ""}
         </td></tr>
       </table>
     </td></tr>
@@ -77,8 +94,9 @@ function howToUse(): string {
 export function generateGiftCardBuyerEmail(props: {
   giftCard: IGiftCard;
   shopName: string;
+  template?: GiftCardTemplate;
 }): string {
-  const { giftCard, shopName } = props;
+  const { giftCard, shopName, template } = props;
   const buyerName = giftCard.purchasedBy?.name || "";
   const sentToRecipient = Boolean(giftCard.recipient?.email);
 
@@ -97,6 +115,8 @@ export function generateGiftCardBuyerEmail(props: {
       code: giftCard.code,
       recipientName: giftCard.recipient?.name,
       message: giftCard.recipient?.message,
+      expiresAt: giftCard.expiresAt,
+      template,
     })}
     ${howToUse()}`;
 
@@ -106,8 +126,9 @@ export function generateGiftCardBuyerEmail(props: {
 export function generateGiftCardRecipientEmail(props: {
   giftCard: IGiftCard;
   shopName: string;
+  template?: GiftCardTemplate;
 }): string {
-  const { giftCard, shopName } = props;
+  const { giftCard, shopName, template } = props;
   const recipientName = giftCard.recipient?.name || "";
   const buyerName = giftCard.purchasedBy?.name;
 
@@ -123,6 +144,8 @@ export function generateGiftCardRecipientEmail(props: {
       code: giftCard.code,
       recipientName: giftCard.recipient?.name,
       message: giftCard.recipient?.message,
+      expiresAt: giftCard.expiresAt,
+      template,
     })}
     ${howToUse()}`;
 

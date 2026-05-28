@@ -4,6 +4,8 @@ import { sendEmail } from "@/lib/resend";
 import { connectDB } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { computeTraiteurAmount } from "@/lib/traiteur";
+import Reservation from "@/models/Reservation";
+import { generateReservationNumber } from "@/lib/utils";
 
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "entremamanetmoicook@gmail.com";
 
@@ -78,8 +80,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Dédoublonnage robuste : si une commande existe déjà pour ce paiement.
+    const already = await Reservation.findOne({ paymentId: pi.id }).lean();
+    if (already) {
+      return NextResponse.json({ ok: true, alreadyProcessed: true });
+    }
+
     const items = computed.lines;
     const total = computed.amount;
+
+    // Persistance : la commande Click & Collect devient visible dans l'admin.
+    await Reservation.create({
+      reservationNumber: generateReservationNumber(),
+      type: "traiteur",
+      customerName: data.name,
+      customerPhone: data.phone,
+      customerEmail: data.email || undefined,
+      items,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      notes: data.comment || undefined,
+      amount: total,
+      paymentId: pi.id,
+      status: "pending",
+    });
 
     const itemsHtml = `<table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;margin-top:8px;">
             <thead>

@@ -45,11 +45,13 @@ async function generateUniqueCode(): Promise<string> {
   throw new Error("Impossible de générer un code carte cadeau unique");
 }
 
-/** Calcule la date d'expiration à partir des réglages (0 = sans expiration) */
+/** Calcule la date d'expiration à partir des réglages (12 mois = 1 an par défaut) */
 async function resolveExpiry(): Promise<Date | null> {
   const settings = await SiteSettings.findOne().select("giftCards").lean();
-  const months = settings?.giftCards?.expiryMonths ?? 0;
-  if (!months || months <= 0) return null;
+  // Par défaut 1 an de validité. `|| 12` rattrape aussi les anciens réglages
+  // restés à 0 : la commerçante veut une validité d'un an sur toutes les cartes.
+  const months = settings?.giftCards?.expiryMonths || 12;
+  if (months <= 0) return null;
   const date = new Date();
   date.setMonth(date.getMonth() + months);
   return date;
@@ -289,9 +291,9 @@ export async function cancelGiftCard(
 export async function sendGiftCardEmails(giftCard: IGiftCard): Promise<void> {
   if (giftCard.emailSent) return;
 
-  const shopName =
-    (await SiteSettings.findOne().select("shopName").lean())?.shopName ||
-    "Ma Boutique";
+  const settings = await SiteSettings.findOne().select("shopName giftCards").lean();
+  const shopName = settings?.shopName || "Ma Boutique";
+  const template = settings?.giftCards?.template;
 
   const buyerEmail = giftCard.purchasedBy?.email;
   if (buyerEmail) {
@@ -299,7 +301,7 @@ export async function sendGiftCardEmails(giftCard: IGiftCard): Promise<void> {
       await sendEmail({
         to: buyerEmail,
         subject: `Votre carte cadeau ${shopName}`,
-        html: generateGiftCardBuyerEmail({ giftCard, shopName }),
+        html: generateGiftCardBuyerEmail({ giftCard, shopName, template }),
       });
     } catch (err) {
       console.error("Gift card buyer email failed:", err);
@@ -312,7 +314,7 @@ export async function sendGiftCardEmails(giftCard: IGiftCard): Promise<void> {
       await sendEmail({
         to: recipientEmail,
         subject: `Vous avez reçu une carte cadeau ${shopName} 🎁`,
-        html: generateGiftCardRecipientEmail({ giftCard, shopName }),
+        html: generateGiftCardRecipientEmail({ giftCard, shopName, template }),
       });
     } catch (err) {
       console.error("Gift card recipient email failed:", err);
