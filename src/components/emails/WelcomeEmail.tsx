@@ -1,40 +1,52 @@
+import {
+  emailShell,
+  emailEyebrow,
+  emailHeading,
+  emailParagraph,
+  emailButton,
+  esc,
+  EMAIL_COLORS as C,
+} from "@/lib/email-layout";
+
 interface WelcomeEmailProps {
   customerName: string;
   shopName?: string;
 }
 
-export function generateWelcomeEmail({ customerName, shopName = "Ma Boutique" }: WelcomeEmailProps): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-  <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
-    <h1 style="font-size: 24px; margin: 0;">${shopName}</h1>
-  </div>
+const SANS =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
-  <div style="padding: 30px 0; text-align: center;">
-    <div style="width: 64px; height: 64px; background: #f0fdf4; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-      <span style="font-size: 32px;">👋</span>
-    </div>
-    <h2 style="font-size: 22px; margin: 0 0 10px 0;">Bienvenue, ${customerName} !</h2>
-    <p style="color: #666; line-height: 1.6;">
-      Merci d'avoir cree votre compte sur ${shopName}. Vous pouvez desormais passer commande,
-      suivre vos livraisons et gerer vos informations personnelles.
-    </p>
+export function generateWelcomeEmail({
+  customerName,
+}: WelcomeEmailProps): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
 
-    <a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/kits/decouverte"
-       style="display: inline-block; background: #000; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 20px;">
-      Découvrir nos kits
-    </a>
-  </div>
+  const perk = (label: string) =>
+    `<tr><td style="padding:7px 0; font-family:${SANS}; font-size:14px; color:${C.body};">
+      <span style="color:${C.gold}; font-weight:700;">&#10003;</span>&nbsp;&nbsp;${label}
+    </td></tr>`;
 
-  <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; color: #999; font-size: 12px;">
-    <p>&copy; ${new Date().getFullYear()} ${shopName}. Tous droits reserves.</p>
-  </div>
-</body>
-</html>`;
+  const content = `
+    ${emailEyebrow("Bienvenue")}
+    ${emailHeading(`Ravis de vous accueillir,<br>${esc(customerName)} !`)}
+    ${emailParagraph(
+      `Votre compte est créé. Vous voilà prête à voyager au cœur de l'Inde depuis votre cuisine, avec nos box culinaires et nos ateliers.`
+    )}
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 26px;">
+      ${perk("Commandez vos box en quelques clics")}
+      ${perk("Suivez vos livraisons en temps réel")}
+      ${perk("Réservez nos ateliers de cuisine")}
+    </table>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td>
+      ${emailButton(`${appUrl}/kits/decouverte`, "Découvrir nos box")}
+    </td></tr></table>
+  `;
+
+  return emailShell({
+    title: "Bienvenue sur Entre Maman et Moi",
+    preheader: "Votre compte est créé. Découvrez nos box culinaires indiennes.",
+    content,
+  });
 }

@@ -54,9 +54,9 @@ function cardVisual(opts: {
           ${recipientName ? `<p style="font-family:Georgia, serif; font-size:20px; color:#111827; margin:8px 0 0;">Pour ${esc(recipientName)}</p>` : ""}
           <p style="font-family:Georgia, serif; font-size:48px; font-weight:bold; color:${GOLD_DARK}; margin:14px 0 6px;">${fmt(amount)}</p>
           ${message ? `<p style="font-family:Georgia, serif; font-style:italic; font-size:13px; color:#6b7280; margin:6px 0 16px;">«&nbsp;${esc(message)}&nbsp;»</p>` : ""}
-          <div style="margin-top:18px; padding:12px; border-top:1px solid ${primary}33;">
-            <p style="font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:#9ca3af; margin:0 0 6px;">Code</p>
-            <p style="font-family:'Courier New', monospace; font-size:22px; font-weight:bold; letter-spacing:0.18em; color:#111827; margin:0;">${esc(code)}</p>
+          <div style="margin-top:18px; padding:14px 16px; background:#1f1d1a; border-radius:8px;">
+            <p style="font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:#cbb88f; margin:0 0 6px;">Code</p>
+            <p style="font-family:'Courier New', monospace; font-size:22px; font-weight:bold; letter-spacing:0.18em; color:#ffffff; margin:0;">${esc(code)}</p>
           </div>
           ${expiresAt ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#9ca3af; margin:16px 0 0;">Valable jusqu'au ${fmtDate(expiresAt)}</p>` : ""}
           ${footer ? `<p style="font-size:11px; color:#6b7280; margin:12px 0 0;">${esc(footer)}</p>` : ""}

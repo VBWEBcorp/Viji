@@ -1,3 +1,12 @@
+import {
+  emailShell,
+  emailEyebrow,
+  emailHeading,
+  emailParagraph,
+  esc,
+  EMAIL_COLORS as C,
+} from "@/lib/email-layout";
+
 interface OrderCancelledEmailProps {
   orderNumber: string;
   customerName: string;
@@ -5,44 +14,41 @@ interface OrderCancelledEmailProps {
   shopName?: string;
 }
 
+const SANS =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
 export function generateOrderCancelledEmail({
   orderNumber,
   customerName,
   reason,
-  shopName = "Ma Boutique",
 }: OrderCancelledEmailProps): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-  <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
-    <h1 style="font-size: 24px; margin: 0;">${shopName}</h1>
-  </div>
+  const content = `
+    ${emailEyebrow("Commande annulée")}
+    ${emailHeading("Votre commande<br>a été annulée")}
+    ${emailParagraph(
+      `Bonjour ${esc(customerName)}, votre commande <strong style="color:${C.ink};">${esc(orderNumber)}</strong> a été annulée.`
+    )}
+    ${
+      reason
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px;">
+            <tr><td style="background:${C.softCream}; border-left:3px solid ${C.gold}; border-radius:6px; padding:16px 20px;">
+              <p style="font-family:${SANS}; font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:${C.muted}; margin:0 0 6px;">Motif</p>
+              <p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0;">${esc(reason)}</p>
+            </td></tr>
+          </table>`
+        : ""
+    }
+    ${emailParagraph(
+      `Si un paiement avait été effectué, le remboursement sera traité automatiquement sous 5 à 10 jours ouvrables.`
+    )}
+    ${emailParagraph(
+      `<span style="color:${C.muted}; font-size:14px;">Une question ? Répondez simplement à cet email, nous sommes là pour vous aider.</span>`
+    )}
+  `;
 
-  <div style="padding: 30px 0;">
-    <h2 style="font-size: 20px;">Commande annulee</h2>
-    <p>Bonjour ${customerName},</p>
-    <p>Votre commande <strong>${orderNumber}</strong> a été annulee.</p>
-    ${reason ? `<p style="color: #666;">Raison : ${reason}</p>` : ""}
-
-    <div style="background: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0;">
-      <p style="margin: 0; font-size: 14px; color: #991b1b;">
-        Si un paiement a été effectue, le remboursement sera traite sous 5 a 10 jours ouvrables.
-      </p>
-    </div>
-
-    <p style="color: #666;">
-      Si vous avez des questions, n'hesitez pas a nous contacter.
-    </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; color: #999; font-size: 12px;">
-    <p>&copy; ${new Date().getFullYear()} ${shopName}. Tous droits reserves.</p>
-  </div>
-</body>
-</html>`;
+  return emailShell({
+    title: "Annulation de votre commande",
+    preheader: `Votre commande ${orderNumber} a été annulée.`,
+    content,
+  });
 }

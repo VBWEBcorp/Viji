@@ -72,13 +72,13 @@ function wrapEmailLayout(content: string): string {
 <body>
   <div class="wrapper">
     <div class="header">
-      <h1>Ma Boutique</h1>
+      <h1>Entre Maman et Moi</h1>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Ma Boutique. Tous droits reserves.</p>
+      <p>&copy; ${new Date().getFullYear()} Entre Maman et Moi. Tous droits reserves.</p>
     </div>
   </div>
 </body>

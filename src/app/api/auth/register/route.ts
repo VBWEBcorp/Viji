@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     // Envoyer email de bienvenue
     sendEmail({
       to: user.email,
-      subject: `Bienvenue sur Ma Boutique, ${user.name} !`,
+      subject: `Bienvenue sur Entre Maman et Moi, ${user.name} !`,
       html: generateWelcomeEmail({ customerName: user.name }),
     }).catch(console.error);
 

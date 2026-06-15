@@ -1,3 +1,13 @@
+import {
+  emailShell,
+  emailEyebrow,
+  emailHeading,
+  emailParagraph,
+  emailInfoBox,
+  esc,
+  EMAIL_COLORS as C,
+} from "@/lib/email-layout";
+
 interface OrderConfirmationProps {
   orderNumber: string;
   customerName: string;
@@ -16,78 +26,92 @@ interface OrderConfirmationProps {
   };
 }
 
+const SANS =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
 export function generateOrderConfirmationEmail(
   props: OrderConfirmationProps
 ): string {
-  const formatPrice = (amount: number) =>
+  const fmt = (amount: number) =>
     new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
     }).format(amount / 100);
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-  <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
-    <h1 style="font-size: 24px; margin: 0;">Ma Boutique</h1>
-  </div>
+  const itemRows = props.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:14px 0; border-bottom:1px solid ${C.hairline}; font-family:${SANS}; font-size:14px; color:${C.ink};">${esc(item.name)}</td>
+        <td style="padding:14px 0; border-bottom:1px solid ${C.hairline}; font-family:${SANS}; font-size:14px; color:${C.muted}; text-align:center; width:54px;">×${item.quantity}</td>
+        <td style="padding:14px 0; border-bottom:1px solid ${C.hairline}; font-family:${SANS}; font-size:14px; color:${C.ink}; font-weight:600; text-align:right; width:90px;">${fmt(item.unitPrice * item.quantity)}</td>
+      </tr>`
+    )
+    .join("");
 
-  <div style="padding: 30px 0;">
-    <h2 style="font-size: 20px;">Merci pour votre commande !</h2>
-    <p>Bonjour ${props.customerName},</p>
-    <p>Votre commande <strong>${props.orderNumber}</strong> a bien été confirmée.</p>
+  const totalLine = (
+    label: string,
+    value: string,
+    opts?: { color?: string; bold?: boolean }
+  ) => `
+    <tr>
+      <td style="padding:5px 0; font-family:${SANS}; font-size:14px; color:${opts?.color || C.body};">${label}</td>
+      <td style="padding:5px 0; font-family:${SANS}; font-size:14px; text-align:right; color:${opts?.color || C.ink}; font-weight:${opts?.bold ? 700 : 400};">${value}</td>
+    </tr>`;
 
-    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  const giftCard = props.giftCardAmount || 0;
+  const cardPaid = Math.max(0, props.total - giftCard);
+
+  const content = `
+    ${emailEyebrow("Commande confirmée")}
+    ${emailHeading(`Merci pour votre commande,<br>${esc(props.customerName)} !`)}
+    ${emailParagraph(
+      `Votre commande <strong style="color:${C.ink};">${esc(props.orderNumber)}</strong> a bien été enregistrée. Nous la préparons avec soin, voici le récapitulatif.`
+    )}
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 8px;">
       <thead>
-        <tr style="border-bottom: 2px solid #eee;">
-          <th style="text-align: left; padding: 10px 0;">Produit</th>
-          <th style="text-align: center; padding: 10px 0;">Qté</th>
-          <th style="text-align: right; padding: 10px 0;">Prix</th>
+        <tr>
+          <th style="padding:0 0 10px; font-family:${SANS}; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; text-align:left; font-weight:600; border-bottom:2px solid ${C.border};">Article</th>
+          <th style="padding:0 0 10px; font-family:${SANS}; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; text-align:center; font-weight:600; border-bottom:2px solid ${C.border};">Qté</th>
+          <th style="padding:0 0 10px; font-family:${SANS}; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; text-align:right; font-weight:600; border-bottom:2px solid ${C.border};">Total</th>
         </tr>
       </thead>
-      <tbody>
-        ${props.items
-          .map(
-            (item) => `
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 10px 0;">${item.name}</td>
-            <td style="text-align: center; padding: 10px 0;">${item.quantity}</td>
-            <td style="text-align: right; padding: 10px 0;">${formatPrice(item.unitPrice * item.quantity)}</td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
+      <tbody>${itemRows}</tbody>
     </table>
 
-    <div style="text-align: right; padding: 10px 0;">
-      <p style="margin: 5px 0;">Sous-total: ${formatPrice(props.subtotal)}</p>
-      ${props.discount > 0 ? `<p style="margin: 5px 0; color: #22c55e;">Réduction: -${formatPrice(props.discount)}</p>` : ""}
-      <p style="margin: 5px 0;">Livraison: ${props.shippingCost === 0 ? "Gratuit" : formatPrice(props.shippingCost)}</p>
-      ${props.giftCardAmount && props.giftCardAmount > 0 ? `<p style="margin: 5px 0; color: #b08438;">Carte cadeau: -${formatPrice(props.giftCardAmount)}</p>` : ""}
-      <p style="margin: 10px 0; font-size: 18px; font-weight: bold;">Total: ${formatPrice(props.total)}</p>
-      ${props.giftCardAmount && props.giftCardAmount > 0 ? `<p style="margin: 5px 0; font-size: 13px; color: #666;">Réglé par carte bancaire: ${formatPrice(Math.max(0, props.total - props.giftCardAmount))}</p>` : ""}
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 6px;">
+      <tr><td>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:280px; margin-left:auto;">
+          ${totalLine("Sous-total", fmt(props.subtotal))}
+          ${props.discount > 0 ? totalLine("Réduction", `-${fmt(props.discount)}`, { color: "#15803d" }) : ""}
+          ${totalLine("Livraison", props.shippingCost === 0 ? "Offerte" : fmt(props.shippingCost))}
+          ${giftCard > 0 ? totalLine("Carte cadeau", `-${fmt(giftCard)}`, { color: C.gold }) : ""}
+          <tr><td colspan="2" style="padding:8px 0 0;"><div style="border-top:1px solid ${C.border};"></div></td></tr>
+          ${totalLine("Total", fmt(props.total), { bold: true })}
+          ${giftCard > 0 ? `<tr><td colspan="2" style="padding:4px 0 0; font-family:${SANS}; font-size:12px; color:${C.muted}; text-align:right;">Réglé par carte : ${fmt(cardPaid)}</td></tr>` : ""}
+        </table>
+      </td></tr>
+    </table>
 
-    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 20px;">
-      <h3 style="margin: 0 0 10px 0; font-size: 14px;">Adresse de livraison</h3>
-      <p style="margin: 0; font-size: 14px; color: #666;">
-        ${props.shippingAddress.name}<br>
-        ${props.shippingAddress.street}<br>
-        ${props.shippingAddress.zip} ${props.shippingAddress.city}<br>
-        ${props.shippingAddress.country}
-      </p>
-    </div>
-  </div>
+    <p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">Adresse de livraison</p>
+    ${emailInfoBox(
+      `<p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0;">
+        <strong style="color:${C.ink};">${esc(props.shippingAddress.name)}</strong><br>
+        ${esc(props.shippingAddress.street)}<br>
+        ${esc(props.shippingAddress.zip)} ${esc(props.shippingAddress.city)}<br>
+        ${esc(props.shippingAddress.country)}
+      </p>`
+    )}
 
-  <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; color: #999; font-size: 12px;">
-    <p>© ${new Date().getFullYear()} Ma Boutique. Tous droits réservés.</p>
-  </div>
-</body>
-</html>`;
+    ${emailParagraph(
+      `<span style="color:${C.muted}; font-size:14px;">Vous recevrez un nouvel email dès que votre commande sera expédiée. À très vite !</span>`
+    )}
+  `;
+
+  return emailShell({
+    title: `Confirmation de commande ${props.orderNumber}`,
+    preheader: `Votre commande ${props.orderNumber} est confirmée. Merci !`,
+    content,
+  });
 }
