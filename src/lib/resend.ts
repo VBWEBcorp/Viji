@@ -59,3 +59,45 @@ export async function sendEmail({
 
   return result;
 }
+
+/** True si l'envoi d'e-mails est configuré (clé Resend présente). */
+export async function isResendConfigured(): Promise<boolean> {
+  const keys = await getApiKeys();
+  return Boolean(keys.resendApiKey);
+}
+
+/**
+ * Envoi en masse via l'API batch de Resend (100 e-mails max par requête).
+ * Chaque message porte son propre HTML (lien de désinscription personnalisé).
+ * Ne lève jamais : renvoie le décompte envoyés / échecs.
+ */
+export async function sendBatchEmails(
+  messages: { to: string; subject: string; html: string }[]
+): Promise<{ sent: number; failed: number }> {
+  const client = await getResend();
+  if (!client) return { sent: 0, failed: messages.length };
+
+  const keys = await getApiKeys();
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < messages.length; i += 100) {
+    const chunk = messages
+      .slice(i, i + 100)
+      .map((m) => ({ from: keys.resendFromEmail, ...m }));
+    try {
+      const result = await client.batch.send(chunk);
+      if (result.error) {
+        failed += chunk.length;
+        console.error("Resend batch a échoué:", result.error);
+      } else {
+        sent += chunk.length;
+      }
+    } catch (err) {
+      failed += chunk.length;
+      console.error("Resend batch exception:", err);
+    }
+  }
+
+  return { sent, failed };
+}

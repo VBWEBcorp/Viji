@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Star, Check, X, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { PageHeader, Card, Badge, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, EmptyState, TableSkeleton } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 interface Review {
   _id: string;
@@ -22,6 +23,7 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetch("/api/reviews?all=true")
@@ -47,7 +49,12 @@ export default function AdminReviewsPage() {
   }
 
   async function deleteReview(reviewId: string) {
-    if (!confirm("Supprimer cet avis ?")) return;
+    const ok = await confirm({
+      title: "Supprimer cet avis ?",
+      description: "L'avis sera définitivement retiré de la fiche produit.",
+      danger: true,
+    });
+    if (!ok) return;
     await fetch("/api/reviews", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -96,7 +103,9 @@ export default function AdminReviewsPage() {
 
       <div className="space-y-3">
         {loading ? (
-          <Card className="p-12 text-center text-gray-400 text-sm">Chargement…</Card>
+          <Card className="overflow-hidden">
+            <TableSkeleton rows={4} cols={2} />
+          </Card>
         ) : filtered.length === 0 ? (
           <Card>
             <EmptyState icon={<Star size={18} strokeWidth={1.5} />} title="Aucun avis" />

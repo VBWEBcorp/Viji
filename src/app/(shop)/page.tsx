@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import { ArrowRight, Star } from "lucide-react";
 import YouTubeShort from "@/components/shop/YouTubeShort";
+import NewsletterSignup from "@/components/shop/NewsletterSignup";
 import HeroSection from "@/components/shop/HeroSection";
 import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
@@ -484,13 +485,11 @@ export default async function HomePage() {
 
           <div className="w-12 h-px bg-[var(--brand-gold)]/40 md:hidden" />
 
-          <Link
-            href="/contact"
-            className="group inline-flex items-center gap-3 text-[var(--brand-gold)] text-[11px] uppercase tracking-[0.3em] font-medium border border-[var(--brand-gold)]/40 px-7 py-3.5 hover:bg-[var(--brand-gold)] hover:text-white hover:border-[var(--brand-gold)] transition shrink-0"
-          >
-            {t("home_news_cta")}
-            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+          <NewsletterSignup
+            source="accueil"
+            cta={t("home_news_cta")}
+            className="shrink-0"
+          />
         </div>
       </section>
     </div>

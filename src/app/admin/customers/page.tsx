@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { Users, ChevronRight } from "lucide-react";
-import { PageHeader, Card, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, EmptyState, TableSkeleton } from "@/components/admin/ui";
 
 interface Customer {
   _id: string;
@@ -45,7 +45,7 @@ export default function AdminCustomersPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+          <TableSkeleton cols={4} />
         ) : customers.length === 0 ? (
           <EmptyState
             icon={<Users size={18} strokeWidth={1.5} />}

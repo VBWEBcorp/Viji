@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { ShoppingCart, ChevronRight } from "lucide-react";
-import { PageHeader, Card, Badge, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, EmptyState, TableSkeleton } from "@/components/admin/ui";
 
 interface Order {
   _id: string;
@@ -61,7 +61,7 @@ export default function AdminOrdersPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+          <TableSkeleton cols={6} />
         ) : orders.length === 0 ? (
           <EmptyState
             icon={<ShoppingCart size={18} strokeWidth={1.5} />}

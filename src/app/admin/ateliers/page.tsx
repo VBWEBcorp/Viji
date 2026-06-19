@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Plus, Pencil, Trash2, Eye, EyeOff, MapPin } from "lucide-react";
 import toast from "react-hot-toast";
-import { PageHeader, Card, Badge, GoldButton, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, GoldButton, EmptyState, TableSkeleton } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 type Occurrence = {
   date: string;
@@ -47,6 +48,7 @@ function formatEUR(cents: number) {
 export default function AdminAteliersPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const confirm = useConfirm();
 
   useEffect(() => {
     refresh();
@@ -76,7 +78,17 @@ export default function AdminAteliersPage() {
   }
 
   async function deleteSession(s: Session) {
-    if (!confirm(`Supprimer définitivement « ${s.shortTitle} » ?`)) return;
+    const ok = await confirm({
+      title: "Supprimer cette session ?",
+      description: (
+        <>
+          « {s.shortTitle} » sera définitivement supprimée. Les réservations
+          déjà enregistrées ne seront pas affectées.
+        </>
+      ),
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/ateliers/sessions/${s.slug}`, { method: "DELETE" });
     if (res.ok) {
       toast.success("Session supprimée");
@@ -106,7 +118,9 @@ export default function AdminAteliersPage() {
       </PageHeader>
 
       {loading ? (
-        <Card className="p-12 text-center text-gray-400 text-sm">Chargement…</Card>
+        <Card className="overflow-hidden">
+          <TableSkeleton rows={4} cols={4} />
+        </Card>
       ) : sessions.length === 0 ? (
         <Card>
           <EmptyState

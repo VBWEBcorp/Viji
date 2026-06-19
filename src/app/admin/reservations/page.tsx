@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { CalendarCheck, ChevronRight, X, Phone, Mail, MapPin, Users, Calendar, Clock } from "lucide-react";
-import { PageHeader, Card, Badge, EmptyState, GoldButton, GhostButton } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, EmptyState, GoldButton, GhostButton, TableSkeleton } from "@/components/admin/ui";
 
 type Status = "pending" | "confirmed" | "done" | "cancelled";
 type Tone = "gold" | "green" | "amber" | "red" | "gray" | "blue";
@@ -105,7 +105,7 @@ export default function AdminReservationsPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+          <TableSkeleton cols={6} />
         ) : reservations.length === 0 ? (
           <EmptyState
             icon={<CalendarCheck size={18} strokeWidth={1.5} />}

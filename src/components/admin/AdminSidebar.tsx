@@ -23,25 +23,51 @@ import {
   CalendarDays,
   CalendarCheck,
   Gift,
+  Send,
   Menu,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Produits", icon: Package },
-  { href: "/admin/ateliers", label: "Ateliers", icon: CalendarDays },
-  { href: "/admin/orders", label: "Commandes", icon: ShoppingCart },
-  { href: "/admin/reservations", label: "Réservations", icon: CalendarCheck },
-  { href: "/admin/customers", label: "Clients", icon: Users },
-  { href: "/admin/reviews", label: "Avis", icon: Star },
-  { href: "/admin/promos", label: "Codes promo", icon: Tag },
-  { href: "/admin/gift-cards", label: "Cartes cadeaux", icon: Gift },
-  { href: "/admin/blog", label: "Blog", icon: PenSquare },
-  { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
-  { href: "/admin/emails", label: "Emails", icon: Mail },
-  { href: "/admin/content", label: "Contenu", icon: FileText },
+type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
+
+const menuGroups: { title?: string; items: NavItem[] }[] = [
+  {
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    title: "Ventes",
+    items: [
+      { href: "/admin/orders", label: "Commandes", icon: ShoppingCart },
+      { href: "/admin/reservations", label: "Réservations", icon: CalendarCheck },
+      { href: "/admin/customers", label: "Clients", icon: Users },
+    ],
+  },
+  {
+    title: "Catalogue",
+    items: [
+      { href: "/admin/products", label: "Produits", icon: Package },
+      { href: "/admin/ateliers", label: "Ateliers", icon: CalendarDays },
+      { href: "/admin/reviews", label: "Avis", icon: Star },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      { href: "/admin/promos", label: "Codes promo", icon: Tag },
+      { href: "/admin/gift-cards", label: "Cartes cadeaux", icon: Gift },
+      { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Send },
+      { href: "/admin/emails", label: "Emails", icon: Mail },
+    ],
+  },
+  {
+    title: "Contenu",
+    items: [
+      { href: "/admin/blog", label: "Blog", icon: PenSquare },
+      { href: "/admin/content", label: "Pages", icon: FileText },
+    ],
+  },
 ];
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
@@ -87,45 +113,52 @@ export default function AdminSidebar() {
 
   function NavList({ isCollapsed }: { isCollapsed: boolean }) {
     return (
-      <>
-        {!isCollapsed && (
-          <div className="px-4 pt-5 pb-2 text-[9px] uppercase tracking-[0.35em] text-gray-400">
-            Administration
-          </div>
-        )}
-        <nav className="flex-1 px-3 pb-4 space-y-0.5 overflow-y-auto scrollbar-hide">
-          {menuItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/admin" && pathname.startsWith(item.href));
+      <nav className="flex-1 px-3 pt-3 pb-4 overflow-y-auto scrollbar-hide">
+        {menuGroups.map((group, gi) => (
+          <div key={group.title ?? gi} className={cn(gi > 0 && "mt-4")}>
+            {group.title &&
+              (isCollapsed ? (
+                <div className="mx-auto my-2 w-5 h-px bg-[var(--brand-gold)]/20" />
+              ) : (
+                <div className="px-3 pb-1.5 text-[9px] uppercase tracking-[0.35em] text-gray-400">
+                  {group.title}
+                </div>
+              ))}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/admin" && pathname.startsWith(item.href));
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={isCollapsed ? item.label : undefined}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 text-[12px] tracking-wide transition-all duration-150 group relative",
-                  isCollapsed && "justify-center px-2",
-                  isActive
-                    ? "text-[var(--brand-gold)] bg-[var(--brand-cream)]/60"
-                    : "text-gray-600 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40"
-                )}
-              >
-                {isActive && !isCollapsed && (
-                  <span className="absolute left-0 top-2.5 bottom-2.5 w-px bg-[var(--brand-gold)]" />
-                )}
-                <item.icon
-                  size={16}
-                  strokeWidth={isActive ? 1.75 : 1.5}
-                  className="shrink-0"
-                />
-                {!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-      </>
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={isCollapsed ? item.label : undefined}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 text-[12px] tracking-wide transition-all duration-150 group relative",
+                      isCollapsed && "justify-center px-2",
+                      isActive
+                        ? "text-[var(--brand-gold)] bg-[var(--brand-cream)]/60"
+                        : "text-gray-600 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40"
+                    )}
+                  >
+                    {isActive && !isCollapsed && (
+                      <span className="absolute left-0 top-2.5 bottom-2.5 w-px bg-[var(--brand-gold)]" />
+                    )}
+                    <item.icon
+                      size={16}
+                      strokeWidth={isActive ? 1.75 : 1.5}
+                      className="shrink-0"
+                    />
+                    {!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
     );
   }
 

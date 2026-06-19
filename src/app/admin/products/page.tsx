@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Search, Package, FolderTree } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, FolderTree, X } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
-import { PageHeader, Card, Badge, GoldButton, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, GoldButton, GhostButton, EmptyState, TableSkeleton } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 const CategoriesManager = dynamic(() => import("@/components/admin/CategoriesManager"), {
   ssr: false,
@@ -31,11 +32,16 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const confirm = useConfirm();
 
+  // Recherche débounce : refetch 300 ms après la dernière frappe, immédiat à
+  // l'ouverture de l'onglet ou quand le champ est vidé.
   useEffect(() => {
-    if (tab === "products") fetchProducts();
+    if (tab !== "products") return;
+    const t = setTimeout(fetchProducts, search ? 300 : 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [tab, search]);
 
   async function fetchProducts() {
     setLoading(true);
@@ -49,8 +55,18 @@ export default function AdminProductsPage() {
     setLoading(false);
   }
 
-  async function deleteProduct(slug: string) {
-    if (!confirm("Supprimer ce produit ?")) return;
+  async function deleteProduct(slug: string, name: string) {
+    const ok = await confirm({
+      title: "Supprimer ce produit ?",
+      description: (
+        <>
+          « {name} » sera définitivement retiré du catalogue. Cette action est
+          irréversible.
+        </>
+      ),
+      danger: true,
+    });
+    if (!ok) return;
 
     const res = await fetch(`/api/products/${slug}`, { method: "DELETE" });
     if (res.ok) {
@@ -114,26 +130,47 @@ export default function AdminProductsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && fetchProducts()}
               placeholder="Rechercher un produit…"
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
+              className="w-full pl-10 pr-10 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
             />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                aria-label="Effacer la recherche"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-300 hover:text-[var(--brand-gold)] transition"
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
 
           <Card className="overflow-hidden">
             {loading ? (
-              <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+              <TableSkeleton cols={5} />
             ) : products.length === 0 ? (
-              <EmptyState
-                icon={<Package size={18} strokeWidth={1.5} />}
-                title="Aucun produit"
-                description="Créez votre premier produit pour commencer à vendre."
-                action={
-                  <GoldButton href="/admin/products/new">
-                    <Plus size={14} /> Ajouter un produit
-                  </GoldButton>
-                }
-              />
+              search ? (
+                <EmptyState
+                  icon={<Search size={18} strokeWidth={1.5} />}
+                  title="Aucun résultat"
+                  description={`Aucun produit ne correspond à « ${search} ».`}
+                  action={
+                    <GhostButton onClick={() => setSearch("")}>
+                      Effacer la recherche
+                    </GhostButton>
+                  }
+                />
+              ) : (
+                <EmptyState
+                  icon={<Package size={18} strokeWidth={1.5} />}
+                  title="Aucun produit"
+                  description="Créez votre premier produit pour commencer à vendre."
+                  action={
+                    <GoldButton href="/admin/products/new">
+                      <Plus size={14} /> Ajouter un produit
+                    </GoldButton>
+                  }
+                />
+              )
             ) : (
               <>
                 {/* Desktop : tableau */}
@@ -188,7 +225,7 @@ export default function AdminProductsPage() {
                                 <Pencil size={14} />
                               </Link>
                               <button
-                                onClick={() => deleteProduct(product.slug)}
+                                onClick={() => deleteProduct(product.slug, product.name)}
                                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                                 aria-label="Supprimer"
                               >
@@ -220,7 +257,7 @@ export default function AdminProductsPage() {
                         </div>
                       </Link>
                       <button
-                        onClick={() => deleteProduct(product.slug)}
+                        onClick={() => deleteProduct(product.slug, product.name)}
                         className="p-2 text-gray-400 hover:text-red-600 transition shrink-0"
                         aria-label="Supprimer"
                       >

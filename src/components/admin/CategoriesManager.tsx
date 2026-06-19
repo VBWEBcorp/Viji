@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ChevronRight, ChevronDown, FolderTree, X, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card, Badge, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import ImageUploader from "@/components/admin/ImageUploader";
 
 const fieldCls =
@@ -37,6 +38,7 @@ export default function CategoriesManager() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const confirm = useConfirm();
 
   const [form, setForm] = useState({
     name: "",
@@ -101,7 +103,13 @@ export default function CategoriesManager() {
   }
 
   async function deleteCategory(id: string) {
-    if (!confirm("Supprimer cette categorie ?")) return;
+    const ok = await confirm({
+      title: "Supprimer cette catégorie ?",
+      description:
+        "Les produits rattachés ne seront pas supprimés mais perdront cette catégorie.",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast.success("Categorie supprimée");

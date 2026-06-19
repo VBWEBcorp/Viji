@@ -20,7 +20,8 @@ import {
 import { formatPrice, formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
 import GiftCardVisual, { type GiftCardTemplate } from "@/components/shop/GiftCardVisual";
-import { PageHeader, Card, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, GoldButton, GhostButton, EmptyState, TableSkeleton } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 const inputCls =
   "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition";
@@ -83,6 +84,7 @@ export default function AdminGiftCardsPage() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [detail, setDetail] = useState<GiftCard | null>(null);
+  const confirm = useConfirm();
 
   const fetchCards = useCallback(
     async (page = 1) => {
@@ -114,7 +116,14 @@ export default function AdminGiftCardsPage() {
   }, [fetchCards]);
 
   async function cancelCard(card: GiftCard) {
-    if (!confirm(`Annuler la carte ${card.code} ? Le solde restant (${formatPrice(card.balance)}) sera perdu.`)) return;
+    const ok = await confirm({
+      title: `Annuler la carte ${card.code} ?`,
+      description: `Le solde restant (${formatPrice(card.balance)}) sera définitivement perdu.`,
+      confirmLabel: "Annuler la carte",
+      cancelLabel: "Retour",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/gift-cards/${card._id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -180,7 +189,7 @@ export default function AdminGiftCardsPage() {
       {/* Liste */}
       <Card className="overflow-hidden">
         {loading && cards.length === 0 ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+          <TableSkeleton cols={5} />
         ) : cards.length === 0 ? (
           <EmptyState
             icon={<Gift size={18} strokeWidth={1.5} />}

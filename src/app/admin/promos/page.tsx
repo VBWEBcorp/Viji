@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Tag } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { PageHeader, Card, Badge, GoldButton, GhostButton, EmptyState } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, GoldButton, GhostButton, EmptyState, TableSkeleton } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 interface PromoCode {
   _id: string;
@@ -41,6 +42,7 @@ export default function AdminPromosPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchPromos();
@@ -72,8 +74,13 @@ export default function AdminPromosPage() {
     }
   }
 
-  async function deletePromo(id: string) {
-    if (!confirm("Supprimer ce code promo ?")) return;
+  async function deletePromo(id: string, code: string) {
+    const ok = await confirm({
+      title: "Supprimer ce code promo ?",
+      description: `Le code « ${code} » ne pourra plus être utilisé.`,
+      danger: true,
+    });
+    if (!ok) return;
     await fetch("/api/promos", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -195,7 +202,7 @@ export default function AdminPromosPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-400 text-sm">Chargement…</div>
+          <TableSkeleton cols={5} />
         ) : promos.length === 0 ? (
           <EmptyState
             icon={<Tag size={18} strokeWidth={1.5} />}
@@ -240,7 +247,7 @@ export default function AdminPromosPage() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         <button
-                          onClick={() => deletePromo(promo._id)}
+                          onClick={() => deletePromo(promo._id, promo.code)}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                           aria-label="Supprimer"
                         >
@@ -272,7 +279,7 @@ export default function AdminPromosPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => deletePromo(promo._id)}
+                    onClick={() => deletePromo(promo._id, promo.code)}
                     className="p-2 text-gray-400 hover:text-red-600 transition shrink-0"
                     aria-label="Supprimer"
                   >

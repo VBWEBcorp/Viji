@@ -149,6 +149,40 @@ export function Card({
   );
 }
 
+/**
+ * Squelette de tableau (chargement). Reproduit la structure d'une liste admin
+ * avec des barres `animate-pulse` — la charte proscrit les spinners.
+ */
+export function TableSkeleton({
+  rows = 6,
+  cols = 4,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
+  return (
+    <div className="divide-y divide-[var(--brand-gold)]/10" aria-hidden>
+      <span className="sr-only">Chargement…</span>
+      {Array.from({ length: rows }).map((_, r) => (
+        <div key={r} className="flex items-center gap-4 px-5 py-4">
+          {/* Première colonne : vignette + libellé, plus large. */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-9 h-9 bg-[var(--brand-gold)]/10 shrink-0 animate-pulse" />
+            <div className="h-3 bg-[var(--brand-gold)]/10 animate-pulse w-1/2" />
+          </div>
+          {Array.from({ length: Math.max(0, cols - 1) }).map((_, c) => (
+            <div
+              key={c}
+              className="h-3 bg-[var(--brand-gold)]/10 animate-pulse w-16 shrink-0 hidden sm:block"
+              style={{ opacity: 1 - c * 0.12 }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** État vide centré (icône cerclée dorée + texte + CTA optionnel). */
 export function EmptyState({
   icon,

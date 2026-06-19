@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, PenSquare, Search, ArrowUpRight } from "lucide-re
 import { formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { PageHeader, Card, GoldButton, Badge, EmptyState } from "@/components/admin/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 interface BlogPost {
   _id: string;
@@ -27,6 +28,7 @@ export default function AdminBlogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetch("/api/blog?all=true&limit=50")
@@ -37,8 +39,13 @@ export default function AdminBlogPage() {
       });
   }, []);
 
-  async function deletePost(slug: string) {
-    if (!confirm("Supprimer cet article ?")) return;
+  async function deletePost(slug: string, title: string) {
+    const ok = await confirm({
+      title: "Supprimer cet article ?",
+      description: `« ${title} » sera définitivement supprimé du blog.`,
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/blog/${slug}`, { method: "DELETE" });
     if (res.ok) {
       setPosts((prev) => prev.filter((p) => p.slug !== slug));
@@ -276,7 +283,7 @@ export default function AdminBlogPage() {
                         <Pencil size={14} />
                       </Link>
                       <button
-                        onClick={() => deletePost(post.slug)}
+                        onClick={() => deletePost(post.slug, post.title)}
                         className="p-2 text-gray-400 hover:text-red-600 transition"
                         title="Supprimer"
                       >
