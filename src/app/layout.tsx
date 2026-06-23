@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   },
   description:
     "Boxes culinaires indiennes et ateliers de cuisine. Voyagez au cœur de l'Inde depuis votre cuisine.",
+  verification: {
+    google: "M52ooao735vn7UAhwiuX11oHjTFeApuIs4_dU6pIGrM",
+  },
 };
 
 export default function RootLayout({
