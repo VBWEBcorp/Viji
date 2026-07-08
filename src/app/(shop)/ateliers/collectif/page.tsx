@@ -73,7 +73,6 @@ export default async function AtelierCollectifIndex() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7 md:gap-10">
             {sessions.map((s) => {
               const first = s.occurrences[0];
-              const extraCount = s.occurrences.length - 1;
 
               return (
                 <article
@@ -88,20 +87,9 @@ export default async function AtelierCollectifIndex() {
                       className="object-cover"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
                     />
-                    {extraCount > 0 && (
-                      <span className="absolute top-2 right-2 inline-flex items-center gap-1 bg-[var(--brand-gold)] text-white text-[10px] uppercase tracking-[0.18em] font-bold px-2 py-1">
-                        +{extraCount} date{extraCount > 1 ? "s" : ""}
-                      </span>
-                    )}
                   </div>
 
                   <div className="flex-1 flex flex-col items-center text-center px-3 sm:px-5 py-4 sm:py-6">
-                    {first && (
-                      <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[var(--brand-gold)] font-medium mb-2 sm:mb-3">
-                        {first.date}
-                      </p>
-                    )}
-
                     <h2 className="font-serif text-[15px] sm:text-[17px] md:text-[19px] leading-tight text-gray-900 mb-1 sm:mb-2">
                       {s.shortTitle}
                     </h2>
