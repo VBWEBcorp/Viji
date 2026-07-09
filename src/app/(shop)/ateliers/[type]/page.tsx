@@ -7,6 +7,10 @@ import Product from "@/models/Product";
 import AtelierForm from "../AtelierForm";
 import YouTubeShort from "@/components/shop/YouTubeShort";
 
+// Rendu dynamique : relit les données à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 type AtelierConfig = {
   title: string;
   eyebrow: string;

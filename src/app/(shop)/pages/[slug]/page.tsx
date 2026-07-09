@@ -3,6 +3,10 @@ import Content from "@/models/Content";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+// Rendu dynamique : relit le contenu à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 // Informations légales — MADAME VIJI TINOT (Entre Maman et Moi)
 const COMPANY = {
   legalName: "Madame Viji Tinot",

@@ -116,10 +116,6 @@ export default async function AtelierCollectifIndex() {
             })}
           </div>
         )}
-
-        <p className="text-center text-[12px] sm:text-[13px] text-gray-500 mt-12 max-w-xl mx-auto leading-relaxed font-serif italic">
-          De nouvelles sessions seront annoncées prochainement à Rennes et dans ses alentours.
-        </p>
       </div>
     </div>
   );

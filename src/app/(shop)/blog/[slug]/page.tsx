@@ -7,6 +7,10 @@ import { formatDate } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
+// Rendu dynamique : relit l'article à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

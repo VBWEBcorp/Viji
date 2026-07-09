@@ -5,6 +5,10 @@ import ContactForm from "@/components/shop/ContactForm";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import type { Metadata } from "next";
 
+// Rendu dynamique : relit le contenu à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   await connectDB();
   const cms = await getContents(["page_contact_title", "page_contact_subtitle"]);

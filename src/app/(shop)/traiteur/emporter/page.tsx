@@ -5,6 +5,10 @@ import Category from "@/models/Category";
 import Product from "@/models/Product";
 import EmporterFlow, { type Dish } from "./EmporterFlow";
 
+// Rendu dynamique : relit les produits à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Traiteur à emporter",
   description:

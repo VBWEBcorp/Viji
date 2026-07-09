@@ -166,7 +166,7 @@ export default function Header() {
             <Dropdown
               label="Ateliers"
               links={ATELIER_LINKS}
-              groupHref="/ateliers/a-domicile"
+              groupHref="/ateliers/collectif"
               isOpen={openDropdown === "ateliers"}
               onOpen={() => setOpenDropdown("ateliers")}
               onClose={() => setOpenDropdown(null)}
@@ -176,7 +176,6 @@ export default function Header() {
             <Dropdown
               label="Traiteur"
               links={TRAITEUR_LINKS}
-              groupHref="/traiteur/emporter"
               isOpen={openDropdown === "traiteur"}
               onOpen={() => setOpenDropdown("traiteur")}
               onClose={() => setOpenDropdown(null)}
@@ -289,7 +288,7 @@ function Dropdown({
 }: {
   label: string;
   links: { href: string; label: string; tagline: string }[];
-  groupHref: string;
+  groupHref?: string;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
@@ -297,32 +296,48 @@ function Dropdown({
 }) {
   const active = links.some((l) => pathname.startsWith(l.href.split("/").slice(0, 2).join("/")));
 
+  const triggerClassName = `relative group px-4 py-2 text-[12px] font-medium uppercase tracking-[0.22em] flex items-center gap-1.5 transition-colors ${
+    active
+      ? "text-[var(--brand-gold-dark)]"
+      : "text-gray-700 hover:text-[var(--brand-gold-dark)]"
+  }`;
+
+  const triggerInner = (
+    <>
+      <span>{label}</span>
+      <ChevronDown
+        size={11}
+        strokeWidth={2}
+        className={`transition-transform duration-300 ${
+          isOpen ? "rotate-180 text-[var(--brand-gold)]" : ""
+        }`}
+      />
+      <span
+        aria-hidden
+        className={`absolute left-4 right-7 -bottom-0.5 h-px bg-[var(--brand-gold)] origin-center transition-transform duration-300 ease-out ${
+          active || isOpen ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+        }`}
+      />
+    </>
+  );
+
   return (
     <div className="relative" onMouseEnter={onOpen} onMouseLeave={onClose}>
-      <Link
-        href={groupHref}
-        className={`relative group px-4 py-2 text-[12px] font-medium uppercase tracking-[0.22em] flex items-center gap-1.5 transition-colors ${
-          active
-            ? "text-[var(--brand-gold-dark)]"
-            : "text-gray-700 hover:text-[var(--brand-gold-dark)]"
-        }`}
-        onClick={onClose}
-      >
-        <span>{label}</span>
-        <ChevronDown
-          size={11}
-          strokeWidth={2}
-          className={`transition-transform duration-300 ${
-            isOpen ? "rotate-180 text-[var(--brand-gold)]" : ""
-          }`}
-        />
-        <span
-          aria-hidden
-          className={`absolute left-4 right-7 -bottom-0.5 h-px bg-[var(--brand-gold)] origin-center transition-transform duration-300 ease-out ${
-            active || isOpen ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-          }`}
-        />
-      </Link>
+      {groupHref ? (
+        <Link href={groupHref} className={triggerClassName} onClick={onClose}>
+          {triggerInner}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className={triggerClassName}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          onClick={() => (isOpen ? onClose() : onOpen())}
+        >
+          {triggerInner}
+        </button>
+      )}
 
       {/* Pont invisible (évite la fermeture entre le bouton et le panneau) */}
       <div

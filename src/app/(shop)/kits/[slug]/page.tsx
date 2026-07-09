@@ -7,6 +7,10 @@ import Category from "@/models/Category";
 import Product from "@/models/Product";
 import AddToCartButton from "./AddToCartButton";
 
+// Rendu dynamique : relit les produits à chaque visite pour que les modifications
+// faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
+
 const VALID_SLUGS = ["decouverte", "signature", "familiale"];
 
 const KITS = [
