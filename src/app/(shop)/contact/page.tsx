@@ -1,38 +1,39 @@
 import Image from "next/image";
 import { Mail, MapPin, Clock } from "lucide-react";
 import ContactFormClient from "./ContactFormClient";
+import { getContent } from "@/lib/content";
+
+// Rendu dynamique : la page relit la photo à chaque visite pour que les
+// modifications faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Contact",
   description: "Contactez Entre Maman et Moi pour vos questions, réservations ou demandes de devis.",
 };
 
-const INFO = [
-  {
-    Icon: Mail,
-    label: "Email",
-    value: "entremamanetmoicook@gmail.com",
-    href: "mailto:entremamanetmoicook@gmail.com",
-  },
-  { Icon: MapPin, label: "Lieu", value: "3 rue de la Libération, 35770 Vern-sur-Seiche" },
-  { Icon: Clock, label: "Réponse", value: "Sous 48h en moyenne" },
-];
-
-export default function ContactPage() {
+export default async function ContactPage() {
+  const t = await getContent();
+  const email = t("contact_email");
+  const INFO = [
+    { Icon: Mail, label: "Email", value: email, href: `mailto:${email}` },
+    { Icon: MapPin, label: "Lieu", value: t("contact_address") },
+    { Icon: Clock, label: "Réponse", value: t("contact_delay") },
+  ];
   return (
     <div className="bg-white">
       {/* Hero */}
       <section className="bg-[var(--brand-cream)]/40 py-14 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-5">
-            Nous contacter
+            {t("contact_eyebrow")}
           </p>
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.05] mb-7">
-            Écrivez-<span className="italic text-[var(--brand-gold)]">nous</span>
+            {t("contact_title")}<span className="italic text-[var(--brand-gold)]">{t("contact_title_accent")}</span>
           </h1>
           <div className="w-12 h-px bg-[var(--brand-gold)]/50 mx-auto mb-7" />
           <p className="font-serif italic text-[15px] md:text-lg text-gray-600 leading-relaxed max-w-xl mx-auto">
-            Une question, une envie d&apos;atelier ou une demande de devis traiteur&nbsp;? Je vous réponds personnellement sous 48h.
+            {t("contact_intro")}
           </p>
         </div>
       </section>
@@ -42,8 +43,8 @@ export default function ContactPage() {
         <div className="md:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)] mb-10">
             <Image
-              src="https://i.ibb.co/F4318X0S/Ourka-citron.jpg"
-              alt="Ourka au citron"
+              src={t("contact_image")}
+              alt="Entre Maman et Moi — cuisine indienne"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 40vw"
@@ -51,7 +52,7 @@ export default function ContactPage() {
           </div>
 
           <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-5">
-            Coordonnées
+            {t("contact_coord_label")}
           </p>
           <ul className="space-y-6">
             {INFO.map(({ Icon, label, value, href }) => (
@@ -83,10 +84,10 @@ export default function ContactPage() {
         <div className="md:col-span-7">
           <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-8 py-8">
             <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-2">
-              Formulaire
+              {t("contact_form_eyebrow")}
             </p>
             <h2 className="font-serif text-2xl text-gray-900 leading-none mb-8">
-              Votre message
+              {t("contact_form_title")}
             </h2>
             <ContactFormClient />
           </div>

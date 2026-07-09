@@ -47,11 +47,17 @@ export interface ContentPageDef {
 import { homePage } from "./pages/home";
 import { footerComponent } from "./pages/global";
 import { blogPage } from "./pages/blog";
+import { contactPage } from "./pages/contact";
+import { traiteurEvenementielPage } from "./pages/traiteur";
+import { atelierADomicilePage } from "./pages/atelier-domicile";
 
 /** Toutes les pages éditables, dans l'ordre d'affichage de l'admin. */
 export const CONTENT_PAGES: ContentPageDef[] = [
   homePage,
   blogPage,
+  atelierADomicilePage,
+  contactPage,
+  traiteurEvenementielPage,
   footerComponent,
 ];
 

@@ -1,5 +1,10 @@
 import Image from "next/image";
 import DevisForm from "./DevisForm";
+import { getContent } from "@/lib/content";
+
+// Rendu dynamique : la page relit la photo à chaque visite pour que les
+// modifications faites dans l'admin apparaissent immédiatement.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Traiteur événementiel",
@@ -7,23 +12,23 @@ export const metadata = {
     "Service traiteur indien pour vos événements privés : anniversaires, mariages, repas de famille.",
 };
 
-const HIGHLIGHTS = [
-  { label: "Format", value: "Anniversaires, mariages, repas privés" },
-  { label: "Cuisine", value: "Indienne authentique, recettes familiales" },
-  { label: "Service", value: "Devis sur mesure, dressage et présentation" },
-  { label: "Zone", value: "Rennes et alentours" },
-];
-
-export default function TraiteurEvenementielPage() {
+export default async function TraiteurEvenementielPage() {
+  const t = await getContent();
+  const HIGHLIGHTS = [
+    { label: t("traiteur_evenementiel_hl1_label"), value: t("traiteur_evenementiel_hl1_value") },
+    { label: t("traiteur_evenementiel_hl2_label"), value: t("traiteur_evenementiel_hl2_value") },
+    { label: t("traiteur_evenementiel_hl3_label"), value: t("traiteur_evenementiel_hl3_value") },
+    { label: t("traiteur_evenementiel_hl4_label"), value: t("traiteur_evenementiel_hl4_value") },
+  ];
   return (
     <div className="bg-white">
       <header className="border-y border-[var(--brand-gold)]/20 py-12 md:py-16 text-center">
-        <p className="text-[12px] uppercase tracking-[0.3em] text-gray-500 mb-3">Traiteur</p>
+        <p className="text-[12px] uppercase tracking-[0.3em] text-gray-500 mb-3">{t("traiteur_evenementiel_eyebrow")}</p>
         <h1 className="font-serif text-4xl md:text-5xl text-[var(--brand-gold)] uppercase tracking-wide">
-          Événementiel
+          {t("traiteur_evenementiel_title")}
         </h1>
         <p className="mt-5 text-[13px] text-gray-600 max-w-md mx-auto">
-          Pour vos événements privés, devis sur mesure.
+          {t("traiteur_evenementiel_subtitle")}
         </p>
       </header>
 
@@ -31,7 +36,7 @@ export default function TraiteurEvenementielPage() {
         <div>
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--brand-cream)] mb-8">
             <Image
-              src="https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=900&h=1100&fit=crop"
+              src={t("traiteur_evenementiel_image")}
               alt="Plateau traiteur indien"
               fill
               className="object-cover"
@@ -40,8 +45,8 @@ export default function TraiteurEvenementielPage() {
           </div>
 
           <div className="space-y-2 text-[14px] text-gray-700">
-            {HIGHLIGHTS.map((h) => (
-              <p key={h.label}>
+            {HIGHLIGHTS.map((h, i) => (
+              <p key={i}>
                 <strong className="text-gray-900">{h.label}&nbsp;:</strong> {h.value}
               </p>
             ))}
@@ -50,10 +55,10 @@ export default function TraiteurEvenementielPage() {
 
         <div>
           <h2 className="text-[14px] uppercase tracking-[0.2em] text-[var(--brand-gold)] mb-5 pb-3 border-b border-[var(--brand-gold)]/30">
-            Demande de devis
+            {t("traiteur_evenementiel_devis_title")}
           </h2>
           <p className="text-[13px] text-gray-600 leading-relaxed mb-6">
-            Décrivez votre projet (date, nombre de personnes, lieu, préférences) et je reviens vers vous sous 48h.
+            {t("traiteur_evenementiel_devis_intro")}
           </p>
           <DevisForm />
         </div>

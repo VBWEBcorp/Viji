@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import AtelierForm from "../AtelierForm";
 import YouTubeShort from "@/components/shop/YouTubeShort";
+import { getContent } from "@/lib/content";
 
 // Rendu dynamique : relit les données à chaque visite pour que les modifications
 // faites dans l'admin apparaissent immédiatement.
@@ -70,10 +71,62 @@ const TYPES: Record<string, AtelierConfig> = {
   },
 };
 
+/**
+ * Types dont le contenu est éditable depuis l'admin (registre `atelier-domicile`).
+ * `programCount`/`practicalCount` doivent correspondre au nombre de champs
+ * numérotés déclarés dans le registre pour ce préfixe.
+ */
+const EDITABLE: Record<
+  string,
+  { prefix: string; programCount: number; practicalCount: number }
+> = {
+  "a-domicile": { prefix: "atelier_adomicile", programCount: 6, practicalCount: 3 },
+};
+
+/**
+ * Renvoie la config d'un atelier en appliquant, pour les types éditables, les
+ * valeurs saisies dans l'admin (avec repli sur les valeurs par défaut du
+ * registre). Les types non éditables gardent leur config codée en dur.
+ */
+async function resolveAtelier(type: string, base: AtelierConfig): Promise<AtelierConfig> {
+  const conf = EDITABLE[type];
+  if (!conf) return base;
+  const t = await getContent();
+  const { prefix, programCount, practicalCount } = conf;
+
+  const program: { title: string; body: string }[] = [];
+  for (let i = 1; i <= programCount; i++) {
+    const title = t(`${prefix}_prog${i}_title`).trim();
+    const body = t(`${prefix}_prog${i}_body`).trim();
+    if (title || body) program.push({ title, body });
+  }
+
+  const practical: { label: string; value: string }[] = [];
+  for (let i = 1; i <= practicalCount; i++) {
+    const label = t(`${prefix}_prac${i}_label`).trim();
+    const value = t(`${prefix}_prac${i}_value`).trim();
+    if (label || value) practical.push({ label, value });
+  }
+
+  const videoId = t(`${prefix}_video`).trim();
+
+  return {
+    ...base,
+    eyebrow: t(`${prefix}_eyebrow`),
+    title: t(`${prefix}_title`),
+    intro: t(`${prefix}_intro`),
+    image: t(`${prefix}_image`),
+    videoId: videoId || undefined,
+    program: program.length ? program : base.program,
+    practical: practical.length ? practical : base.practical,
+  };
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }) {
   const { type } = await params;
-  const data = TYPES[type];
-  if (!data) return { title: "Atelier" };
+  const base = TYPES[type];
+  if (!base) return { title: "Atelier" };
+  const data = await resolveAtelier(type, base);
   return {
     title: data.title,
     description: data.intro,
@@ -86,8 +139,9 @@ export function generateStaticParams() {
 
 export default async function AtelierTypePage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = await params;
-  const data = TYPES[type];
-  if (!data) notFound();
+  const base = TYPES[type];
+  if (!base) notFound();
+  const data = await resolveAtelier(type, base);
 
   let atelier: { _id: string; price: number } | null = null;
   try {
