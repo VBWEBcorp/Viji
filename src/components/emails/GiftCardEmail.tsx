@@ -9,7 +9,7 @@ function fmt(amount: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format(amount / 100);
+  }).format(amount);
 }
 
 function esc(s: string): string {
@@ -84,10 +84,11 @@ function howToUse(): string {
   <div style="background:${CREAM}; padding:18px 20px; margin-top:8px;">
     <p style="font-size:13px; font-weight:600; color:#111827; margin:0 0 10px;">Comment l'utiliser&nbsp;?</p>
     <ol style="font-size:13px; color:#374151; line-height:1.7; margin:0; padding-left:18px;">
-      <li>Composez votre commande sur la boutique</li>
-      <li>Au paiement, saisissez le code de la carte cadeau</li>
-      <li>Le montant est déduit automatiquement du total</li>
+      <li>Rendez-vous en boutique</li>
+      <li>Présentez ce code lors de votre passage</li>
+      <li>La carte est utilisée en une seule fois (usage unique)</li>
     </ol>
+    <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:12px 0 0;">La carte illustrée est jointe à cet email au format PDF.</p>
   </div>`;
 }
 

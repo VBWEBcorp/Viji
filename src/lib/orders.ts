@@ -5,16 +5,14 @@ import PromoCode from "@/models/PromoCode";
 import User from "@/models/User";
 import { sendEmail } from "@/lib/resend";
 import { generateOrderConfirmationEmail } from "@/components/emails/OrderConfirmation";
-import { redeemForOrder } from "@/lib/giftcard";
 
 /**
  * Marque une commande comme payée et déclenche les effets de bord associés :
- * décrément du stock, incrément du code promo, débit de la carte cadeau,
- * vidage du panier et email de confirmation.
+ * décrément du stock, incrément du code promo, vidage du panier et email de
+ * confirmation.
  *
  * Idempotent : ne fait rien si la commande est déjà payée. Appelé depuis le
- * webhook Stripe (paiement par carte) et depuis le checkout pour les commandes
- * intégralement réglées par carte cadeau (sans paiement Stripe).
+ * webhook Stripe après paiement par carte bancaire.
  */
 export async function fulfillPaidOrder(orderId: string): Promise<void> {
   const order = await Order.findById(orderId);
@@ -36,24 +34,6 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
     await PromoCode.findByIdAndUpdate(order.promoCode, {
       $inc: { currentUses: 1 },
     });
-  }
-
-  // Débiter la carte cadeau (atomique). Best-effort : on ne ré-échoue pas un
-  // paiement déjà encaissé si le solde a changé entre-temps — on journalise.
-  if (order.giftCard?.code && order.giftCard.amount > 0) {
-    try {
-      await redeemForOrder(
-        order.giftCard.code,
-        order.giftCard.amount,
-        order._id,
-        order.orderNumber
-      );
-    } catch (err) {
-      console.error(
-        `Gift card redemption failed for order ${order.orderNumber}:`,
-        err
-      );
-    }
   }
 
   // Vider le panier

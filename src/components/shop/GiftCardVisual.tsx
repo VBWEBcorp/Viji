@@ -1,4 +1,7 @@
-import { formatPrice } from "@/lib/utils";
+const eur = (amount: number) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+    amount
+  );
 
 export interface GiftCardTemplate {
   logoUrl?: string;
@@ -32,7 +35,7 @@ export default function GiftCardVisual({
   template,
 }: {
   shopName: string;
-  amount: number; // centimes
+  amount: number; // euros
   code: string;
   recipientName?: string;
   message?: string;
@@ -90,7 +93,7 @@ export default function GiftCardVisual({
           </p>
         )}
         <p className="font-serif text-5xl font-bold mt-3 mb-1" style={{ color: bgImage ? "#fff" : DEFAULTS.primaryDark }}>
-          {formatPrice(amount)}
+          {eur(amount)}
         </p>
         {message && (
           <p className="font-serif italic text-[13px] mt-2 mb-3" style={{ color: bgImage ? "rgba(255,255,255,0.9)" : "#6b7280" }}>

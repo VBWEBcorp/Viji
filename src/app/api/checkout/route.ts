@@ -7,16 +7,10 @@ import PromoCode from "@/models/PromoCode";
 import SiteSettings from "@/models/SiteSettings";
 import { getStripe } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
-import GiftCard from "@/models/GiftCard";
 import { sendEmail } from "@/lib/resend";
-import { fulfillPaidOrder } from "@/lib/orders";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import crypto from "node:crypto";
-
-// Montant minimum facturable par Stripe (50 centimes pour l'EUR). En dessous,
-// on ne peut pas créer de PaymentIntent : la carte cadeau doit couvrir le reste.
-const STRIPE_MIN_CHARGE = 50;
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
@@ -82,7 +76,6 @@ const checkoutSchema = z.object({
   shippingMethodId: z.number().optional(),
   shippingCost: z.number().min(0).default(0),
   promoCode: z.string().optional(),
-  giftCardCode: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -268,35 +261,6 @@ export async function POST(req: NextRequest) {
       total = taxableBase + tax;
     }
 
-    // ── Carte cadeau ───────────────────────────────────────────────
-    // La carte cadeau réduit le montant prélevé par carte bancaire, sans
-    // modifier le total ni la TVA (c'est un moyen de paiement, pas une remise).
-    // Le débit effectif a lieu une fois la commande payée (fulfillPaidOrder).
-    let giftCardData:
-      | { card: import("mongoose").Types.ObjectId; code: string; amount: number }
-      | undefined;
-    let amountDue = total;
-    if (validated.giftCardCode) {
-      const code = validated.giftCardCode.toUpperCase().trim();
-      const card = await GiftCard.findOne({ code });
-      const expired = card?.expiresAt ? card.expiresAt < new Date() : false;
-      if (!card || card.status !== "active" || expired || card.balance <= 0) {
-        return NextResponse.json(
-          { error: "Carte cadeau invalide ou inutilisable" },
-          { status: 400 }
-        );
-      }
-      let used = Math.min(card.balance, total);
-      const remaining = total - used;
-      // Stripe ne peut pas facturer entre 1 et 49 centimes : on garde au moins
-      // le minimum facturable à régler par carte (sauf si la carte couvre tout).
-      if (remaining > 0 && remaining < STRIPE_MIN_CHARGE) {
-        used = total - STRIPE_MIN_CHARGE;
-      }
-      amountDue = total - used;
-      giftCardData = { card: card._id, code: card.code, amount: used };
-    }
-
     const orderNumber = generateOrderNumber();
 
     // Créer la commande
@@ -310,7 +274,6 @@ export async function POST(req: NextRequest) {
       tax,
       total,
       promoCode: promoCodeId,
-      giftCard: giftCardData,
       shippingAddress: validated.shippingAddress,
       billingAddress: validated.billingAddress,
       shippingMethod: validated.shippingMethod,
@@ -332,25 +295,10 @@ export async function POST(req: NextRequest) {
       }).catch((err) => console.error("Password setup email failed:", err));
     }
 
-    // Si la carte cadeau couvre la totalité, aucun paiement Stripe n'est requis :
-    // la commande est validée immédiatement (débit de la carte inclus).
-    if (amountDue <= 0) {
-      await fulfillPaidOrder(order._id.toString());
-      return NextResponse.json({
-        orderId: order._id,
-        orderNumber,
-        clientSecret: null,
-        paid: true,
-        paymentMethod: "gift_card",
-        isNewAccount,
-        accountHasPassword,
-      });
-    }
-
-    // Initier le paiement (Stripe) pour le reste à charge
+    // Initier le paiement (Stripe) pour le total de la commande.
     const stripeClient = await getStripe();
     const paymentIntent = await stripeClient.paymentIntents.create({
-      amount: amountDue,
+      amount: total,
       currency: "eur",
       metadata: {
         orderId: order._id.toString(),
@@ -365,8 +313,7 @@ export async function POST(req: NextRequest) {
       orderId: order._id,
       orderNumber,
       clientSecret: paymentIntent.client_secret,
-      amountDue,
-      giftCardAmount: giftCardData?.amount || 0,
+      amountDue: total,
       paymentMethod: "stripe",
       isNewAccount,
       accountHasPassword,

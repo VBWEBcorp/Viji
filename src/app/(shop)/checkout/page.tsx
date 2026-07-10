@@ -9,7 +9,6 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import MondialRelayPicker from "@/components/shop/MondialRelayPicker";
 import { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
-import GiftCardInput, { type AppliedGiftCard } from "@/components/shop/GiftCardInput";
 import PromoCodeInput, { type AppliedPromo } from "@/components/shop/PromoCodeInput";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
@@ -43,7 +42,6 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [promo, setPromo] = useState<AppliedPromo | null>(null);
-  const [giftCard, setGiftCard] = useState<AppliedGiftCard | null>(null);
 
   const [email, setEmail] = useState("");
   // Mot de passe optionnel : si le client en saisit un, on crée son compte
@@ -123,11 +121,6 @@ export default function CheckoutPage() {
     ? Math.round(taxableBase - taxableBase / (1 + taxConfig.rate / 100))
     : Math.round(taxableBase * (taxConfig.rate / 100));
   const total = taxConfig.pricesIncludeTax ? taxableBase : taxableBase + taxAmount;
-
-  // Carte cadeau : déduction du montant à régler par carte (le serveur reste
-  // l'autorité — ici c'est uniquement l'affichage indicatif).
-  const giftCardAmount = giftCard ? Math.min(giftCard.balance, total) : 0;
-  const amountDue = Math.max(0, total - giftCardAmount);
 
   // Pas de pré-remplissage automatique : un compte admin (ex. Viji en train
   // de tester) verrait son nom et son email s'écrire dans la commande, ce qui
@@ -226,7 +219,6 @@ export default function CheckoutPage() {
               }
             : undefined,
           promoCode: promo?.code || undefined,
-          giftCardCode: giftCard?.code || undefined,
         }),
       });
 
@@ -235,23 +227,6 @@ export default function CheckoutPage() {
       if (!res.ok) {
         toast.error(data.error || "Erreur lors de la commande");
         setLoading(false);
-        return;
-      }
-
-      // Commande intégralement réglée par carte cadeau : aucun paiement Stripe,
-      // la commande est déjà validée côté serveur.
-      if (data.paid) {
-        setPaidOrderNumber(data.orderNumber);
-        setAccountReadyForLogin(Boolean(data.accountHasPassword));
-        setCreatedNewAccount(Boolean(data.isNewAccount));
-        if (Boolean(data.accountHasPassword) && password) {
-          try {
-            await signIn("credentials", { email, password, redirect: false });
-          } catch {
-            // ignore
-          }
-        }
-        setStep("confirmation");
         return;
       }
 
@@ -617,7 +592,7 @@ export default function CheckoutPage() {
                       }
                     >
                       <PaymentForm
-                        total={payAmount ?? amountDue}
+                        total={payAmount ?? total}
                         onSuccess={async () => {
                           // Auto-connexion si le client a choisi un mot de passe
                           // pendant le checkout. Best-effort : si ça échoue,
@@ -726,35 +701,6 @@ export default function CheckoutPage() {
                   onRemove={() => setPromo(null)}
                   disabled={step === "payment"}
                 />
-              </div>
-
-              {/* Carte cadeau */}
-              <div className="border-t border-[var(--brand-gold)]/15 mt-5 pt-5">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-3">
-                  Carte cadeau
-                </p>
-                <GiftCardInput
-                  appliedCard={giftCard}
-                  onApply={(c) => setGiftCard(c)}
-                  onRemove={() => setGiftCard(null)}
-                  disabled={step === "payment"}
-                />
-                {giftCard && (
-                  <div className="mt-4 space-y-2">
-                    <SummaryRow
-                      label="Carte cadeau"
-                      value={<span className="text-[var(--brand-gold)]">-{formatPrice(giftCardAmount)}</span>}
-                    />
-                    <div className="flex items-end justify-between pt-2 border-t border-[var(--brand-gold)]/10">
-                      <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400">
-                        Reste à payer
-                      </span>
-                      <span className="font-serif text-xl text-gray-900">
-                        {formatPrice(amountDue)}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {session?.user?.email && (

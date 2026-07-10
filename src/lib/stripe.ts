@@ -28,3 +28,145 @@ export async function getStripePublishableKey(): Promise<string> {
   const keys = await getApiKeys();
   return keys.stripePublishableKey;
 }
+
+/** Vrai si une clé secrète Stripe est configurée. */
+export async function isStripeConfigured(): Promise<boolean> {
+  const keys = await getApiKeys();
+  return !!keys.stripeSecretKey;
+}
+
+/** Vrai si le secret de signature des webhooks Stripe est configuré. */
+export async function isWebhookConfigured(): Promise<boolean> {
+  const keys = await getApiKeys();
+  return !!keys.stripeWebhookSecret;
+}
+
+/**
+ * Vérifie et décode un événement webhook Stripe à partir du corps BRUT de la
+ * requête et de l'en-tête de signature. Lève si la signature est invalide
+ * (protège contre les faux appels qui n'émanent pas de Stripe).
+ */
+export async function constructWebhookEvent(
+  rawBody: string,
+  signature: string
+): Promise<Stripe.Event> {
+  const stripe = await getStripe();
+  const keys = await getApiKeys();
+  if (!keys.stripeWebhookSecret) {
+    throw new Error("STRIPE_WEBHOOK_SECRET non configuré");
+  }
+  return stripe.webhooks.constructEvent(
+    rawBody,
+    signature,
+    keys.stripeWebhookSecret
+  );
+}
+
+/**
+ * Crée un PaymentIntent pour l'achat d'une carte cadeau et renvoie le
+ * client_secret (consommé par Stripe Elements côté front).
+ *
+ * `allow_redirects: 'never'` n'autorise que les moyens de paiement sans
+ * redirection : pas de return_url à gérer, le paiement se confirme sur place.
+ */
+export async function createGiftCardPaymentIntent(
+  amountEuros: number,
+  metadata: Record<string, string> = {}
+): Promise<{ clientSecret: string; paymentIntentId: string }> {
+  const stripe = await getStripe();
+  const pi = await stripe.paymentIntents.create({
+    amount: Math.round(amountEuros * 100),
+    currency: "eur",
+    description: `Carte cadeau — ${amountEuros}€`,
+    automatic_payment_methods: { enabled: true, allow_redirects: "never" },
+    metadata,
+  });
+  if (!pi.client_secret) {
+    throw new Error("Stripe n'a pas renvoyé de client_secret");
+  }
+  return { clientSecret: pi.client_secret, paymentIntentId: pi.id };
+}
+
+export type PaymentVerification = {
+  ok: boolean;
+  testMode: boolean;
+  receiptUrl: string | null;
+  reason?: string;
+};
+
+/**
+ * Vérifie qu'un PaymentIntent a bien été payé pour le montant attendu (euros).
+ * En mode test (pas de clé Stripe), accepte tout id au format `pi_...`.
+ */
+export async function verifyGiftCardPayment(
+  paymentIntentId: string,
+  amountEuros: number
+): Promise<PaymentVerification> {
+  const configured = await isStripeConfigured();
+
+  if (!configured) {
+    const ok =
+      typeof paymentIntentId === "string" && paymentIntentId.startsWith("pi_");
+    return {
+      ok,
+      testMode: true,
+      receiptUrl: null,
+      reason: ok ? undefined : "Identifiant de paiement de test invalide",
+    };
+  }
+
+  const stripe = await getStripe();
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+    expand: ["latest_charge"],
+  });
+
+  if (pi.status !== "succeeded") {
+    return {
+      ok: false,
+      testMode: false,
+      receiptUrl: null,
+      reason: `Paiement non confirmé (${pi.status})`,
+    };
+  }
+
+  // Anti-rejeu : on n'accepte que les paiements créés PAR notre flux carte
+  // cadeau (marqués `kind: gift_card`), pas n'importe quel paiement réussi du
+  // compte Stripe. Sinon un paiement encaissé pour un autre produit pourrait
+  // être réutilisé pour générer une carte gratuite.
+  if (pi.metadata?.kind !== "gift_card") {
+    return {
+      ok: false,
+      testMode: false,
+      receiptUrl: null,
+      reason: "Ce paiement ne correspond pas à un achat de carte cadeau",
+    };
+  }
+
+  if (pi.currency !== "eur") {
+    return {
+      ok: false,
+      testMode: false,
+      receiptUrl: null,
+      reason: "Devise du paiement incorrecte",
+    };
+  }
+
+  const expectedCents = Math.round(amountEuros * 100);
+  // On compare au montant RÉELLEMENT encaissé (amount_received), pas seulement
+  // au montant demandé à la création du PaymentIntent.
+  if (pi.amount_received !== expectedCents) {
+    return {
+      ok: false,
+      testMode: false,
+      receiptUrl: null,
+      reason: "Montant du paiement incorrect",
+    };
+  }
+
+  const charge = pi.latest_charge as { receipt_url?: string } | null;
+  return {
+    ok: true,
+    testMode: false,
+    receiptUrl: charge?.receipt_url || null,
+  };
+}

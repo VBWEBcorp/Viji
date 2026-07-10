@@ -1,35 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { getStripe } from "@/lib/stripe";
 import SiteSettings from "@/models/SiteSettings";
-import GiftCard from "@/models/GiftCard";
-import Order from "@/models/Order";
 import {
-  createGiftCard,
-  sendGiftCardEmails,
-  GIFT_CARD_MIN_AMOUNT,
-  GIFT_CARD_MAX_AMOUNT,
+  GiftCardError,
+  MIN_AMOUNT,
+  MAX_AMOUNT,
+  purchaseGiftCard,
 } from "@/lib/giftcard";
-import { z } from "zod";
+import { isStripeConfigured } from "@/lib/stripe";
 
-const schema = z.object({
-  amount: z.number().positive(), // euros
-  purchaser: z.object({
-    name: z.string().min(1, "Le nom de l'acheteur est requis"),
-    email: z.string().email("Email acheteur invalide"),
-  }),
-  recipient: z
-    .object({
-      name: z.string().optional(),
-      email: z.string().email("Email destinataire invalide").optional(),
-      message: z.string().max(500).optional(),
-    })
-    .optional(),
-  stripePaymentIntentId: z.string().regex(/^pi_/, "PaymentIntent invalide"),
-});
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// POST /api/gift-cards/purchase — création de la carte après paiement Stripe confirmé
+// POST /api/gift-cards/purchase — achat en ligne (public).
+// Crée la carte après vérification du paiement Stripe (ou mode test).
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -43,72 +27,57 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const data = schema.parse(body);
-    const cents = Math.round(data.amount * 100);
+    const amount = Number(body.amount); // euros
+    const purchaser = body.purchaser || {};
+    const recipient = body.recipient || {};
+    const stripePaymentIntentId = body.stripePaymentIntentId;
 
-    if (cents < GIFT_CARD_MIN_AMOUNT || cents > GIFT_CARD_MAX_AMOUNT) {
-      return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
-    }
-
-    const { stripePaymentIntentId } = data;
-
-    // Dédoublonnage : un PI ne peut servir qu'une fois (commande OU carte cadeau)
-    const [existingCard, existingOrder] = await Promise.all([
-      GiftCard.exists({ stripePaymentIntentId }),
-      Order.exists({ paymentId: stripePaymentIntentId }),
-    ]);
-    if (existingCard || existingOrder) {
+    if (!amount || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
       return NextResponse.json(
-        { error: "Ce paiement a déjà été utilisé" },
+        { error: `Le montant doit être entre ${MIN_AMOUNT}€ et ${MAX_AMOUNT}€` },
+        { status: 400 }
+      );
+    }
+    if (!purchaser.name || !purchaser.email || !emailRe.test(purchaser.email)) {
+      return NextResponse.json(
+        { error: "Le nom et un email valide de l'acheteur sont requis" },
+        { status: 400 }
+      );
+    }
+    if (recipient.email && !emailRe.test(recipient.email)) {
+      return NextResponse.json(
+        { error: "Email du destinataire invalide" },
+        { status: 400 }
+      );
+    }
+    if (
+      typeof stripePaymentIntentId !== "string" ||
+      !stripePaymentIntentId.startsWith("pi_")
+    ) {
+      return NextResponse.json(
+        { error: "Identifiant de paiement manquant ou invalide" },
         { status: 400 }
       );
     }
 
-    // Vérification côté Stripe : ne jamais faire confiance au frontend pour
-    // confirmer qu'un paiement a réellement eu lieu.
-    const stripe = await getStripe();
-    const pi = await stripe.paymentIntents.retrieve(stripePaymentIntentId, {
-      expand: ["latest_charge"],
-    });
-
-    if (pi.status !== "succeeded") {
-      return NextResponse.json(
-        { error: `Le paiement n'a pas été confirmé (statut : ${pi.status})` },
-        { status: 400 }
-      );
-    }
-    if (pi.amount !== cents) {
-      return NextResponse.json(
-        { error: "Montant du paiement incorrect" },
-        { status: 400 }
-      );
-    }
-
+    // Si un acheteur est connecté, on lie la carte à son compte.
     const session = await auth();
-    const charge = pi.latest_charge as { receipt_url?: string } | null;
 
-    const giftCard = await createGiftCard({
-      initialAmount: cents,
-      source: "online",
-      stripePaymentIntentId,
-      stripeReceiptUrl: charge?.receipt_url || undefined,
-      purchasedBy: {
-        userId: session?.user?.id,
-        name: data.purchaser.name,
-        email: data.purchaser.email,
+    const giftCard = await purchaseGiftCard(
+      {
+        amount,
+        purchaser: {
+          name: purchaser.name,
+          email: purchaser.email,
+          userId: session?.user?.id || null,
+        },
+        recipient: {
+          name: recipient.name || undefined,
+          email: recipient.email || undefined,
+          message: recipient.message || undefined,
+        },
       },
-      recipient: data.recipient
-        ? {
-            name: data.recipient.name,
-            email: data.recipient.email,
-            message: data.recipient.message,
-          }
-        : {},
-    });
-
-    // Emails best-effort (ne bloquent pas la réponse)
-    sendGiftCardEmails(giftCard).catch((err) =>
-      console.error("sendGiftCardEmails failed:", err)
+      stripePaymentIntentId
     );
 
     return NextResponse.json(
@@ -118,14 +87,15 @@ export async function POST(req: NextRequest) {
         amount: giftCard.initialAmount,
         recipient: giftCard.recipient,
         expiresAt: giftCard.expiresAt,
+        testMode: !(await isStripeConfigured()),
       },
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof GiftCardError) {
       return NextResponse.json(
-        { error: error.issues[0].message },
-        { status: 400 }
+        { error: error.message },
+        { status: error.statusCode }
       );
     }
     console.error("POST /api/gift-cards/purchase error:", error);

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { GiftCardError, getGiftCardById } from "@/lib/giftcard";
+import { GiftCardError, reactivateGiftCard } from "@/lib/giftcard";
 
-// GET /api/gift-cards/[id] — détail (admin)
-export async function GET(
+// PATCH /api/gift-cards/[id]/reactivate — réactivation d'une carte annulée (admin)
+export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -14,10 +14,11 @@ export async function GET(
     }
 
     const { id } = await params;
-    const giftCard = await getGiftCardById(id);
-    return NextResponse.json(giftCard, {
-      headers: { "Cache-Control": "no-store" },
+    const giftCard = await reactivateGiftCard(id, {
+      id: session.user.id,
+      name: session.user.name || session.user.email || "Admin",
     });
+    return NextResponse.json(giftCard);
   } catch (error) {
     if (error instanceof GiftCardError) {
       return NextResponse.json(
@@ -25,7 +26,7 @@ export async function GET(
         { status: error.statusCode }
       );
     }
-    console.error("GET /api/gift-cards/[id] error:", error);
+    console.error("PATCH /api/gift-cards/[id]/reactivate error:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

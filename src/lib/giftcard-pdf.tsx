@@ -1,5 +1,13 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  renderToBuffer,
+} from "@react-pdf/renderer";
 import type { DocumentProps } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import type { GiftCardTemplate } from "@/components/shop/GiftCardVisual";
@@ -8,8 +16,8 @@ const DEFAULT_PRIMARY = "#b08438";
 const DEFAULT_PRIMARY_DARK = "#8a6a2c";
 const DEFAULT_BG = "#faf6ee";
 
-function fmtPrice(cents: number): string {
-  return `${(cents / 100).toFixed(2)} €`.replace(".", ",");
+function fmtPrice(euros: number): string {
+  return `${euros.toFixed(2)} €`.replace(".", ",");
 }
 
 function fmtDate(d?: Date | string | null): string {
@@ -19,7 +27,7 @@ function fmtDate(d?: Date | string | null): string {
 
 interface Props {
   shopName: string;
-  amount: number; // centimes
+  amount: number; // euros
   code: string;
   recipientName?: string;
   message?: string;
@@ -94,4 +102,9 @@ export default function GiftCardPdf({
       </Page>
     </Document>
   );
+}
+
+/** Rend le PDF de la carte cadeau en Buffer (pièce jointe email, download…). */
+export async function renderGiftCardPdfBuffer(props: Props): Promise<Buffer> {
+  return renderToBuffer(<GiftCardPdf {...props} />);
 }

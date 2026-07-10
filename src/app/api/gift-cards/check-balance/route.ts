@@ -1,29 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { checkBalance, GiftCardError } from "@/lib/giftcard";
-import { z } from "zod";
-
-const schema = z.object({
-  code: z.string().trim().min(1, "Code requis"),
-});
+import { GiftCardError, checkBalance } from "@/lib/giftcard";
 
 // POST /api/gift-cards/check-balance — vérifie le solde d'une carte (public)
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
     const body = await req.json();
-    const { code } = schema.parse(body);
+    const code = typeof body.code === "string" ? body.code.trim() : "";
+    if (!code) {
+      return NextResponse.json(
+        { error: "Le code de la carte cadeau est requis" },
+        { status: 400 }
+      );
+    }
 
     const result = await checkBalance(code);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
     if (error instanceof GiftCardError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-    if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.issues[0].message },
-        { status: 400 }
+        { error: error.message },
+        { status: error.statusCode }
       );
     }
     console.error("POST /api/gift-cards/check-balance error:", error);

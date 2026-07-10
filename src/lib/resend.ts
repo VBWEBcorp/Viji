@@ -20,16 +20,24 @@ async function getResend(): Promise<Resend | null> {
   return resendInstance;
 }
 
+/** Pièce jointe email (ex. PDF de la carte cadeau). `content` = base64. */
+export interface EmailAttachment {
+  filename: string;
+  content: string; // base64
+}
+
 export async function sendEmail({
   to,
   subject,
   html,
   replyTo,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: EmailAttachment[];
 }) {
   const client = await getResend();
   if (!client) return null;
@@ -42,6 +50,14 @@ export async function sendEmail({
     subject,
     html,
     ...(replyTo ? { replyTo } : {}),
+    ...(attachments && attachments.length
+      ? {
+          attachments: attachments.map((a) => ({
+            filename: a.filename,
+            content: a.content,
+          })),
+        }
+      : {}),
   });
 
   // Le SDK Resend ne lève pas d'exception : il renvoie { data, error }.
