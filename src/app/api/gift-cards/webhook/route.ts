@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { GiftCardError, purchaseGiftCard } from "@/lib/giftcard";
-import { constructWebhookEvent, isWebhookConfigured } from "@/lib/stripe";
+import { constructWebhookEvent, isGiftCardWebhookConfigured } from "@/lib/stripe";
 
 // POST /api/gift-cards/webhook — filet de sécurité côté serveur.
 //
@@ -13,7 +13,7 @@ import { constructWebhookEvent, isWebhookConfigured } from "@/lib/stripe";
 // Important : on lit le corps BRUT (request.text()) car la vérification de
 // signature Stripe l'exige.
 export async function POST(request: NextRequest) {
-  if (!(await isWebhookConfigured())) {
+  if (!(await isGiftCardWebhookConfigured())) {
     return NextResponse.json({ error: "Webhook non configuré" }, { status: 400 });
   }
 

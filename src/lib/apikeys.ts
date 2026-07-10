@@ -5,6 +5,10 @@ interface ApiKeys {
   stripeSecretKey: string;
   stripePublishableKey: string;
   stripeWebhookSecret: string;
+  // Secret de signature dédié au webhook carte cadeau (/api/gift-cards/webhook).
+  // Permet d'enregistrer un endpoint Stripe distinct de celui des commandes.
+  // À défaut, on retombe sur stripeWebhookSecret (comportement historique).
+  stripeGiftCardWebhookSecret: string;
   sendcloudPublicKey: string;
   sendcloudSecretKey: string;
   resendApiKey: string;
@@ -33,6 +37,13 @@ export async function getApiKeys(): Promise<ApiKeys> {
       dbKeys.stripePublishableKey || process.env.STRIPE_PUBLISHABLE_KEY || "",
     stripeWebhookSecret:
       dbKeys.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET || "",
+    // Fallback vers le secret partagé si aucun secret dédié n'est fourni :
+    // les installations mono-endpoint continuent de fonctionner sans changement.
+    stripeGiftCardWebhookSecret:
+      process.env.STRIPE_GIFTCARD_WEBHOOK_SECRET ||
+      dbKeys.stripeWebhookSecret ||
+      process.env.STRIPE_WEBHOOK_SECRET ||
+      "",
     sendcloudPublicKey:
       dbKeys.sendcloudPublicKey || process.env.SENDCLOUD_PUBLIC_KEY || "",
     sendcloudSecretKey:

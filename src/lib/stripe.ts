@@ -35,16 +35,25 @@ export async function isStripeConfigured(): Promise<boolean> {
   return !!keys.stripeSecretKey;
 }
 
-/** Vrai si le secret de signature des webhooks Stripe est configuré. */
+/** Vrai si le secret de signature des webhooks Stripe (commandes) est configuré. */
 export async function isWebhookConfigured(): Promise<boolean> {
   const keys = await getApiKeys();
   return !!keys.stripeWebhookSecret;
 }
 
+/** Vrai si le secret de signature du webhook carte cadeau est configuré. */
+export async function isGiftCardWebhookConfigured(): Promise<boolean> {
+  const keys = await getApiKeys();
+  return !!keys.stripeGiftCardWebhookSecret;
+}
+
 /**
- * Vérifie et décode un événement webhook Stripe à partir du corps BRUT de la
- * requête et de l'en-tête de signature. Lève si la signature est invalide
- * (protège contre les faux appels qui n'émanent pas de Stripe).
+ * Vérifie et décode un événement webhook Stripe carte cadeau à partir du corps
+ * BRUT de la requête et de l'en-tête de signature. Lève si la signature est
+ * invalide (protège contre les faux appels qui n'émanent pas de Stripe).
+ *
+ * Utilise le secret DÉDIÉ au webhook carte cadeau (STRIPE_GIFTCARD_WEBHOOK_SECRET),
+ * qui retombe sur le secret partagé si aucun secret dédié n'est configuré.
  */
 export async function constructWebhookEvent(
   rawBody: string,
@@ -52,13 +61,13 @@ export async function constructWebhookEvent(
 ): Promise<Stripe.Event> {
   const stripe = await getStripe();
   const keys = await getApiKeys();
-  if (!keys.stripeWebhookSecret) {
-    throw new Error("STRIPE_WEBHOOK_SECRET non configuré");
+  if (!keys.stripeGiftCardWebhookSecret) {
+    throw new Error("Secret webhook carte cadeau non configuré");
   }
   return stripe.webhooks.constructEvent(
     rawBody,
     signature,
-    keys.stripeWebhookSecret
+    keys.stripeGiftCardWebhookSecret
   );
 }
 
