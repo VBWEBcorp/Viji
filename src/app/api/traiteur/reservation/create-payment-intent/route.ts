@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { computeTraiteurAmount } from "@/lib/traiteur";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
@@ -38,6 +38,12 @@ export async function POST(req: NextRequest) {
         { error: "Montant trop faible pour un paiement en ligne" },
         { status: 400 }
       );
+    }
+
+    // Garde-fou : jamais de paiement en mode test en production.
+    const modeError = await assertStripeLiveInProduction();
+    if (modeError) {
+      return NextResponse.json({ error: modeError }, { status: 503 });
     }
 
     const stripe = await getStripe();

@@ -5,7 +5,7 @@ import Order from "@/models/Order";
 import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
 import SiteSettings from "@/models/SiteSettings";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/resend";
 import { cookies } from "next/headers";
@@ -293,6 +293,12 @@ export async function POST(req: NextRequest) {
         subject: "Bienvenue chez Entre Maman et Moi – choisissez votre mot de passe",
         html: passwordSetupEmailHtml(validated.shippingAddress.name, link, orderNumber),
       }).catch((err) => console.error("Password setup email failed:", err));
+    }
+
+    // Garde-fou : jamais de paiement en mode test en production.
+    const modeError = await assertStripeLiveInProduction();
+    if (modeError) {
+      return NextResponse.json({ error: modeError }, { status: 503 });
     }
 
     // Initier le paiement (Stripe) pour le total de la commande.

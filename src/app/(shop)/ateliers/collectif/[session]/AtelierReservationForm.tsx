@@ -9,12 +9,8 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
-
-const stripePromise: Promise<Stripe | null> | null =
-  typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-    : null;
+import { type StripeElementsOptions } from "@stripe/stripe-js";
+import { useStripePromise } from "@/lib/stripe-client";
 
 type Occurrence = {
   date: string;
@@ -38,6 +34,10 @@ export default function AtelierReservationForm({
   price,
   occurrences,
 }: Props) {
+  // Clé publique servie par le serveur (Réglages admin), pour qu'elle provienne
+  // toujours du même compte Stripe que la clé secrète.
+  const { stripePromise, stripeUnavailable } = useStripePromise();
+
   const hasMultiple = occurrences.length > 1;
 
   // Sélection visuelle : index numérique de l'occurrence choisie.
@@ -166,9 +166,10 @@ export default function AtelierReservationForm({
           </div>
         )}
 
-        {!stripePromise && (
+        {stripeUnavailable && (
           <p className="font-serif italic text-[13px] text-red-600">
-            Clé publique Stripe manquante (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY).
+            Paiement en ligne indisponible : clé Stripe non configurée
+                      (Admin → Réglages → Clés API).
           </p>
         )}
         {stripePromise && clientSecret && (

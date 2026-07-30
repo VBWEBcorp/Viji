@@ -9,6 +9,14 @@ import GiftCard, {
 import SiteSettings from "@/models/SiteSettings";
 import { verifyGiftCardPayment } from "@/lib/stripe";
 import { sendEmail, type EmailAttachment } from "@/lib/resend";
+import { getNotificationEmail } from "@/lib/notify";
+import {
+  emailShell,
+  emailEyebrow,
+  emailHeading,
+  emailParagraph,
+  esc,
+} from "@/lib/email-layout";
 import { renderGiftCardPdfBuffer } from "@/lib/giftcard-pdf";
 import {
   generateGiftCardBuyerEmail,
@@ -471,6 +479,31 @@ export async function sendGiftCardEmails(giftCard: IGiftCard): Promise<void> {
     } catch (err) {
       console.error("Gift card recipient email failed:", err);
     }
+  }
+
+  // Notification interne : la boutique est prévenue de chaque carte cadeau
+  // vendue. Les montants des cartes sont en euros (pas en centimes).
+  try {
+    const amount = giftCard.initialAmount.toFixed(2).replace(".", ",");
+    await sendEmail({
+      to: await getNotificationEmail(),
+      subject: `Carte cadeau vendue – ${giftCard.code} – ${amount} €`,
+      html: emailShell({
+        title: `Carte cadeau ${giftCard.code}`,
+        preheader: `${amount} € · ${buyerEmail || "acheteur inconnu"}`,
+        content:
+          emailEyebrow("Carte cadeau vendue") +
+          emailHeading(`${amount} €`) +
+          emailParagraph(
+            `Code <strong>${esc(giftCard.code)}</strong>` +
+              (buyerEmail ? `<br>Acheteur : ${esc(buyerEmail)}` : "") +
+              (recipientEmail ? `<br>Destinataire : ${esc(recipientEmail)}` : "")
+          ),
+      }),
+      ...(buyerEmail ? { replyTo: buyerEmail } : {}),
+    });
+  } catch (err) {
+    console.error("Gift card admin notification email failed:", err);
   }
 
   giftCard.emailSent = true;

@@ -179,3 +179,42 @@ export async function verifyGiftCardPayment(
     receiptUrl: charge?.receipt_url || null,
   };
 }
+
+/**
+ * Message renvoyé au client quand la production tourne encore sur des clés de
+ * test. Volontairement neutre : l'internaute n'a pas à connaître la raison
+ * technique, il doit juste ne PAS croire qu'il a payé.
+ */
+export const STRIPE_TEST_MODE_ERROR =
+  "Le paiement en ligne est momentanément indisponible. Merci de contacter la boutique avant de commander.";
+
+/** Vrai si la configuration Stripe active encaisse réellement (clé `sk_live_`). */
+export async function isStripeLive(): Promise<boolean> {
+  const keys = await getApiKeys();
+  return keys.stripeSecretKey.startsWith("sk_live_");
+}
+
+/**
+ * Garde-fou anti mode test.
+ *
+ * Une clé de test affiche au client un écran de confirmation et un email
+ * « Payé en ligne » sans qu'aucun euro ne soit débité — la panne la plus
+ * coûteuse possible, parce qu'elle est invisible. En production, on refuse donc
+ * de créer ou d'accepter le moindre paiement tant que les clés ne sont pas des
+ * clés live.
+ *
+ * Renvoie le message d'erreur à retourner, ou null si tout est en ordre.
+ * En développement, toujours null : le mode test y est légitime.
+ */
+export async function assertStripeLiveInProduction(): Promise<string | null> {
+  if (process.env.NODE_ENV !== "production") return null;
+  return (await isStripeLive()) ? null : STRIPE_TEST_MODE_ERROR;
+}
+
+/**
+ * Même garde-fou, appliqué au paiement lui-même au moment de le confirmer :
+ * `livemode` est renseigné par Stripe et ne peut pas être falsifié côté client.
+ */
+export function isTestPaymentInProduction(pi: { livemode: boolean }): boolean {
+  return process.env.NODE_ENV === "production" && !pi.livemode;
+}

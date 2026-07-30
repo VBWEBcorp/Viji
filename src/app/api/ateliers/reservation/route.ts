@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendEmail } from "@/lib/resend";
+import { getNotificationEmail } from "@/lib/notify";
 import { connectDB } from "@/lib/db";
-import { getStripe } from "@/lib/stripe";
+import {
+  getStripe,
+  isTestPaymentInProduction,
+  STRIPE_TEST_MODE_ERROR,
+} from "@/lib/stripe";
 import { resolveAtelierUnitPrice } from "@/lib/ateliers";
 import Reservation from "@/models/Reservation";
 import { generateReservationNumber } from "@/lib/utils";
-
-const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "entremamanetmoicook@gmail.com";
 
 const schema = z.object({
   sessionSlug: z.string().min(1),
@@ -68,6 +71,18 @@ export async function POST(req: NextRequest) {
       // Anti-rejeu : ce paiement a déjà donné lieu à une réservation enregistrée.
       return NextResponse.json({ ok: true, alreadyProcessed: true });
     }
+    // Un paiement de test donne un écran de confirmation sans qu'aucun euro
+    // ne soit débité : en production, on ne l'enregistre jamais.
+    if (isTestPaymentInProduction(pi)) {
+      console.error(
+        `PaymentIntent de test refusé en production : ${pi.id}`
+      );
+      return NextResponse.json(
+        { error: STRIPE_TEST_MODE_ERROR },
+        { status: 400 }
+      );
+    }
+
     if (pi.status !== "succeeded") {
       return NextResponse.json(
         { error: `Le paiement n'a pas été confirmé (statut : ${pi.status})` },
@@ -132,7 +147,7 @@ export async function POST(req: NextRequest) {
       data.email && data.email.length > 0 ? data.email : undefined;
 
     await sendEmail({
-      to: TO_EMAIL,
+      to: await getNotificationEmail(),
       subject: `Réservation atelier PAYÉE – ${data.name} – ${data.sessionTitle}`,
       html,
       ...(replyToValue ? { replyTo: replyToValue } : {}),

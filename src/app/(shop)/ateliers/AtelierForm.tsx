@@ -9,12 +9,8 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
-
-const stripePromise: Promise<Stripe | null> | null =
-  typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-    : null;
+import { type StripeElementsOptions } from "@stripe/stripe-js";
+import { useStripePromise } from "@/lib/stripe-client";
 
 interface Props {
   productId?: string;
@@ -32,6 +28,10 @@ type Step = "form" | "payment" | "done";
  * Pas de cart / checkout / Mondial Relay : l'atelier n'a pas besoin d'expédition.
  */
 export default function AtelierForm({ productName, atelierSlug, price }: Props) {
+  // Clé publique servie par le serveur (Réglages admin), pour qu'elle provienne
+  // toujours du même compte Stripe que la clé secrète.
+  const { stripePromise, stripeUnavailable } = useStripePromise();
+
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [name, setName] = useState("");
@@ -144,9 +144,10 @@ export default function AtelierForm({ productName, atelierSlug, price }: Props) 
           </div>
         )}
 
-        {!stripePromise && (
+        {stripeUnavailable && (
           <p className="font-serif italic text-[13px] text-red-600">
-            Clé publique Stripe manquante (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY).
+            Paiement en ligne indisponible : clé Stripe non configurée
+                      (Admin → Réglages → Clés API).
           </p>
         )}
         {stripePromise && clientSecret && (

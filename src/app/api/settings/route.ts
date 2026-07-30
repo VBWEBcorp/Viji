@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import SiteSettings from "@/models/SiteSettings";
 import { invalidateApiKeysCache } from "@/lib/apikeys";
+import { invalidateNotificationEmailCache } from "@/lib/notify";
 
 // GET /api/settings
 export async function GET() {
@@ -41,8 +42,9 @@ export async function POST(req: NextRequest) {
       settings = await SiteSettings.create(body);
     }
 
-    // Invalider le cache des clés API
+    // Invalider les caches dérivés des réglages (clés API, email de notification)
     invalidateApiKeysCache();
+    invalidateNotificationEmailCache();
 
     return NextResponse.json(settings);
   } catch (error) {

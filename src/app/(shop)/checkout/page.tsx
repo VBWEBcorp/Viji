@@ -11,14 +11,10 @@ import MondialRelayPicker from "@/components/shop/MondialRelayPicker";
 import { MondialRelayPoint } from "@/components/shop/MondialRelayWidget";
 import PromoCodeInput, { type AppliedPromo } from "@/components/shop/PromoCodeInput";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
+import { type StripeElementsOptions } from "@stripe/stripe-js";
+import { useStripePromise } from "@/lib/stripe-client";
 
 // Chargé une seule fois au niveau module : Stripe.js doit rester unique sur la page.
-const stripePromise: Promise<Stripe | null> | null =
-  typeof window !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-    : null;
-
 interface CartItem {
   _id: string;
   product: {
@@ -35,6 +31,10 @@ interface CartItem {
 type Step = "shipping" | "payment" | "confirmation";
 
 export default function CheckoutPage() {
+  // Clé publique servie par le serveur (Réglages admin), pour qu'elle provienne
+  // toujours du même compte Stripe que la clé secrète.
+  const { stripePromise, stripeUnavailable } = useStripePromise();
+
   usePageTitle("Finalisation de la commande");
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>("shipping");
@@ -548,10 +548,10 @@ export default function CheckoutPage() {
 
                 {/* Stripe Elements : carte bancaire */}
                 <Card eyebrow="Sécurisé" title="Paiement par carte">
-                  {!stripePromise && (
+                  {stripeUnavailable && (
                     <p className="font-serif italic text-[13px] text-red-600">
-                      Clé publique Stripe manquante (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY).
-                      Vérifiez votre fichier .env.local.
+                      Paiement en ligne indisponible : clé Stripe non configurée
+                      (Admin → Réglages → Clés API).
                     </p>
                   )}
                   {stripePromise && clientSecret && (

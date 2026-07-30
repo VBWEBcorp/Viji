@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/resend";
-
-const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "entremamanetmoicook@gmail.com";
+import { getNotificationEmail } from "@/lib/notify";
 
 function escapeHtml(s: string) {
   return s
@@ -77,7 +76,7 @@ export async function POST(req: NextRequest) {
     `;
 
     const result = await sendEmail({
-      to: TO_EMAIL,
+      to: await getNotificationEmail(),
       subject: subjectLine,
       html,
       replyTo: email,

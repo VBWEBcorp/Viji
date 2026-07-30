@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import SiteSettings from "@/models/SiteSettings";
 import { MIN_AMOUNT, MAX_AMOUNT } from "@/lib/giftcard";
-import { isStripeConfigured, createGiftCardPaymentIntent } from "@/lib/stripe";
+import {
+  isStripeConfigured,
+  createGiftCardPaymentIntent,
+  assertStripeLiveInProduction,
+} from "@/lib/stripe";
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -68,6 +72,12 @@ export async function POST(req: NextRequest) {
       metadata.recipient_email = String(recipient.email).slice(0, 200);
     if (recipient.message)
       metadata.recipient_message = String(recipient.message).slice(0, 200);
+
+    // Garde-fou : jamais de paiement en mode test en production.
+    const modeError = await assertStripeLiveInProduction();
+    if (modeError) {
+      return NextResponse.json({ error: modeError }, { status: 503 });
+    }
 
     const { clientSecret, paymentIntentId } = await createGiftCardPaymentIntent(
       amount,
