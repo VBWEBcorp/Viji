@@ -37,9 +37,13 @@ export async function getApiKeys(): Promise<ApiKeys> {
       dbKeys.stripePublishableKey || process.env.STRIPE_PUBLISHABLE_KEY || "",
     stripeWebhookSecret:
       dbKeys.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET || "",
-    // Fallback vers le secret partagé si aucun secret dédié n'est fourni :
-    // les installations mono-endpoint continuent de fonctionner sans changement.
+    // Chaque destination Stripe possède SA propre clé de signature : le secret
+    // dédié enregistré dans l'admin doit primer, sinon le webhook carte cadeau
+    // vérifie les signatures avec le secret des commandes et rejette tout.
+    // Le repli sur le secret partagé ne concerne que les installations à
+    // endpoint unique, qui n'ont pas de secret dédié à fournir.
     stripeGiftCardWebhookSecret:
+      dbKeys.stripeGiftCardWebhookSecret ||
       process.env.STRIPE_GIFTCARD_WEBHOOK_SECRET ||
       dbKeys.stripeWebhookSecret ||
       process.env.STRIPE_WEBHOOK_SECRET ||

@@ -69,6 +69,7 @@ interface Settings {
     stripeSecretKey: string;
     stripePublishableKey: string;
     stripeWebhookSecret: string;
+    stripeGiftCardWebhookSecret: string;
     sendcloudPublicKey: string;
     sendcloudSecretKey: string;
     resendApiKey: string;
@@ -112,6 +113,7 @@ const defaultSettings: Settings = {
     stripeSecretKey: "",
     stripePublishableKey: "",
     stripeWebhookSecret: "",
+    stripeGiftCardWebhookSecret: "",
     sendcloudPublicKey: "",
     sendcloudSecretKey: "",
     resendApiKey: "",
@@ -220,6 +222,7 @@ export default function AdminSettingsPage() {
               stripeSecretKey: data.apiKeys?.stripeSecretKey || "",
               stripePublishableKey: data.apiKeys?.stripePublishableKey || "",
               stripeWebhookSecret: data.apiKeys?.stripeWebhookSecret || "",
+              stripeGiftCardWebhookSecret: data.apiKeys?.stripeGiftCardWebhookSecret || "",
               sendcloudPublicKey: data.apiKeys?.sendcloudPublicKey || "",
               sendcloudSecretKey: data.apiKeys?.sendcloudSecretKey || "",
               resendApiKey: data.apiKeys?.resendApiKey || "",
@@ -397,9 +400,15 @@ export default function AdminSettingsPage() {
                   placeholder="sk_test_..." />
               </div>
               <div>
-                <label className={labelCls}>Secret Webhook (whsec_...)</label>
+                <label className={labelCls}>Secret Webhook commandes (whsec_...)</label>
                 <SecretInput value={settings.apiKeys.stripeWebhookSecret}
                   onChange={(v) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, stripeWebhookSecret: v } })}
+                  placeholder="whsec_..." />
+              </div>
+              <div>
+                <label className={labelCls}>Secret Webhook cartes cadeaux (whsec_...)</label>
+                <SecretInput value={settings.apiKeys.stripeGiftCardWebhookSecret}
+                  onChange={(v) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, stripeGiftCardWebhookSecret: v } })}
                   placeholder="whsec_..." />
               </div>
             </Card>

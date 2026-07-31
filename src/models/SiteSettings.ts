@@ -74,6 +74,8 @@ export interface ISiteSettings extends Document {
     stripeSecretKey?: string;
     stripePublishableKey?: string;
     stripeWebhookSecret?: string;
+    /** Secret dédié au webhook carte cadeau : chaque destination Stripe a le sien. */
+    stripeGiftCardWebhookSecret?: string;
     sendcloudPublicKey?: string;
     sendcloudSecretKey?: string;
     resendApiKey?: string;
@@ -174,6 +176,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       stripeSecretKey: { type: String },
       stripePublishableKey: { type: String },
       stripeWebhookSecret: { type: String },
+      stripeGiftCardWebhookSecret: { type: String },
       sendcloudPublicKey: { type: String },
       sendcloudSecretKey: { type: String },
       resendApiKey: { type: String },
