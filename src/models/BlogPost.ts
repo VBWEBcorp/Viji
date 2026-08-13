@@ -6,7 +6,14 @@ export interface IBlogPost extends Document {
   content: string;
   excerpt: string;
   coverImage?: string;
-  author: mongoose.Types.ObjectId;
+  author?: mongoose.Types.ObjectId;
+  /** Texte alternatif du visuel, rempli par PHARE. */
+  coverImageAlt?: string;
+  markdown?: string;
+  /** JSON-LD prêt à l'emploi fourni par PHARE, injecté tel quel. */
+  jsonLd?: string;
+  /** "phare" pour les articles déposés par le webhook. */
+  source?: string;
   category?: string;
   tags: string[];
   seo: {
@@ -24,15 +31,19 @@ const BlogPostSchema = new Schema<IBlogPost>(
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
     content: { type: String, required: true },
-    excerpt: { type: String, required: true, maxlength: 500 },
+    excerpt: { type: String, maxlength: 500 },
     coverImage: { type: String },
-    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    author: { type: Schema.Types.ObjectId, ref: "User" },
     category: { type: String, trim: true },
     tags: [{ type: String, trim: true }],
     seo: {
       metaTitle: { type: String },
       metaDescription: { type: String },
     },
+    coverImageAlt: { type: String },
+    markdown: { type: String },
+    jsonLd: { type: String },
+    source: { type: String },
     isPublished: { type: Boolean, default: false },
     publishedAt: { type: Date },
   },

@@ -98,19 +98,24 @@ export default async function BlogPostPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            headline: post.seo?.metaTitle || post.title,
-            description: post.seo?.metaDescription || post.excerpt,
-            ...(post.coverImage && { image: post.coverImage }),
-            author: {
-              "@type": "Person",
-              name: (post.author as unknown as { name: string })?.name,
-            },
-            datePublished: post.publishedAt,
-            dateModified: post.updatedAt,
-          }),
+          // JSON-LD fourni par PHARE s'il existe (stocké tel quel sur l'article),
+          // sinon celui construit à partir des champs. `</script>` échappé.
+          __html: (
+            (post as unknown as { jsonLd?: string }).jsonLd ||
+            JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Article",
+              headline: post.seo?.metaTitle || post.title,
+              description: post.seo?.metaDescription || post.excerpt,
+              ...(post.coverImage && { image: post.coverImage }),
+              author: {
+                "@type": "Person",
+                name: (post.author as unknown as { name: string })?.name,
+              },
+              datePublished: post.publishedAt,
+              dateModified: post.updatedAt,
+            })
+          ).replace(/</g, "\\u003c"),
         }}
       />
 
