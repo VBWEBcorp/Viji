@@ -4,6 +4,7 @@ import { timingSafeEqual } from "crypto";
 
 import { connectDB } from "@/lib/db";
 import BlogPost from "@/models/BlogPost";
+import { isAllowedSiteFile, normalizeSiteFilePath, writeSiteFile } from "@/lib/site-files";
 
 // Webhook PHARE (outil SEO de l'agence) : dépôt et retrait d'articles du blog.
 // Sécurisé par secret partagé (en-tête x-phare-secret vs PHARE_WEBHOOK_SECRET).
@@ -30,6 +31,10 @@ interface PharePayload {
   coverImageUrl?: string;
   coverImageAlt?: string;
   url?: string;
+  // Action `file` : dépôt d'un fichier de la racine du site (llms.txt).
+  path?: string;
+  content?: string;
+  contentType?: string;
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -156,7 +161,32 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    // 4. Retrait : l'article disparaît de la liste et du sitemap, et son
+    // 4. Dépôt d'un fichier de la racine (llms.txt) : PHARE le régénère depuis la
+    // fiche client, le site se contente de le servir. Réponse `{ written: true }`,
+    // c'est ce que PHARE attend pour considérer le dépôt réussi.
+    if (req.headers.get("x-phare-action") === "file" || body.action === "file") {
+      const path = body.path?.trim();
+      if (!path || typeof body.content !== "string" || !body.content.trim()) {
+        return NextResponse.json(
+          { message: "Dépôt impossible : `path` et `content` sont requis" },
+          { status: 400 }
+        );
+      }
+      if (!isAllowedSiteFile(path)) {
+        return NextResponse.json(
+          { message: `Fichier non autorisé : ${path}. Seul llms.txt est accepté.` },
+          { status: 400 }
+        );
+      }
+
+      const relatif = normalizeSiteFilePath(path);
+      await writeSiteFile({ path: relatif, content: body.content, contentType: body.contentType });
+      revalidatePath(`/${relatif}`);
+
+      return NextResponse.json({ written: true, url: `${SITE_URL}/${relatif}` });
+    }
+
+    // 5. Retrait : l'article disparaît de la liste et du sitemap, et son
     // adresse répond 404. Volontairement aucune redirection.
     if (req.headers.get("x-phare-action") === "delete" || body.action === "delete") {
       const slugs = deleteCandidates(body);
@@ -174,7 +204,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ deleted: true });
     }
 
-    // 5. Publication
+    // 6. Publication
     const title = body.title?.trim();
     if (!title) {
       return NextResponse.json({ message: "Champ `title` manquant" }, { status: 400 });
@@ -207,7 +237,7 @@ export async function POST(req: Request) {
     const jsonLd = jsonLdToString(body.jsonLd);
     const now = new Date();
 
-    // 6. UPSERT par slug — jamais de doublon si PHARE renvoie le même article
+    // 7. UPSERT par slug — jamais de doublon si PHARE renvoie le même article
     const res = await BlogPost.updateOne(
       { slug },
       {
