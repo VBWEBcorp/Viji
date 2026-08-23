@@ -29,7 +29,7 @@ const TYPES: Record<string, AtelierConfig> = {
     eyebrow: "Atelier",
     intro:
       "Je viens chez vous avec ingrédients, épices, matériel et tablier. Tout est prêt, vous n'avez qu'à profiter.",
-    image: "https://i.ibb.co/qLvzCsJS/Viji.jpg",
+    image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/qLvzCsJS-viji.jpg",
     videoId: "mBXvjsEqAZw",
     program: [
       { title: "Une expérience conviviale chez vous", body: "Je me déplace avec ingrédients, épices, matériel et tablier. Vous n'avez à rien prévoir." },
@@ -53,7 +53,7 @@ const TYPES: Record<string, AtelierConfig> = {
     eyebrow: "Service",
     intro:
       "Vous recevez, je m'occupe de tout. Menu indien sur mesure, service complet, cuisine laissée propre.",
-    image: "https://i.ibb.co/qLvzCsJS/Viji.jpg",
+    image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/qLvzCsJS-viji.jpg",
     videoId: "WcYWmnDoy6M",
     program: [
       { title: "Je cuisine pour vous", body: "Service traiteur à domicile : vous recevez, je m'occupe de tout en cuisine." },

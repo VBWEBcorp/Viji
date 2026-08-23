@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "i.ibb.co",
+        hostname: "pub-ca14f007dfa948608de6202297931d65.r2.dev",
       },
       {
         protocol: "https",

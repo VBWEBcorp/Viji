@@ -71,7 +71,7 @@ const menuGroups: { title?: string; items: NavItem[] }[] = [
 ];
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
-const LOGO_SRC = "https://i.ibb.co/5WWqVbC2/cropped-Entre-Maman-Et-Moi-1.png";
+const LOGO_SRC = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/5WWqVbC2-cropped-entre-maman-et-moi-1.png";
 
 export default function AdminSidebar() {
   const pathname = usePathname();

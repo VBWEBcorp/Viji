@@ -177,7 +177,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute -left-12 top-12 md:-left-20 md:top-24 w-40 h-40 md:w-56 md:h-56 opacity-25 scroll-roll">
           <div className="relative w-full h-full animate-spin-slow">
             <Image
-              src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+              src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/cKKfhCLf-bol-seul.png"
               alt=""
               fill
               className="object-contain"
@@ -188,7 +188,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute -right-10 bottom-10 md:-right-16 md:bottom-20 w-32 h-32 md:w-48 md:h-48 opacity-20 scroll-roll">
           <div className="relative w-full h-full animate-spin-slow-reverse">
             <Image
-              src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+              src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/cKKfhCLf-bol-seul.png"
               alt=""
               fill
               className="object-contain"
@@ -311,7 +311,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute -left-16 top-12 md:-left-24 md:top-20 w-44 h-44 md:w-64 md:h-64 opacity-15">
           <div className="relative w-full h-full animate-spin-slow">
             <Image
-              src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+              src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/cKKfhCLf-bol-seul.png"
               alt=""
               fill
               className="object-contain"
@@ -322,7 +322,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute -right-16 bottom-12 md:-right-20 md:bottom-20 w-36 h-36 md:w-52 md:h-52 opacity-15">
           <div className="relative w-full h-full animate-spin-slow-reverse">
             <Image
-              src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+              src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/cKKfhCLf-bol-seul.png"
               alt=""
               fill
               className="object-contain"
@@ -635,9 +635,9 @@ function GoogleLogo({ size = 16, className = "" }: { size?: number; className?: 
 
 const DEFAULT_KITS = [
   // Découverte → Samoussa (un des produits du kit, image la plus iconique pour une initiation)
-  { slug: "decouverte", name: "Kit Découverte", image: "https://i.ibb.co/RT04pLXX/Samoussa.jpg" },
+  { slug: "decouverte", name: "Kit Découverte", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/RT04pLXX-samoussa.jpg" },
   // Signature → Poulet Tandoori (rouge dramatique, visuel "signature")
-  { slug: "signature", name: "Kit Signature", image: "https://i.ibb.co/gF9GBhD7/Poulet-Tandoori.jpg" },
+  { slug: "signature", name: "Kit Signature", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gF9GBhD7-poulet-tandoori.jpg" },
   // Familiale → Beef Rice Lemon (assiette complète, idée de festin partagé)
-  { slug: "familiale", name: "Kit Familiale", image: "https://i.ibb.co/gLLnvsYg/Beef-Rice-Lemon.jpg" },
+  { slug: "familiale", name: "Kit Familiale", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gLLnvsYg-beef-rice-lemon.jpg" },
 ];

@@ -52,7 +52,26 @@
       "Bash(grep -qE \"Compiled successfully|Failed to compile|error|Error:\" \"C:\\\\Users\\\\conta\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\8ca330e0-32fa-44f0-b16f-19ddbc97ea4e\\\\tasks\\\\bw792pu3f.output\")",
       "Bash(break)",
       "Bash(grep -nE \"^\\\\s*[┌├└][^ ]* \\(/|/blog\\)\\( |$\\)|Route \\\\\\(app\\\\\\)|○|●|ƒ\" \"C:\\\\Users\\\\conta\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\8ca330e0-32fa-44f0-b16f-19ddbc97ea4e\\\\tasks\\\\bw792pu3f.output\")",
-      "Bash(echo \"===EXIT $?===\")"
+      "Bash(echo \"===EXIT $?===\")",
+      "Bash(git grep *)",
+      "Bash(ls src/app/admin)",
+      "Bash(find src/app -type d -iname \"*login*\" -o -type d -iname \"*connexion*\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\); console.log\\('next:', \\(p.dependencies&&p.dependencies.next\\)||\\(p.devDependencies&&p.devDependencies.next\\)\\)\")",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"name='node.exe'\")",
+      "Bash(grep -qiE \"ready|started server|Local:|listening|error|EADDRINUSE\" \"C:\\\\\\\\Users\\\\\\\\conta\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\\\\\0db2ebe2-3833-4d88-aba0-fdf734aed58c\\\\\\\\tasks\\\\\\\\b03y8f2zl.output\")",
+      "Bash(cat \"C:\\\\\\\\Users\\\\\\\\conta\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\\\\\0db2ebe2-3833-4d88-aba0-fdf734aed58c\\\\\\\\tasks\\\\\\\\b03y8f2zl.output\")",
+      "Bash(git rm *)",
+      "PowerShell(foreach \\($p in @\\('/ateliers','/ateliers/collectif','/ateliers/a-domicile','/ateliers/chef-prive'\\)\\) { try { $r = Invoke-WebRequest -Uri \\(\"http://localhost:3002\" + $p\\) -UseBasicParsing -TimeoutSec 20; \"{0,-26} {1}\" -f $p, $r.StatusCode } catch { \"{0,-26} {1}\" -f $p, $_.Exception.Response.StatusCode.value__ } })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3002/\" -UseBasicParsing -TimeoutSec 20; \\($r.Content -split \"`n\" | Select-String \"google-site-verification\"\\) } catch { \"Serveur indisponible: $\\($_.Exception.Message\\)\" })",
+      "Bash(tail -60 \"C:\\\\\\\\Users\\\\\\\\conta\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-conta-OneDrive-Desktop-Cursor-Viji\\\\\\\\0db2ebe2-3833-4d88-aba0-fdf734aed58c\\\\\\\\tasks\\\\\\\\b03y8f2zl.output\")",
+      "PowerShell($ports = @\\(3000,3001,3002,3003,3004\\); foreach \\($p in $ports\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($c\\) { $proc = Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($c.OwningProcess\\)\"; \"{0} -> PID {1} : {2}\" -f $p, $c.OwningProcess, \\($proc.CommandLine -replace '\\\\s+', ' '\\).Substring\\(0, [Math]::Min\\(120, $proc.CommandLine.Length\\)\\) } else { \"$p libre\" } })",
+      "Bash(git stash *)",
+      "mcp__claude_ai_Netlify__netlify-project-services-reader",
+      "mcp__claude_ai_Netlify__netlify-project-services-updater",
+      "mcp__claude_ai_Netlify__netlify-deploy-services-updater",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://entre-maman-et-moi.fr/sitemap.xml\" -UseBasicParsing -TimeoutSec 30; \"Status: $\\($r.StatusCode\\)\"; \"---PREMIERES URLS---\"; \\($r.Content -split \"<loc>\" | Select-Object -Skip 1 -First 5 | ForEach-Object { \\($_ -split \"</loc>\"\\)[0] }\\) } catch { \"ERREUR: $\\($_.Exception.Message\\)\" })",
+      "mcp__claude_ai_Netlify__netlify-deploy-services-reader"
     ],
     "additionalDirectories": [
       "c:\\Users\\conta\\OneDrive\\Desktop\\Cursor\\Viji\\src\\app\\(shop)\\box"

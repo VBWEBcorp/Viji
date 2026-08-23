@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Mon projet est né dans la cuisine de ma maman. Découvrez l'histoire de Viji et la transmission qui a donné naissance à Entre Maman et Moi.",
 };
 
-const VIJI_PHOTO = "https://i.ibb.co/qLvzCsJS/Viji.jpg";
+const VIJI_PHOTO = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/qLvzCsJS-viji.jpg";
 
 export default function AboutPage() {
   return (

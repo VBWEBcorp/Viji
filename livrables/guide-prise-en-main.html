@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Entre Maman et Moi — Guide de prise en main</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+
+  :root{
+    --or:#b08438; --or-clair:#d8b46a; --or-fonce:#8f6a26;
+    --creme:#faf6ee; --creme-doux:#f4ece0;
+    --encre:#1f1d1a; --texte:#4a453e; --gris:#8c857a;
+    --filet:#e6dccb;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;
+    color:var(--texte); font-size:10.5pt; line-height:1.65;
+    background:#fff;
+  }
+  h1,h2,h3,.serif{ font-family:Georgia,"Times New Roman",serif; font-weight:normal; }
+
+  /* ---------- Couverture ---------- */
+  .couverture{
+    height:257mm; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; text-align:center;
+    page-break-after:always; position:relative;
+  }
+  .couverture::before{
+    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:1px; height:34mm; background:linear-gradient(180deg,transparent,var(--or));
+  }
+  .marque{
+    font-family:Georgia,serif; font-size:12pt; letter-spacing:.55em;
+    text-transform:uppercase; color:var(--or); margin:44mm 0 0;
+  }
+  .couverture h1{
+    font-size:34pt; color:var(--encre); line-height:1.15;
+    margin:14mm 0 0; max-width:150mm;
+  }
+  .accroche{
+    font-family:Georgia,serif; font-style:italic; font-size:13pt;
+    color:var(--gris); margin:8mm 0 0;
+  }
+  .filet-or{
+    width:26mm; height:2px; margin:12mm auto;
+    background:linear-gradient(90deg,var(--or-clair),var(--or),var(--or-fonce));
+  }
+  .couverture .pied{
+    position:absolute; bottom:6mm; left:0; right:0;
+    font-size:9pt; color:var(--gris); letter-spacing:.06em;
+  }
+
+  /* ---------- Structure ---------- */
+  .page{ page-break-before:always; }
+  .chapitre{
+    font-size:8.5pt; letter-spacing:.34em; text-transform:uppercase;
+    color:var(--or); margin:0 0 3mm;
+  }
+  h2{
+    font-size:21pt; color:var(--encre); margin:0 0 6mm;
+    padding-bottom:3mm; border-bottom:1px solid var(--filet);
+  }
+  h3{
+    font-size:13pt; color:var(--encre); margin:8mm 0 2mm;
+  }
+  p{ margin:0 0 3.5mm; }
+  .intro{ font-family:Georgia,serif; font-style:italic; color:var(--gris); font-size:11pt; }
+
+  ul{ margin:0 0 4mm; padding-left:5mm; }
+  li{ margin-bottom:1.6mm; }
+  li::marker{ color:var(--or); }
+
+  strong{ color:var(--encre); font-weight:600; }
+
+  /* ---------- Encadrés ---------- */
+  .encadre{
+    background:var(--creme); border-left:3px solid var(--or);
+    padding:5mm 6mm; margin:5mm 0; border-radius:2px;
+    page-break-inside:avoid;
+  }
+  .encadre .titre{
+    font-size:8.5pt; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--or-fonce); margin:0 0 2.5mm; font-weight:600;
+  }
+  .encadre p:last-child{ margin-bottom:0; }
+
+  .attention{ background:#fdf6f2; border-left-color:#c1662f; }
+  .attention .titre{ color:#a8541f; }
+
+  /* ---------- Accès ---------- */
+  .acces{
+    border:1px solid var(--filet); border-radius:3px;
+    margin:5mm 0; page-break-inside:avoid; overflow:hidden;
+  }
+  .acces .bandeau{
+    background:linear-gradient(90deg,var(--or-clair),var(--or) 55%,var(--or-fonce));
+    height:3px;
+  }
+  .acces .corps{ padding:5mm 6mm; }
+  .acces dl{ margin:0; display:grid; grid-template-columns:38mm 1fr; row-gap:2.6mm; }
+  .acces dt{ color:var(--gris); font-size:9.5pt; }
+  .acces dd{ margin:0; color:var(--encre); font-weight:600; word-break:break-word; }
+  .aremplir{
+    display:inline-block; min-width:52mm; border-bottom:1px dotted var(--or);
+    color:var(--gris); font-weight:400; font-style:italic;
+  }
+
+  /* ---------- Tableaux ---------- */
+  table{ width:100%; border-collapse:collapse; margin:4mm 0; font-size:10pt; page-break-inside:avoid; }
+  th{
+    text-align:left; font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--gris); font-weight:600; padding:0 0 2mm; border-bottom:1px solid var(--filet);
+  }
+  td{ padding:2.6mm 0; border-bottom:1px solid #f2ece1; vertical-align:top; }
+  td:first-child{ color:var(--encre); font-weight:600; width:42mm; padding-right:5mm; }
+
+  /* ---------- Sommaire ---------- */
+  .sommaire{ margin:6mm 0 0; }
+  .sommaire div{
+    display:flex; align-items:baseline; gap:3mm;
+    padding:2.4mm 0; border-bottom:1px dotted var(--filet);
+  }
+  .sommaire .num{
+    font-family:Georgia,serif; color:var(--or); font-size:11pt; width:9mm;
+  }
+  .sommaire .quoi{ color:var(--encre); }
+  .sommaire .desc{ color:var(--gris); font-size:9.5pt; margin-left:auto; text-align:right; }
+
+  /* ---------- Étapes ---------- */
+  .etapes{ counter-reset:e; margin:4mm 0; }
+  .etape{
+    counter-increment:e; position:relative; padding-left:11mm; margin-bottom:4mm;
+    page-break-inside:avoid;
+  }
+  .etape::before{
+    content:counter(e); position:absolute; left:0; top:-0.5mm;
+    width:7mm; height:7mm; border-radius:50%;
+    background:var(--creme); border:1px solid var(--or);
+    color:var(--or-fonce); font-family:Georgia,serif; font-size:10pt;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .etape b{ color:var(--encre); }
+
+  .fin{
+    text-align:center; margin-top:14mm; padding-top:8mm;
+    border-top:1px solid var(--filet); color:var(--gris); font-size:9.5pt;
+  }
+  .fin .marque-fin{
+    font-family:Georgia,serif; font-size:10pt; letter-spacing:.4em;
+    text-transform:uppercase; color:var(--or); margin-bottom:2mm;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ COUVERTURE ═══════════ -->
+<section class="couverture">
+  <p class="marque">Entre Maman et Moi</p>
+  <h1>Guide de prise<br>en main</h1>
+  <div class="filet-or"></div>
+  <p class="accroche">Votre site internet, expliqué simplement</p>
+  <p class="pied">Préparé par VBWEB · Juillet 2026</p>
+</section>
+
+<!-- ═══════════ SOMMAIRE + ACCÈS ═══════════ -->
+<section class="page">
+  <p class="chapitre">Bienvenue</p>
+  <h2>Votre site vous appartient</h2>
+
+  <p class="intro">Ce guide vous accompagne pas à pas. Aucune compétence technique n'est
+  nécessaire : tout se fait depuis un espace privé, avec des boutons et des formulaires,
+  comme lorsque vous remplissez un document.</p>
+
+  <p>Vous pouvez modifier vos textes, vos photos, vos plats, vos tarifs et vos dates
+  d'ateliers vous-même, à tout moment, sans passer par nous. Rien de ce que vous ferez
+  ne peut casser le site : en cas de doute, il suffit de nous appeler.</p>
+
+  <div class="sommaire">
+    <div><span class="num">1</span><span class="quoi">Vos accès</span><span class="desc">Adresse, identifiant, mot de passe</span></div>
+    <div><span class="num">2</span><span class="quoi">Se connecter la première fois</span><span class="desc">En trois étapes</span></div>
+    <div><span class="num">3</span><span class="quoi">Le tableau de bord</span><span class="desc">Votre vue d'ensemble</span></div>
+    <div><span class="num">4</span><span class="quoi">Commandes et réservations</span><span class="desc">Le cœur de votre activité</span></div>
+    <div><span class="num">5</span><span class="quoi">Vos plats et vos ateliers</span><span class="desc">Ajouter, modifier, masquer</span></div>
+    <div><span class="num">6</span><span class="quoi">Fidéliser vos clients</span><span class="desc">Promos, cartes cadeaux, newsletter</span></div>
+    <div><span class="num">7</span><span class="quoi">Modifier les textes du site</span><span class="desc">Pages et blog</span></div>
+    <div><span class="num">8</span><span class="quoi">Les réglages</span><span class="desc">À ne toucher qu'en cas de besoin</span></div>
+    <div><span class="num">9</span><span class="quoi">Ce que vous recevez par email</span><span class="desc">Les alertes automatiques</span></div>
+    <div><span class="num">10</span><span class="quoi">Votre argent</span><span class="desc">Où voir les paiements</span></div>
+  </div>
+</section>
+
+<!-- ═══════════ 1. ACCÈS ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 1</p>
+  <h2>Vos accès</h2>
+
+  <p class="intro">Conservez cette page. Elle contient tout ce dont vous avez besoin
+  pour entrer dans votre espace.</p>
+
+  <div class="acces">
+    <div class="bandeau"></div>
+    <div class="corps">
+      <dl>
+        <dt>Votre site</dt>
+        <dd>entre-maman-et-moi.fr</dd>
+        <dt>Votre espace privé</dt>
+        <dd>entre-maman-et-moi.fr/admin</dd>
+        <dt>Identifiant</dt>
+        <dd>entremamanetmoicook@gmail.com</dd>
+        <dt>Mot de passe</dt>
+        <dd><span class="aremplir">&nbsp;</span></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="encadre">
+    <p class="titre">Le mot de passe</p>
+    <p>Il vous est communiqué séparément, par téléphone ou par message — jamais dans
+    un document. Si vous l'oubliez, aucune inquiétude : sur la page de connexion,
+    cliquez sur <strong>« Mot de passe oublié »</strong> et vous recevrez un lien
+    pour en choisir un nouveau sur cette même adresse Gmail.</p>
+  </div>
+
+  <h3>Quelques précautions simples</h3>
+  <ul>
+    <li>Ne partagez ce mot de passe avec personne. Il donne accès à vos commandes et à vos clients.</li>
+    <li>Évitez de vous connecter depuis un ordinateur public.</li>
+    <li>Si vous pensez que quelqu'un d'autre le connaît, changez-le : c'est immédiat et gratuit.</li>
+  </ul>
+</section>
+
+<!-- ═══════════ 2. PREMIÈRE CONNEXION ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 2</p>
+  <h2>Se connecter la première fois</h2>
+
+  <div class="etapes">
+    <div class="etape">
+      <b>Ouvrez votre navigateur</b> — Chrome, Safari, Edge, celui que vous utilisez
+      d'habitude. Tapez <strong>entre-maman-et-moi.fr/admin</strong> dans la barre
+      d'adresse, tout en haut.
+    </div>
+    <div class="etape">
+      <b>Saisissez vos identifiants</b> — votre adresse Gmail et le mot de passe qui
+      vous a été communiqué. Le site vous emmène automatiquement vers la page de
+      connexion s'il ne vous reconnaît pas encore.
+    </div>
+    <div class="etape">
+      <b>Vous y êtes.</b> Vous arrivez sur votre tableau de bord. À gauche, un menu
+      vous donne accès à toutes les rubriques.
+    </div>
+  </div>
+
+  <div class="encadre">
+    <p class="titre">Notre conseil</p>
+    <p>Ajoutez cette page à vos favoris dès la première visite. Sur téléphone, vous
+    pouvez même l'ajouter à votre écran d'accueil : elle s'ouvrira comme une
+    application. L'espace fonctionne aussi bien sur ordinateur que sur mobile.</p>
+  </div>
+
+  <h3>Si vous n'arrivez pas à vous connecter</h3>
+  <ul>
+    <li>Vérifiez qu'il n'y a pas d'espace avant ou après votre adresse email.</li>
+    <li>Le mot de passe distingue les majuscules des minuscules.</li>
+    <li>En dernier recours, utilisez « Mot de passe oublié ». C'est sans risque.</li>
+  </ul>
+</section>
+
+<!-- ═══════════ 3. TABLEAU DE BORD ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 3</p>
+  <h2>Le tableau de bord</h2>
+
+  <p class="intro">C'est la page qui s'affiche à votre arrivée. Elle vous donne l'essentiel
+  en un coup d'œil, sans avoir à chercher.</p>
+
+  <p>Vous y retrouvez vos chiffres du moment — commandes récentes, réservations à venir,
+  ventes — ainsi que des raccourcis vers les rubriques que vous utilisez le plus.</p>
+
+  <h3>Le menu de gauche, rubrique par rubrique</h3>
+
+  <table>
+    <tr><th>Rubrique</th><th>Ce que vous y faites</th></tr>
+    <tr><td>Dashboard</td><td>Votre vue d'ensemble, le point de départ</td></tr>
+    <tr><td>Commandes</td><td>Les achats passés sur la boutique en ligne</td></tr>
+    <tr><td>Réservations</td><td>Le Click &amp; Collect et les inscriptions aux ateliers</td></tr>
+    <tr><td>Clients</td><td>La liste des personnes qui ont commandé</td></tr>
+    <tr><td>Produits</td><td>Vos plats, vos box, vos kits et leurs prix</td></tr>
+    <tr><td>Ateliers</td><td>Vos sessions, leurs dates et leurs places</td></tr>
+    <tr><td>Avis</td><td>Les commentaires laissés par vos clients</td></tr>
+    <tr><td>Codes promo</td><td>Les réductions ponctuelles</td></tr>
+    <tr><td>Cartes cadeaux</td><td>Les cartes vendues et leur solde</td></tr>
+    <tr><td>Marketing</td><td>Vos outils de visibilité</td></tr>
+    <tr><td>Newsletter</td><td>Vos abonnés et vos envois groupés</td></tr>
+    <tr><td>Emails</td><td>Les messages automatiques envoyés à vos clients</td></tr>
+    <tr><td>Blog</td><td>Vos articles et recettes</td></tr>
+    <tr><td>Pages</td><td>Les textes et photos de votre site</td></tr>
+    <tr><td>Réglages</td><td>Vos informations, la livraison, la facturation</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════ 4. COMMANDES ET RÉSERVATIONS ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 4</p>
+  <h2>Commandes et réservations</h2>
+
+  <p class="intro">C'est ici que vous passerez le plus clair de votre temps. Chaque vente
+  arrive automatiquement, sans aucune manipulation de votre part.</p>
+
+  <h3>Réservations — Click &amp; Collect et ateliers</h3>
+
+  <p>Dès qu'une personne commande à emporter ou réserve un atelier et règle en ligne,
+  sa réservation apparaît immédiatement dans cette rubrique. Vous y voyez son nom, son
+  téléphone, les plats choisis, la date et l'heure de retrait, ainsi que son éventuel
+  commentaire — allergies, demande particulière.</p>
+
+  <p>Vous pouvez faire évoluer chaque réservation selon son avancement : en attente,
+  confirmée, terminée. Cela vous sert de journal de bord pour la journée.</p>
+
+  <div class="encadre">
+    <p class="titre">Bon à savoir</p>
+    <p>Le paiement est encaissé <strong>au moment de la commande</strong>, en ligne.
+    Quand le client vient récupérer son repas, il n'a plus rien à régler. Vous n'avez
+    qu'à préparer et remettre la commande.</p>
+  </div>
+
+  <h3>Commandes — la boutique en ligne</h3>
+
+  <p>Les achats de box, kits et produits expédiés arrivent dans « Commandes ». Vous y
+  trouvez le détail des articles, l'adresse de livraison ou le point relais choisi, et
+  le montant réglé. Vous pouvez suivre chaque commande jusqu'à sa livraison et générer
+  une facture si le client en demande une.</p>
+
+  <h3>Clients</h3>
+
+  <p>Chaque personne ayant commandé apparaît dans cette liste, avec son historique.
+  Pratique pour retrouver une commande passée ou reconnaître un habitué.</p>
+</section>
+
+<!-- ═══════════ 5. PRODUITS ET ATELIERS ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 5</p>
+  <h2>Vos plats et vos ateliers</h2>
+
+  <p class="intro">Vous pouvez tout modifier vous-même : ajouter un plat, changer un prix,
+  retirer une formule de la carte le temps d'une saison.</p>
+
+  <h3>Les produits</h3>
+
+  <p>Dans « Produits », vous retrouvez l'ensemble de ce que vous vendez : les plats du
+  Click &amp; Collect, les box et les kits. Pour chacun, vous pouvez modifier le nom, la
+  description, le prix et la photo.</p>
+
+  <ul>
+    <li><strong>Ajouter un plat</strong> — bouton « Ajouter », vous remplissez le formulaire, vous enregistrez. Il apparaît aussitôt sur le site.</li>
+    <li><strong>Changer un prix</strong> — vous ouvrez le plat, vous corrigez le montant, vous enregistrez.</li>
+    <li><strong>Retirer un plat sans le supprimer</strong> — désactivez-le. Il disparaît du site mais reste dans votre liste, prêt à revenir.</li>
+    <li><strong>Les photos</strong> — elles sont redimensionnées automatiquement. Inutile de vous soucier de leur poids ou de leur format.</li>
+  </ul>
+
+  <div class="encadre">
+    <p class="titre">Le bon réflexe</p>
+    <p>Préférez toujours <strong>désactiver</strong> plutôt que supprimer. Un plat
+    supprimé disparaît définitivement, avec sa description et sa photo. Un plat désactivé
+    se remet en ligne en un clic.</p>
+  </div>
+
+  <h3>Les ateliers</h3>
+
+  <p>Dans « Ateliers », vous gérez vos sessions : l'intitulé, la date, le lieu, le tarif
+  et le nombre de places. Quand une session est complète, elle cesse automatiquement
+  d'être réservable — vous n'avez rien à surveiller.</p>
+
+  <p>Pour proposer une nouvelle date, vous ajoutez simplement une session. Elle apparaît
+  aussitôt sur la page des ateliers.</p>
+</section>
+
+<!-- ═══════════ 6. FIDÉLISER ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 6</p>
+  <h2>Fidéliser vos clients</h2>
+
+  <p class="intro">Trois outils sont à votre disposition. Vous n'êtes pas obligée de tous
+  les utiliser — prenez-les quand vous en avez l'usage.</p>
+
+  <h3>Les codes promo</h3>
+  <p>Vous créez un code — par exemple <strong>BIENVENUE10</strong> — auquel vous associez
+  une réduction en pourcentage ou en euros. Vous pouvez limiter sa durée de validité ou
+  le nombre d'utilisations. Le client le saisit au moment de payer.</p>
+
+  <h3>Les cartes cadeaux</h3>
+  <p>Vos clients peuvent en acheter directement sur le site : la carte est envoyée par
+  email au bénéficiaire, avec un code. Vous pouvez aussi en créer une vous-même depuis
+  cette rubrique, par exemple pour une vente sur un marché ou un geste commercial.</p>
+  <p>Chaque carte est valable un an et son solde est consultable à tout moment.</p>
+
+  <h3>La newsletter</h3>
+  <p>Les visiteurs qui laissent leur adresse sur le site apparaissent dans « Newsletter ».
+  Vous pouvez leur écrire à tous en une fois : nouvelle carte, prochain atelier, actualité
+  de la saison. Vous rédigez votre message, vous prévisualisez, vous envoyez.</p>
+
+  <div class="encadre">
+    <p class="titre">Notre conseil</p>
+    <p>Mieux vaut un message par mois, court et sincère, qu'un envoi hebdomadaire.
+    Vos abonnés se désinscrivent rarement quand on ne les sollicite pas trop.</p>
+  </div>
+
+  <h3>Les avis</h3>
+  <p>Les commentaires laissés par vos clients arrivent dans « Avis ». Vous décidez de
+  ceux que vous publiez sur le site. Rien ne s'affiche sans votre accord.</p>
+</section>
+
+<!-- ═══════════ 7. TEXTES ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 7</p>
+  <h2>Modifier les textes du site</h2>
+
+  <p class="intro">Vous n'avez besoin de personne pour changer une phrase, une photo ou
+  un horaire. Tout est modifiable depuis votre espace.</p>
+
+  <h3>Les pages</h3>
+
+  <p>La rubrique « Pages » regroupe les textes et images de votre site. Chaque champ est
+  clairement nommé — titre, accroche, photo — et pré-rempli avec ce qui est affiché
+  aujourd'hui. Vous modifiez ce que vous voulez, vous enregistrez, et le site est à jour
+  dans la minute.</p>
+
+  <table>
+    <tr><th>Page</th><th>Ce que vous pouvez y changer</th></tr>
+    <tr><td>Accueil</td><td>Les grandes accroches, les photos, les mises en avant</td></tr>
+    <tr><td>Traiteur</td><td>Les textes de présentation de vos formules</td></tr>
+    <tr><td>Atelier à domicile</td><td>Le descriptif et les conditions</td></tr>
+    <tr><td>Contact</td><td>Vos horaires, votre adresse, votre téléphone</td></tr>
+    <tr><td>Éléments communs</td><td>Le pied de page, vos réseaux sociaux</td></tr>
+  </table>
+
+  <h3>Le blog</h3>
+
+  <p>Vous pouvez publier des articles : une recette, le récit d'un atelier, une actualité.
+  L'éditeur ressemble à un traitement de texte — vous écrivez, vous mettez en gras, vous
+  insérez une photo.</p>
+
+  <p>Un article peut être enregistré en brouillon et publié plus tard. Écrire régulièrement
+  aide votre site à mieux ressortir dans les résultats Google.</p>
+
+  <div class="encadre">
+    <p class="titre">Si vous hésitez</p>
+    <p>Écrivez d'abord votre texte dans un document, tranquillement, puis copiez-le dans
+    le site. C'est plus confortable, et vous gardez une trace.</p>
+  </div>
+</section>
+
+<!-- ═══════════ 8. RÉGLAGES ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 8</p>
+  <h2>Les réglages</h2>
+
+  <p class="intro">Cette rubrique contient les informations de fond de votre boutique.
+  On y va rarement — mais il est bon de savoir ce qui s'y trouve.</p>
+
+  <table>
+    <tr><th>Onglet</th><th>À quoi ça sert</th></tr>
+    <tr><td>Général</td><td>Le nom de la boutique, votre logo, votre adresse, votre email de contact</td></tr>
+    <tr><td>Livraison</td><td>Les frais d'expédition et le seuil de gratuité</td></tr>
+    <tr><td>TVA / Facture</td><td>Les mentions et la numérotation de vos factures</td></tr>
+    <tr><td>Analytics</td><td>Le suivi de fréquentation de votre site</td></tr>
+    <tr><td>Légal</td><td>Votre SIRET et vos mentions obligatoires</td></tr>
+    <tr><td>Clés API</td><td>Les raccordements techniques — paiement, envoi d'emails</td></tr>
+  </table>
+
+  <div class="encadre attention">
+    <p class="titre">Un seul onglet à ne pas toucher</p>
+    <p>L'onglet <strong>« Clés API »</strong> contient les codes qui relient votre site à
+    la banque et au service d'envoi des emails. Si l'un d'eux est modifié par erreur,
+    les paiements ou les emails s'arrêtent aussitôt.</p>
+    <p>Vous pouvez le consulter sans crainte — mais n'y modifiez rien sans nous appeler.</p>
+  </div>
+
+  <h3>L'email de contact</h3>
+
+  <p>Dans l'onglet « Général », le champ <strong>Email de contact</strong> détermine
+  l'adresse qui reçoit toutes vos alertes : commandes, réservations, messages du
+  formulaire. Il est réglé sur <strong>entremamanetmoicook@gmail.com</strong>.</p>
+
+  <p>Si vous changez un jour d'adresse, modifiez-la ici et les notifications suivront
+  immédiatement. C'est le seul endroit à corriger.</p>
+</section>
+
+<!-- ═══════════ 9. EMAILS REÇUS ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 9</p>
+  <h2>Ce que vous recevez par email</h2>
+
+  <p class="intro">Vous n'avez pas besoin de surveiller votre site. Il vous prévient.</p>
+
+  <p>Toutes les alertes arrivent sur <strong>entremamanetmoicook@gmail.com</strong>.
+  Chaque message contient l'essentiel : vous pouvez souvent agir sans même ouvrir votre
+  espace d'administration.</p>
+
+  <table>
+    <tr><th>Quand</th><th>Ce que vous recevez</th></tr>
+    <tr><td>Commande Click &amp; Collect</td><td>Le nom, le téléphone, les plats, l'heure de retrait, le commentaire</td></tr>
+    <tr><td>Réservation d'atelier</td><td>Le nom, le téléphone, la session, le nombre de participants</td></tr>
+    <tr><td>Commande boutique</td><td>Le détail des articles et l'adresse de livraison</td></tr>
+    <tr><td>Carte cadeau vendue</td><td>Le montant, le code et l'acheteur</td></tr>
+    <tr><td>Message du formulaire</td><td>Le message, avec réponse directe possible</td></tr>
+  </table>
+
+  <div class="encadre">
+    <p class="titre">Répondre à un client</p>
+    <p>Vous pouvez répondre directement à ces emails : votre réponse part vers le client,
+    pas vers le site. Inutile de recopier son adresse.</p>
+  </div>
+
+  <div class="encadre">
+    <p class="titre">Si un email n'arrive pas</p>
+    <p>Vérifiez d'abord vos spams, et marquez le message comme « non indésirable » —
+    les suivants arriveront directement dans votre boîte de réception.</p>
+  </div>
+</section>
+
+<!-- ═══════════ 10. ARGENT ═══════════ -->
+<section class="page">
+  <p class="chapitre">Chapitre 10</p>
+  <h2>Votre argent</h2>
+
+  <p class="intro">Les paiements de vos clients arrivent sur votre compte bancaire, sans
+  passer par personne d'autre.</p>
+
+  <h3>Comment ça fonctionne</h3>
+
+  <p>Quand un client règle sur le site, son paiement est traité par <strong>Stripe</strong>,
+  le service bancaire de votre boutique. L'argent est ensuite versé automatiquement sur
+  votre compte, généralement sous quelques jours.</p>
+
+  <p>Votre compte Stripe est à votre nom, rattaché à l'adresse
+  <strong>viji.tinot@gmail.com</strong>. Vous seule y avez accès.</p>
+
+  <div class="acces">
+    <div class="bandeau"></div>
+    <div class="corps">
+      <dl>
+        <dt>Voir vos paiements</dt>
+        <dd>dashboard.stripe.com</dd>
+        <dt>Identifiant</dt>
+        <dd>viji.tinot@gmail.com</dd>
+        <dt>Titulaire du compte</dt>
+        <dd>Entre maman et moi</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h3>Ce que vous y trouvez</h3>
+  <ul>
+    <li>Le détail de chaque paiement reçu</li>
+    <li>Les virements effectués vers votre compte bancaire</li>
+    <li>La possibilité de rembourser un client en quelques clics</li>
+  </ul>
+
+  <div class="encadre">
+    <p class="titre">Rembourser un client</p>
+    <p>Cela se fait depuis Stripe, pas depuis votre site : vous ouvrez le paiement
+    concerné et vous cliquez sur « Rembourser ». La somme repart sur la carte du client
+    sous quelques jours. Si vous n'êtes pas à l'aise, appelez-nous, nous le ferons
+    ensemble la première fois.</p>
+  </div>
+</section>
+
+<!-- ═══════════ FIN ═══════════ -->
+<section class="page">
+  <p class="chapitre">Pour finir</p>
+  <h2>Une question, un doute ?</h2>
+
+  <p class="intro">Il n'y a pas de mauvaise question. Mieux vaut un appel de deux minutes
+  qu'une manipulation qui vous inquiète.</p>
+
+  <h3>Les trois réflexes utiles</h3>
+
+  <div class="etapes">
+    <div class="etape"><b>En cas de doute, n'enregistrez pas.</b> Tant que vous n'avez pas
+    cliqué sur « Enregistrer », rien n'est modifié. Vous pouvez quitter la page sans crainte.</div>
+    <div class="etape"><b>Désactivez plutôt que de supprimer.</b> C'est réversible, et cela
+    vous évite de perdre un texte ou une photo.</div>
+    <div class="etape"><b>Ne modifiez jamais l'onglet « Clés API ».</b> C'est le seul endroit
+    qui peut interrompre les paiements ou les emails.</div>
+  </div>
+
+  <h3>Nous contacter</h3>
+
+  <div class="acces">
+    <div class="bandeau"></div>
+    <div class="corps">
+      <dl>
+        <dt>VBWEB</dt>
+        <dd>contact@vbweb.fr</dd>
+        <dt>Téléphone</dt>
+        <dd><span class="aremplir">&nbsp;</span></dd>
+      </dl>
+    </div>
+  </div>
+
+  <p>N'hésitez pas non plus à nous écrire si vous souhaitez une nouvelle fonctionnalité,
+  une page supplémentaire ou un coup de main pour une opération particulière.</p>
+
+  <div class="fin">
+    <p class="marque-fin">Entre Maman et Moi</p>
+    <p>Box culinaires indiennes &amp; ateliers · Vern-sur-Seiche<br>
+    Site réalisé par VBWEB · Juillet 2026</p>
+  </div>
+</section>
+
+</body>
+</html>

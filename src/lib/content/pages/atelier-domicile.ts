@@ -51,7 +51,7 @@ export const atelierADomicilePage: ContentPageDef = {
           type: "image",
           label: "Photo (affichée si aucune vidéo)",
           help: "Format portrait recommandé (4:5).",
-          default: "https://i.ibb.co/qLvzCsJS/Viji.jpg",
+          default: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/qLvzCsJS-viji.jpg",
         },
       ],
     },

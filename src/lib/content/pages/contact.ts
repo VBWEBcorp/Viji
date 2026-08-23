@@ -56,7 +56,7 @@ export const contactPage: ContentPageDef = {
           type: "image",
           label: "Photo (colonne de gauche)",
           help: "Format portrait recommandé (4:5).",
-          default: "https://i.ibb.co/F4318X0S/Ourka-citron.jpg",
+          default: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/F4318X0S-ourka-citron.jpg",
         },
       ],
     },

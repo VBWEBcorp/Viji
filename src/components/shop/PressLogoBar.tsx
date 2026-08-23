@@ -73,7 +73,7 @@ export default function PressLogoBar() {
 function OuestFranceMark() {
   return (
     <Image
-      src="https://i.ibb.co/PvNPqYJp/Ouest-france.png"
+      src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/PvNPqYJp-ouest-france.png"
       alt="Ouest France"
       width={200}
       height={80}
@@ -86,7 +86,7 @@ function OuestFranceMark() {
 function ActuRennesMark() {
   return (
     <Image
-      src="https://i.ibb.co/pq7xWvp/Actu-Rennes.webp"
+      src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/pq7xWvp-actu-rennes.webp"
       alt="Actu Rennes"
       width={280}
       height={120}

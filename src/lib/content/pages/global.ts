@@ -19,7 +19,7 @@ export const footerComponent: ContentPageDef = {
       title: "Bloc de marque",
       fields: [
         { key: "footer_eyebrow", type: "text", label: "Surtitre", default: "À Vern-sur-Seiche · cuisine indienne maison" },
-        { key: "footer_logo", type: "image", label: "Logo", default: "https://i.ibb.co/5WWqVbC2/cropped-Entre-Maman-Et-Moi-1.png" },
+        { key: "footer_logo", type: "image", label: "Logo", default: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/5WWqVbC2-cropped-entre-maman-et-moi-1.png" },
         { key: "footer_tagline", type: "text", label: "Accroche", default: "Voyagez au cœur de l'Inde, depuis votre cuisine." },
       ],
     },

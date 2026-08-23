@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Heart, MapPin, Send, Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
 
-const EMM_LOGO_SRC = "https://i.ibb.co/V0XmmQRt/logo-entre-maman-et-moi.jpg";
+const EMM_LOGO_SRC = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/V0XmmQRt-logo-entre-maman-et-moi.jpg";
 
 type Block = { type: "p" | "h4"; text: string };
 
@@ -28,7 +28,7 @@ const ARTICLES: PressArticle[] = [
     id: "ouest-france",
     publication: "Ouest France",
     publicationLogo: {
-      src: "https://i.ibb.co/PvNPqYJp/Ouest-france.png",
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/PvNPqYJp-ouest-france.png",
       alt: "Ouest France",
       width: 280,
       height: 110,
@@ -38,7 +38,7 @@ const ARTICLES: PressArticle[] = [
     cityTagColor: "#E2001A",
     title: "Viji Tinot veut faire découvrir la cuisine indienne",
     photo: {
-      src: "https://i.ibb.co/27cYB8tN/viji-article.png",
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/27cYB8tN-viji-article.png",
       alt: "Viji Tinot dans sa cuisine",
       caption: "Viji Tinot a lancé son activité sous le nom de Entre Maman et moi.",
       credit: "OUEST-FRANCE",
@@ -73,7 +73,7 @@ const ARTICLES: PressArticle[] = [
     id: "actu-rennes",
     publication: "Actu Rennes",
     publicationLogo: {
-      src: "https://i.ibb.co/pq7xWvp/Actu-Rennes.webp",
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/pq7xWvp-actu-rennes.webp",
       alt: "Actu Rennes",
       width: 280,
       height: 110,
@@ -83,7 +83,7 @@ const ARTICLES: PressArticle[] = [
     cityTagColor: "#30A1EF",
     title: "Ex-architecte, elle fait revivre la cuisine indienne de sa maman",
     photo: {
-      src: "https://i.ibb.co/LfK771p/Viji-actu-rennes.jpg",
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/LfK771p-viji-actu-rennes.jpg",
       alt: "Viji Tinot avec ses box Entre Maman et Moi",
       caption:
         "Grâce aux recettes de sa mère, la cuisine indienne n'a plus de secrets pour Viji Tinot.",

@@ -19,7 +19,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "@/contexts/CartContext";
 
-const LOGO_SRC = "https://i.ibb.co/5WWqVbC2/cropped-Entre-Maman-Et-Moi-1.png";
+const LOGO_SRC = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/5WWqVbC2-cropped-entre-maman-et-moi-1.png";
 
 const KIT_LINKS = [
   { href: "/kits/decouverte", label: "Kit Découverte", tagline: "L'initiation" },

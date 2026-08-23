@@ -80,7 +80,7 @@ export default function CartDrawer() {
               <span className="absolute inset-6 rounded-full border border-[var(--brand-gold)]/20" />
               <div className="relative w-32 h-32 md:w-36 md:h-36 animate-spin-slow opacity-90 drop-shadow-md">
                 <Image
-                  src="https://i.ibb.co/cKKfhCLf/Bol-seul.png"
+                  src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/cKKfhCLf-bol-seul.png"
                   alt=""
                   fill
                   className="object-contain"

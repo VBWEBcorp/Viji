@@ -74,7 +74,7 @@ export const SESSIONS: AtelierSession[] = [
     slug: "atelier-samoussa",
     shortTitle: "Atelier samoussa",
     title: "Atelier samoussa indien",
-    image: "https://i.ibb.co/j9dDKVbS/Entr-samoussas.jpg",
+    image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/j9dDKVbS-entr-samoussas.jpg",
     occurrences: [
       {
         date: "Samedi 13 juin 2026",
@@ -117,7 +117,7 @@ export const SESSIONS: AtelierSession[] = [
     slug: "poulet-pommes-de-terre-riz-citron",
     shortTitle: "Poulet & riz au citron",
     title: "Poulet aux pommes de terre & riz au citron",
-    image: "https://i.ibb.co/8LKgk2jg/Beef-lemon-rice.jpg",
+    image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/8LKgk2jg-beef-lemon-rice.jpg",
     occurrences: [
       {
         date: "Samedi 6 juin 2026",
@@ -151,7 +151,7 @@ export const SESSIONS: AtelierSession[] = [
     slug: "poulet-tikka-masala",
     shortTitle: "Poulet tikka masala",
     title: "Poulet tikka masala & raïta",
-    image: "https://i.ibb.co/gF9GBhD7/Poulet-Tandoori.jpg",
+    image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gF9GBhD7-poulet-tandoori.jpg",
     occurrences: [
       {
         date: "Samedi 20 juin 2026",
