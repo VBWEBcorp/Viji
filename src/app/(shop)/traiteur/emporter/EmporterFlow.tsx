@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ArrowLeft, Check, Minus, Plus, X, ClipboardList, ShieldCheck } from "lucide-react";
 import {
   Elements,
@@ -11,6 +11,13 @@ import {
 } from "@stripe/react-stripe-js";
 import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
+import {
+  HEURE_LIMITE,
+  ajouteJours,
+  commandesDuJourCloses,
+  libelleJour,
+  premiereDateRetrait,
+} from "@/lib/traiteur-horaires";
 
 export type Dish = {
   _id: string;
@@ -37,6 +44,8 @@ const SECTION_ORDER = [
 
 interface Props {
   items: Dish[];
+  /** Heure du serveur au chargement : c'est elle qui ouvre ou ferme les commandes. */
+  serverNow: string;
 }
 
 type SelectedDish = { dish: Dish; qty: number };
@@ -52,12 +61,24 @@ function formatEUR(cents: number) {
   return (cents / 100).toFixed(2).replace(".", ",") + " €";
 }
 
-export default function EmporterFlow({ items }: Props) {
+export default function EmporterFlow({ items, serverNow }: Props) {
   // Clé publique servie par le serveur (Réglages admin), pour qu'elle provienne
   // toujours du même compte Stripe que la clé secrète.
   const { stripePromise, stripeUnavailable } = useStripePromise();
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  // Horloge calée sur le serveur, qu'on fait avancer localement : la page
+  // bascule d'elle-même à 17h sans que le visiteur ait à la recharger, et une
+  // horloge de navigateur mal réglée ne peut ni ouvrir ni fermer les commandes.
+  const [now, setNow] = useState(() => new Date(serverNow));
+  useEffect(() => {
+    const depart = new Date(serverNow).getTime();
+    const monte = Date.now();
+    const id = setInterval(() => setNow(new Date(depart + (Date.now() - monte))), 15_000);
+    return () => clearInterval(id);
+  }, [serverNow]);
+
+  const closes = commandesDuJourCloses(now);
+  const premierJour = premiereDateRetrait(now);
 
   // Plats groupés par section (ordre canonique puis ordre custom).
   const grouped = useMemo(() => {
@@ -133,8 +154,14 @@ export default function EmporterFlow({ items }: Props) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [pickupDate, setPickupDate] = useState(today);
+  const [pickupDate, setPickupDate] = useState(premierJour);
   const [pickupTime, setPickupTime] = useState("");
+
+  // 17h sonne pendant que le client remplit son panier : on ne perd pas sa
+  // sélection, on décale simplement le retrait au premier jour encore ouvert.
+  useEffect(() => {
+    setPickupDate((d) => (d < premierJour ? premierJour : d));
+  }, [premierJour]);
   const [comment, setComment] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -161,6 +188,12 @@ export default function EmporterFlow({ items }: Props) {
       setError("Choisissez un créneau de retrait.");
       return;
     }
+    if (pickupDate < premierJour) {
+      setError(
+        `Les commandes d'aujourd'hui sont closes : nous prenons les dernières jusqu'à ${HEURE_LIMITE}h. Choisissez un retrait à partir de demain.`
+      );
+      return;
+    }
 
     setSubmitting(true);
 
@@ -169,6 +202,7 @@ export default function EmporterFlow({ items }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          pickupDate,
           items: selectedEntries.map((e) => ({ id: e.dish._id, quantity: e.qty })),
         }),
       });
@@ -404,6 +438,43 @@ export default function EmporterFlow({ items }: Props) {
             </p>
           </div>
 
+          {/* Passé 17h, on ne prend plus pour le jour même. On le dit gentiment
+              et on propose les jours suivants : la sélection reste intacte. */}
+          {closes && !done && (
+            <div className="mb-8 border border-[var(--brand-gold)]/30 bg-[var(--brand-cream)]/50 px-6 sm:px-10 py-9 text-center">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--brand-gold)] mb-4">
+                Commandes du jour closes
+              </p>
+              <p className="font-serif text-[20px] md:text-[22px] text-gray-900 mb-4">
+                C&rsquo;est terminé pour aujourd&rsquo;hui
+              </p>
+              <p className="text-[13px] text-gray-600 leading-relaxed max-w-md mx-auto">
+                Nous prenons les dernières commandes à {HEURE_LIMITE}h : tout est cuisiné maison,
+                et il nous faut un peu d&rsquo;avance pour bien faire les choses.
+              </p>
+              <p className="text-[13px] text-gray-600 leading-relaxed max-w-md mx-auto mt-3">
+                Votre sélection est gardée — choisissez simplement un retrait pour un prochain jour.
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-7">
+                {[premierJour, ajouteJours(premierJour, 1)].map((jour) => (
+                  <button
+                    key={jour}
+                    type="button"
+                    onClick={() => setPickupDate(jour)}
+                    className={`px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-medium border transition ${
+                      pickupDate === jour
+                        ? "bg-[var(--brand-gold)] text-white border-[var(--brand-gold)]"
+                        : "bg-white text-gray-700 border-[var(--brand-gold)]/40 hover:border-[var(--brand-gold)]"
+                    }`}
+                  >
+                    {libelleJour(jour, now)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-10 py-10 sm:py-12">
             {done ? (
               <div className="text-center py-6">
@@ -621,7 +692,7 @@ export default function EmporterFlow({ items }: Props) {
                     <input
                       type="date"
                       required
-                      min={today}
+                      min={premierJour}
                       value={pickupDate}
                       onChange={(e) => setPickupDate(e.target.value)}
                       className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition"

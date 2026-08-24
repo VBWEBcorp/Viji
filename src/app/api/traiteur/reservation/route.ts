@@ -11,6 +11,16 @@ import {
 import { computeTraiteurAmount } from "@/lib/traiteur";
 import Reservation from "@/models/Reservation";
 import { generateReservationNumber } from "@/lib/utils";
+import { verifieDateRetrait } from "@/lib/traiteur-horaires";
+
+/**
+ * Le paiement est deja encaisse quand on arrive ici : la vraie fermeture se
+ * joue avant, dans create-payment-intent. On laisse donc passer le quart
+ * d'heure qui suit 17h, le temps qu'un client engage juste avant la limite
+ * finisse de saisir sa carte. Refuser ici, ce serait faire payer quelqu'un
+ * pour lui annoncer ensuite que sa commande n'existe pas.
+ */
+const TOLERANCE_APRES_PAIEMENT_MS = 15 * 60_000;
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis").max(120),
@@ -46,6 +56,14 @@ export async function POST(req: NextRequest) {
     const data = schema.parse(body);
 
     if (data.website) return NextResponse.json({ ok: true });
+
+    const dateFermee = verifieDateRetrait(
+      data.pickupDate,
+      new Date(Date.now() - TOLERANCE_APRES_PAIEMENT_MS)
+    );
+    if (dateFermee) {
+      return NextResponse.json({ error: dateFermee }, { status: 400 });
+    }
 
     await connectDB();
 

@@ -3,11 +3,19 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { computeTraiteurAmount } from "@/lib/traiteur";
+import { verifieDateRetrait } from "@/lib/traiteur-horaires";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
 const STRIPE_MIN_CHARGE = 50;
 
 const schema = z.object({
+  /**
+   * Date de retrait souhaitee. C'est ici que se joue la fermeture de 17h :
+   * on refuse avant d'encaisser, jamais apres. Optionnelle pour ne pas casser
+   * une page deja ouverte dans un navigateur au moment d'une mise en ligne —
+   * l'enregistrement final revalide de toute facon.
+   */
+  pickupDate: z.string().optional(),
   items: z
     .array(
       z.object({
@@ -24,7 +32,17 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { items } = schema.parse(body);
+    const { items, pickupDate } = schema.parse(body);
+
+    // Champ absent = page ouverte avant la mise en ligne, on laisse passer et
+    // l'enregistrement final tranchera. Champ present mais vide = requete
+    // bricolee : elle ne doit pas contourner la fermeture.
+    if (pickupDate !== undefined) {
+      const dateFermee = verifieDateRetrait(pickupDate);
+      if (dateFermee) {
+        return NextResponse.json({ error: dateFermee }, { status: 400 });
+      }
+    }
 
     const computed = await computeTraiteurAmount(items);
     if (!computed) {

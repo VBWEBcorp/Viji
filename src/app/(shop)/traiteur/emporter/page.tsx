@@ -89,6 +89,11 @@ export default async function TraiteurEmporterPage() {
                 </span>
               </div>
             </div>
+
+            <p className="mt-7 pt-5 border-t border-[var(--brand-gold)]/15 text-[12px] text-gray-500 leading-relaxed">
+              Dernière commande à <span className="text-[var(--brand-gold)] font-medium">17h</span> pour
+              un retrait le jour même — tout est cuisiné maison.
+            </p>
           </div>
 
           {/* Card Adresse */}
@@ -112,8 +117,10 @@ export default async function TraiteurEmporterPage() {
         </div>
       </section>
 
-      {/* Menu + formulaire : flow interactif client */}
-      <EmporterFlow items={items} />
+      {/* Menu + formulaire : flow interactif client.
+          L'heure vient d'ici : la page est en force-dynamic, donc elle est
+          relue a chaque visite, et l'horloge du visiteur ne decide de rien. */}
+      <EmporterFlow items={items} serverNow={new Date().toISOString()} />
 
       {/* CTA événementiel */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
