@@ -129,10 +129,46 @@ function markdownToHtml(md: string): string {
 
 // Les pages blog sont déjà en rendu dynamique ; on rafraîchit quand même le
 // sitemap et la liste, qui peuvent être servis depuis le cache.
-function refresh(slugs: string[]): void {
+/*
+ * Vider le cache de Netlify, celui qui est DEVANT Next.
+ *
+ * `revalidatePath` ne vide que le cache de Next. Netlify garde sa propre copie de la page
+ * (« Durable Cache ») et la sert PERIMEE pendant qu'il revalide en arriere-plan. Mesure faite
+ * sur un article reel : deux minutes apres une publication, le CDN repondait encore
+ * `Cache-Status: "Netlify Durable"; fwd=stale; ttl=-8447` — une copie vieille de 2 h 20.
+ * L'article etait a jour en base, a jour dans Next, et personne ne le voyait : celui qui
+ * corrigeait une coquille rechargeait la page et n'y trouvait rien change.
+ *
+ * Le jeton et l'identifiant du site sont injectes dans les fonctions a l'execution : hors
+ * Netlify ils sont absents et il n'y a rien a purger. Une purge ratee ne fait jamais echouer
+ * une publication reussie.
+ */
+async function purgerCacheNetlify(): Promise<void> {
+  const token = process.env.NETLIFY_PURGE_API_TOKEN;
+  const siteId = process.env.SITE_ID ?? process.env.NETLIFY_SITE_ID;
+  if (!token || !siteId) {
+    console.log('[phare] purge Netlify ignoree (hors Netlify ou jeton absent)');
+    return;
+  }
+  try {
+    const r = await fetch('https://api.netlify.com/api/v1/purge', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ site_id: siteId }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    console.log(`[phare] purge Netlify : ${r.status}`);
+  } catch (e) {
+    console.warn('[phare] purge Netlify impossible :', e);
+  }
+}
+
+
+async function refresh(slugs: string[]): Promise<void> {
   revalidatePath(BLOG_BASE);
   for (const slug of slugs) revalidatePath(`${BLOG_BASE}/${slug}`);
   revalidatePath("/sitemap.xml");
+  await purgerCacheNetlify();
 }
 
 export async function POST(req: Request) {
@@ -198,7 +234,7 @@ export async function POST(req: Request) {
       }
 
       await BlogPost.deleteMany({ slug: { $in: slugs } });
-      refresh(slugs);
+      await refresh(slugs);
 
       // Idempotent : si l'article n'existait pas (ou plus), le but est atteint.
       return NextResponse.json({ deleted: true });
@@ -263,7 +299,7 @@ export async function POST(req: Request) {
       { upsert: true }
     );
 
-    refresh([slug]);
+    await refresh([slug]);
 
     return NextResponse.json(
       { url: `${SITE_URL}${BLOG_BASE}/${slug}` },
