@@ -453,7 +453,7 @@ export default function EmporterFlow({ items, serverNow }: Props) {
                 et il nous faut un peu d&rsquo;avance pour bien faire les choses.
               </p>
               <p className="text-[13px] text-gray-600 leading-relaxed max-w-md mx-auto mt-3">
-                Votre sélection est gardée — choisissez simplement un retrait pour un prochain jour.
+                Votre sélection est gardée. Choisissez simplement un retrait pour un prochain jour.
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3 mt-7">

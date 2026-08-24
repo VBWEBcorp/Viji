@@ -92,7 +92,7 @@ export default async function TraiteurEmporterPage() {
 
             <p className="mt-7 pt-5 border-t border-[var(--brand-gold)]/15 text-[12px] text-gray-500 leading-relaxed">
               Dernière commande à <span className="text-[var(--brand-gold)] font-medium">17h</span> pour
-              un retrait le jour même — tout est cuisiné maison.
+              un retrait le jour même. Tout est cuisiné maison.
             </p>
           </div>
 
