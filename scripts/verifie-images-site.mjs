@@ -2,6 +2,7 @@
  *  la demande (/_next/image), pas seulement l URL du bucket : c est le seul
  *  controle qui attrape un domaine absent de next.config.
  *  Usage : node scripts/verifie-images-site.mjs <dossier-avec-pages.txt> */
+import fs from "node:fs";
 const SP = process.argv[2];
 const pages = fs.readFileSync(`${SP}/pages.txt`,"utf8").split("\n").map(s=>s.trim()).filter(Boolean);
 const ORIGIN = "https://entre-maman-et-moi.fr";
