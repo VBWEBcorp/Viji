@@ -1,0 +1,164 @@
+[
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c5976a",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/vCvRn5N0/Chutney-Tomate.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c5976c",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/RTtVzWbJ/Chutney.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c5976e",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/RT04pLXX/Samoussa.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59770",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/rRBb7kvC/Prawn-Curry.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59772",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/gF9GBhD7/Poulet-Tandoori.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59774",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/Ldqj1Qc8/Poulet-korma.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59776",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/gLLnvsYg/Beef-Rice-Lemon.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59778",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/V0zrhQHt/Poori.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c5977a",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/Gv2r1Hk6/Vindaye.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "69fc9b262a438c3203c59782",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/qLvzCsJS/Viji.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "6a077b457a6959a453cf4b0b",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/tTqdZjjS/Citronade-indienne.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "6a077b457a6959a453cf4b07",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/KcVCgbMz/Raita-oignon.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "6a077b457a6959a453cf4b09",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/Kx5rKtGN/Halwa.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "6a077b457a6959a453cf4b08",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/F4318X0S/Ourka-citron.jpg"
+  },
+  {
+    "collection": "products",
+    "id": "6a077b457a6959a453cf4b0a",
+    "path": "images.0.url",
+    "url": "https://i.ibb.co/HfXy27N9/Lassi-sucr.jpg"
+  },
+  {
+    "collection": "orders",
+    "id": "69fcc8bc4dee36d135694c50",
+    "path": "items.0.image",
+    "url": "https://i.ibb.co/rRBb7kvC/Prawn-Curry.jpg"
+  },
+  {
+    "collection": "orders",
+    "id": "69fcd7a44dee36d135694c6e",
+    "path": "items.0.image",
+    "url": "https://i.ibb.co/vCvRn5N0/Chutney-Tomate.jpg"
+  },
+  {
+    "collection": "orders",
+    "id": "6a01df124dee36d135694c9d",
+    "path": "items.0.image",
+    "url": "https://i.ibb.co/rRBb7kvC/Prawn-Curry.jpg"
+  },
+  {
+    "collection": "blogposts",
+    "id": "69fc9b262a438c3203c59762",
+    "path": "coverImage",
+    "url": "https://i.ibb.co/RTtVzWbJ/Chutney.jpg"
+  },
+  {
+    "collection": "blogposts",
+    "id": "69fc9b262a438c3203c59763",
+    "path": "coverImage",
+    "url": "https://i.ibb.co/20jSHkwJ/Riz-au-citron.jpg"
+  },
+  {
+    "collection": "blogposts",
+    "id": "69fc9b262a438c3203c59764",
+    "path": "coverImage",
+    "url": "https://i.ibb.co/8LKgk2jg/Beef-lemon-rice.jpg"
+  },
+  {
+    "collection": "categories",
+    "id": "69fc9b262a438c3203c59765",
+    "path": "image",
+    "url": "https://i.ibb.co/RT04pLXX/Samoussa.jpg"
+  },
+  {
+    "collection": "categories",
+    "id": "69fc9b262a438c3203c59766",
+    "path": "image",
+    "url": "https://i.ibb.co/gF9GBhD7/Poulet-Tandoori.jpg"
+  },
+  {
+    "collection": "categories",
+    "id": "69fc9b262a438c3203c59767",
+    "path": "image",
+    "url": "https://i.ibb.co/gLLnvsYg/Beef-Rice-Lemon.jpg"
+  },
+  {
+    "collection": "ateliersessions",
+    "id": "6a6b0b50819e045bc8ef7bd5",
+    "path": "image",
+    "url": "https://i.ibb.co/j9dDKVbS/Entr-samoussas.jpg"
+  },
+  {
+    "collection": "ateliersessions",
+    "id": "6a6b0b50819e045bc8ef7bd6",
+    "path": "image",
+    "url": "https://i.ibb.co/8LKgk2jg/Beef-lemon-rice.jpg"
+  },
+  {
+    "collection": "ateliersessions",
+    "id": "6a6b0b50819e045bc8ef7bd7",
+    "path": "image",
+    "url": "https://i.ibb.co/gF9GBhD7/Poulet-Tandoori.jpg"
+  }
+]

@@ -2,7 +2,7 @@
  * Sessions d'ateliers collectifs.
  *
  * Pour ajouter une nouvelle session : pousser un nouvel objet dans le tableau
- * en suivant le même schéma. Les images sont des URLs externes (ibb.co,
+ * en suivant le même schéma. Les images sont des URLs externes (bucket R2 du client,
  * unsplash, etc.). Le slug devient l'URL `/ateliers/collectif/<slug>`.
  *
  * Tant qu'on n'a pas d'admin dédié, on édite ce fichier à la main.

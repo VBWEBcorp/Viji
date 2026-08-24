@@ -12,7 +12,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const NEW_IMAGE = "https://i.ibb.co/qLvzCsJS/Viji.jpg";
+const NEW_IMAGE = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/qLvzCsJS-viji.jpg";
 
 await mongoose.connect(process.env.MONGODB_URI);
 const Product = mongoose.connection.db.collection("products");
