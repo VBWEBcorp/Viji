@@ -22,6 +22,9 @@ interface PharePayload {
   action?: string;
   title?: string;
   slug?: string;
+  // Date de publication à afficher (ISO). PHARE l'envoie quand l'article est programmé à une
+  // date passée ; absente, c'est l'instant du dépôt.
+  publishedAt?: string;
   html?: string;
   markdown?: string;
   metaTitle?: string;
@@ -171,6 +174,14 @@ async function refresh(slugs: string[]): Promise<void> {
   await purgerCacheNetlify();
 }
 
+// La date envoyée par PHARE, ou rien si elle est absente ou illisible : on ne tamponne jamais
+// une date fausse, on retombe sur maintenant.
+function parsePublishedAt(value: unknown): Date | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export async function POST(req: Request) {
   // 1. Secret partagé
   const secret = process.env.PHARE_WEBHOOK_SECRET;
@@ -272,6 +283,10 @@ export async function POST(req: Request) {
 
     const jsonLd = jsonLdToString(body.jsonLd);
     const now = new Date();
+    // Date de publication affichée : celle de PHARE quand il en donne une (article programmé à
+    // une date passée), sinon maintenant. Posée à la création seulement : une mise à jour n'est
+    // pas une nouvelle publication.
+    const publishedAt = parsePublishedAt(body.publishedAt) ?? now;
 
     // 7. UPSERT par slug — jamais de doublon si PHARE renvoie le même article
     const res = await BlogPost.updateOne(
@@ -294,7 +309,7 @@ export async function POST(req: Request) {
           // Déposé EN LIGNE : il sort dans /blog et à son adresse.
           isPublished: true,
         },
-        $setOnInsert: { publishedAt: now, category: "Actualités" },
+        $setOnInsert: { publishedAt, category: "Actualités" },
       },
       { upsert: true }
     );
