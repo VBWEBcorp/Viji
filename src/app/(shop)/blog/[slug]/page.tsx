@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/og-image";
 
 // Rendu dynamique : relit l'article à chaque visite pour que les modifications
 // faites dans l'admin apparaissent immédiatement.
@@ -24,6 +25,16 @@ export async function generateMetadata({
   return {
     title: post.seo?.metaTitle || post.title,
     description: post.seo?.metaDescription || post.excerpt,
+    openGraph: {
+      type: "article",
+      title: post.seo?.metaTitle || post.title,
+      description: post.seo?.metaDescription || post.excerpt,
+      images: post.coverImage ? [post.coverImage] : [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [post.coverImage || OG_IMAGE.url],
+    },
   };
 }
 

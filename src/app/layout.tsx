@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/shop/Providers";
 import Analytics from "@/components/shop/Analytics";
+import { OG_IMAGE } from "@/lib/og-image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +22,17 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://entre-maman-et-moi.fr"),
+  openGraph: {
+    type: "website",
+    siteName: "Entre Maman et Moi",
+    locale: "fr_FR",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og.png"],
+  },
   title: {
     default: "Entre Maman et Moi · Box culinaires indiennes & ateliers",
     template: "%s | Entre Maman et Moi",
