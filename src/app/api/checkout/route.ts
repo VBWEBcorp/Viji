@@ -8,6 +8,7 @@ import SiteSettings from "@/models/SiteSettings";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/resend";
+import { getEtatCanal, messageCanalFerme } from "@/lib/disponibilite";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import crypto from "node:crypto";
@@ -81,6 +82,17 @@ const checkoutSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
+
+    // Boutique suspendue depuis l'admin (absence, vacances) : on refuse avant
+    // de créer la commande et l'intention de paiement.
+    const etatBoutique = await getEtatCanal("boutique");
+    if (!etatBoutique.ouvert) {
+      return NextResponse.json(
+        { error: messageCanalFerme(etatBoutique) },
+        { status: 503 }
+      );
+    }
+
     const body = await req.json();
     const validated = checkoutSchema.parse(body);
 

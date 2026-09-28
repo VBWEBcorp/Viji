@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendEmail } from "@/lib/resend";
 import { getNotificationEmail } from "@/lib/notify";
+import {
+  buildAtelierCustomerEmail,
+  getCoordonneesBoutique,
+} from "@/lib/reservation-emails";
 import { connectDB } from "@/lib/db";
 import {
   getStripe,
@@ -20,7 +24,9 @@ const schema = z.object({
   sessionLocation: z.string().max(200).optional().or(z.literal("")),
   name: z.string().min(1, "Nom requis").max(120),
   phone: z.string().min(6, "Téléphone requis").max(40),
-  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  // Obligatoire : c'est l'adresse à laquelle part la confirmation de
+  // réservation. Sans elle, le client paie sans jamais recevoir de trace.
+  email: z.string().email("Email invalide"),
   participants: z.coerce.number().int().min(1).max(20),
   notes: z.string().max(2000).optional().or(z.literal("")),
   // Paiement Stripe confirmé côté client : on le re-vérifie ici avant d'enregistrer.
@@ -104,8 +110,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Persistance : la réservation devient visible dans l'admin (source de vérité).
+    const reservationNumber = generateReservationNumber();
     await Reservation.create({
-      reservationNumber: generateReservationNumber(),
+      reservationNumber,
       type: "atelier",
       customerName: data.name,
       customerPhone: data.phone,
@@ -143,15 +150,48 @@ export async function POST(req: NextRequest) {
   </div>
 </body></html>`;
 
-    const replyToValue: string | undefined =
-      data.email && data.email.length > 0 ? data.email : undefined;
+    // Deux envois indépendants, tous deux best-effort : la réservation est déjà
+    // payée et enregistrée, un email qui échoue ne doit ni la faire disparaître
+    // ni empêcher l'autre envoi. Les échecs restent visibles dans les logs.
 
-    await sendEmail({
-      to: await getNotificationEmail(),
-      subject: `Réservation atelier PAYÉE – ${data.name} – ${data.sessionTitle}`,
-      html,
-      ...(replyToValue ? { replyTo: replyToValue } : {}),
-    });
+    // 1. Confirmation au client : c'est elle qui manquait, alors que l'écran de
+    //    fin de paiement l'annonçait déjà.
+    try {
+      await sendEmail({
+        to: data.email,
+        subject: `Votre réservation est confirmée : ${data.sessionTitle}`,
+        html: buildAtelierCustomerEmail({
+          reservationNumber,
+          name: data.name,
+          sessionTitle: data.sessionTitle,
+          sessionDate: data.sessionDate,
+          sessionLocation: data.sessionLocation || undefined,
+          participants: data.participants,
+          amount: pi.amount,
+          notes: data.notes || undefined,
+          coordonnees: await getCoordonneesBoutique(),
+        }),
+        replyTo: await getNotificationEmail(),
+        kind: "confirmation-atelier",
+        reference: reservationNumber,
+      });
+    } catch (err) {
+      console.error("Confirmation client (atelier) non envoyée:", err);
+    }
+
+    // 2. Notification interne à la boutique.
+    try {
+      await sendEmail({
+        to: await getNotificationEmail(),
+        subject: `Réservation atelier PAYÉE : ${data.name} · ${data.sessionTitle}`,
+        html,
+        replyTo: data.email,
+        kind: "notification-atelier",
+        reference: reservationNumber,
+      });
+    } catch (err) {
+      console.error("Notification interne (atelier) non envoyée:", err);
+    }
 
     // Marque le paiement comme traité pour empêcher tout rejeu (double envoi
     // si le client renvoie la requête avec le même PaymentIntent).

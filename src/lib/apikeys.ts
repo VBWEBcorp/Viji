@@ -1,5 +1,6 @@
 import { connectDB } from "./db";
 import SiteSettings from "@/models/SiteSettings";
+import { resoudreExpediteur } from "./expediteur";
 
 interface ApiKeys {
   stripeSecretKey: string;
@@ -13,6 +14,7 @@ interface ApiKeys {
   sendcloudSecretKey: string;
   resendApiKey: string;
   resendFromEmail: string;
+  resendWebhookSecret: string;
 }
 
 let cachedKeys: ApiKeys | null = null;
@@ -53,10 +55,19 @@ export async function getApiKeys(): Promise<ApiKeys> {
     sendcloudSecretKey:
       dbKeys.sendcloudSecretKey || process.env.SENDCLOUD_SECRET_KEY || "",
     resendApiKey: dbKeys.resendApiKey || process.env.RESEND_API_KEY || "",
-    resendFromEmail:
-      dbKeys.resendFromEmail ||
-      process.env.RESEND_FROM_EMAIL ||
-      `${settings?.shopName || "Ma Boutique"} <noreply@${settings?.contactEmail?.split("@")[1] || "example.com"}>`,
+    resendWebhookSecret:
+      dbKeys.resendWebhookSecret || process.env.RESEND_WEBHOOK_SECRET || "",
+    // L'expéditeur ne se prend pas au mot : une adresse d'essai Resend est
+    // écartée au profit du domaine du site, seul capable d'écrire aux clients.
+    // Voir `src/lib/expediteur.ts`.
+    resendFromEmail: resoudreExpediteur({
+      configuree:
+        dbKeys.resendFromEmail ||
+        process.env.RESEND_FROM_EMAIL ||
+        `${settings?.shopName || "Ma Boutique"} <noreply@${settings?.contactEmail?.split("@")[1] || "example.com"}>`,
+      nomBoutique: settings?.shopName || "Ma Boutique",
+      urlSite: process.env.NEXT_PUBLIC_APP_URL || "",
+    }),
   };
 
   cacheTime = Date.now();

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { computeTraiteurAmount } from "@/lib/traiteur";
 import { verifieDateRetrait } from "@/lib/traiteur-horaires";
+import { getEtatCanal, messageCanalFerme } from "@/lib/disponibilite";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
 const STRIPE_MIN_CHARGE = 50;
@@ -30,6 +31,16 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
+
+    // Fermeture decidee dans l'admin (absence, vacances) : on refuse AVANT
+    // d'encaisser, au meme titre que la fermeture de 17h.
+    const etat = await getEtatCanal("traiteurEmporter");
+    if (!etat.ouvert) {
+      return NextResponse.json(
+        { error: messageCanalFerme(etat) },
+        { status: 503 }
+      );
+    }
 
     const body = await req.json();
     const { items, pickupDate } = schema.parse(body);

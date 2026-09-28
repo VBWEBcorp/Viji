@@ -13,6 +13,8 @@ import PromoCodeInput, { type AppliedPromo } from "@/components/shop/PromoCodeIn
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
+import CanalFerme from "@/components/shop/CanalFerme";
+import type { EtatCanal } from "@/lib/disponibilite";
 
 // Chargé une seule fois au niveau module : Stripe.js doit rester unique sur la page.
 interface CartItem {
@@ -96,6 +98,21 @@ export default function CheckoutPage() {
   // Indique si la commande a déclenché la création d'un nouveau compte.
   // Sert à choisir le bon message sur l'écran de confirmation.
   const [createdNewAccount, setCreatedNewAccount] = useState(false);
+
+  // Boutique suspendue depuis l'admin : l'API refuse déjà la commande, cet état
+  // sert à le dire au client avant qu'il ne saisisse quoi que ce soit.
+  const [fermeture, setFermeture] = useState<EtatCanal | null>(null);
+
+  useEffect(() => {
+    fetch("/api/disponibilite?canal=boutique")
+      .then((r) => r.json())
+      .then((etat) => {
+        if (etat && etat.ouvert === false) setFermeture(etat);
+      })
+      .catch(() => {
+        // Silencieux : le verrou serveur reste en place de toute façon.
+      });
+  }, []);
 
   // Remonte la page en haut à chaque changement d'étape, sinon Next.js conserve
   // le scroll position et le client se retrouve en bas de l'étape suivante.
@@ -252,6 +269,17 @@ export default function CheckoutPage() {
     return (
       <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] flex items-center justify-center">
         <p className="font-serif italic text-gray-500">Chargement…</p>
+      </div>
+    );
+  }
+
+  // ── Boutique suspendue ────────────────────────────────────────
+  // Placé après l'écran de confirmation pour ne pas effacer le récapitulatif
+  // d'une commande qui vient d'aboutir.
+  if (fermeture && step !== "confirmation") {
+    return (
+      <div className="bg-[var(--brand-cream)]/30 min-h-[80vh] py-20 md:py-28 px-4">
+        <CanalFerme etat={fermeture} />
       </div>
     );
   }

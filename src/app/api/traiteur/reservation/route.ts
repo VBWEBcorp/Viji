@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendEmail } from "@/lib/resend";
 import { getNotificationEmail } from "@/lib/notify";
+import {
+  buildTraiteurCustomerEmail,
+  getCoordonneesBoutique,
+} from "@/lib/reservation-emails";
 import { connectDB } from "@/lib/db";
 import {
   getStripe,
@@ -25,7 +29,9 @@ const TOLERANCE_APRES_PAIEMENT_MS = 15 * 60_000;
 const schema = z.object({
   name: z.string().min(1, "Nom requis").max(120),
   phone: z.string().min(6, "Téléphone requis").max(40),
-  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  // Obligatoire : c'est l'adresse à laquelle part la confirmation de commande.
+  // Sans elle, le client paie sans jamais recevoir de trace de son achat.
+  email: z.string().email("Email invalide"),
   pickupDate: z.string().min(1, "Date de retrait requise"),
   pickupTime: z.string().min(1, "Créneau de retrait requis"),
   /** Plats sélectionnés : identifiants + quantités. Les prix sont recalculés en base. */
@@ -123,8 +129,9 @@ export async function POST(req: NextRequest) {
     const total = computed.amount;
 
     // Persistance : la commande Click & Collect devient visible dans l'admin.
+    const reservationNumber = generateReservationNumber();
     await Reservation.create({
-      reservationNumber: generateReservationNumber(),
+      reservationNumber,
       type: "traiteur",
       customerName: data.name,
       customerPhone: data.phone,
@@ -187,15 +194,46 @@ export async function POST(req: NextRequest) {
   </div>
 </body></html>`;
 
-    const replyToValue: string | undefined =
-      data.email && data.email.length > 0 ? data.email : undefined;
+    // Deux envois indépendants, tous deux best-effort : la commande est déjà
+    // payée et enregistrée, un email qui échoue ne doit ni la faire disparaître
+    // ni empêcher l'autre envoi.
 
-    await sendEmail({
-      to: await getNotificationEmail(),
-      subject: `Click & Collect PAYÉ – ${data.name} – ${data.pickupDate} ${data.pickupTime}`,
-      html,
-      ...(replyToValue ? { replyTo: replyToValue } : {}),
-    });
+    // 1. Confirmation au client, avec le récapitulatif et l'heure de retrait.
+    try {
+      await sendEmail({
+        to: data.email,
+        subject: `Votre commande est confirmée : retrait le ${data.pickupDate} à ${data.pickupTime}`,
+        html: buildTraiteurCustomerEmail({
+          reservationNumber,
+          name: data.name,
+          pickupDate: data.pickupDate,
+          pickupTime: data.pickupTime,
+          lines: items,
+          total,
+          comment: data.comment || undefined,
+          coordonnees: await getCoordonneesBoutique(),
+        }),
+        replyTo: await getNotificationEmail(),
+        kind: "confirmation-traiteur",
+        reference: reservationNumber,
+      });
+    } catch (err) {
+      console.error("Confirmation client (traiteur) non envoyée:", err);
+    }
+
+    // 2. Notification interne à la boutique.
+    try {
+      await sendEmail({
+        to: await getNotificationEmail(),
+        subject: `Click & Collect PAYÉ : ${data.name} · ${data.pickupDate} ${data.pickupTime}`,
+        html,
+        replyTo: data.email,
+        kind: "notification-traiteur",
+        reference: reservationNumber,
+      });
+    } catch (err) {
+      console.error("Notification interne (traiteur) non envoyée:", err);
+    }
 
     // Marque le paiement comme traité pour empêcher tout rejeu.
     await stripe.paymentIntents.update(data.stripePaymentIntentId, {

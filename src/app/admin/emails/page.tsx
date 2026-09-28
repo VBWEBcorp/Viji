@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, Card, GoldButton } from "@/components/admin/ui";
+import JournalEmails from "@/components/admin/JournalEmails";
 
 interface EmailTemplate {
   _id: string;
@@ -162,6 +163,48 @@ export default function AdminEmailsPage() {
     }
   }
 
+  // Envoi de test reel. Le bouton se contentait d'afficher un message de succes
+  // sans rien envoyer : impossible de voir que Resend refusait les emails.
+  const [adresseTest, setAdresseTest] = useState("");
+  const [envoiEnCours, setEnvoiEnCours] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/emails/test")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.to) setAdresseTest(d.to);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function envoyerTest(template: EmailTemplate) {
+    if (!adresseTest.trim()) {
+      toast.error("Indiquez l'adresse qui doit recevoir le test.");
+      return;
+    }
+    setEnvoiEnCours(template.key);
+    try {
+      const res = await fetch("/api/emails/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: adresseTest.trim(),
+          subject: template.subject,
+          html: generatePreview(template),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Email envoyé à ${data.to}`);
+      } else {
+        toast.error(data.indice || data.error || "L'envoi a échoué.", { duration: 12000 });
+      }
+    } catch {
+      toast.error("Erreur réseau, réessayez.");
+    }
+    setEnvoiEnCours(null);
+  }
+
   function generatePreview(template: EmailTemplate): string {
     let html = template.body;
     for (const [key, info] of Object.entries(variableButtons)) {
@@ -192,6 +235,10 @@ export default function AdminEmailsPage() {
         title="Emails"
         subtitle={`Personnalisez les emails envoyés à vos clientes · ${activeCount} actif${activeCount > 1 ? "s" : ""} sur ${templates.length}`}
       />
+
+      {/* Journal des envois : la preuve qu'un email est bien parti, ou la
+          raison exacte pour laquelle il ne l'est pas. */}
+      <JournalEmails />
 
       {/* Templates */}
       <div className="space-y-3">
@@ -355,13 +402,22 @@ export default function AdminEmailsPage() {
                       )}
                     </GoldButton>
 
+                    <input
+                      type="email"
+                      value={adresseTest}
+                      onChange={(e) => setAdresseTest(e.target.value)}
+                      placeholder="adresse@exemple.com"
+                      className="px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300"
+                    />
+
                     <button
-                      onClick={() => {
-                        toast.success("Email de test envoyé (simulation)");
-                      }}
-                      className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.2em] text-gray-500 hover:text-[var(--brand-gold)] transition px-3 py-2.5"
+                      type="button"
+                      onClick={() => envoyerTest(template)}
+                      disabled={envoiEnCours === template.key}
+                      className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.2em] text-gray-500 hover:text-[var(--brand-gold)] transition px-3 py-2.5 disabled:opacity-50"
                     >
-                      <Send size={14} /> Envoyer un test
+                      <Send size={14} />
+                      {envoiEnCours === template.key ? "Envoi…" : "Envoyer un test"}
                     </button>
                   </div>
                 </div>

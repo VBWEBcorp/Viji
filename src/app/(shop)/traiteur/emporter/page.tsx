@@ -3,6 +3,8 @@ import { Clock, MapPin } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
+import { getEtatCanal } from "@/lib/disponibilite";
+import CanalFerme from "@/components/shop/CanalFerme";
 import EmporterFlow, { type Dish } from "./EmporterFlow";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
@@ -17,6 +19,10 @@ export const metadata = {
 
 export default async function TraiteurEmporterPage() {
   let items: Dish[] = [];
+
+  // Ouverture pilotée depuis Admin → Disponibilité. Fermée, la page reste en
+  // ligne (horaires, adresse, menu) mais la commande n'est plus proposée.
+  const etat = await getEtatCanal("traiteurEmporter");
 
   try {
     await connectDB();
@@ -120,7 +126,13 @@ export default async function TraiteurEmporterPage() {
       {/* Menu + formulaire : flow interactif client.
           L'heure vient d'ici : la page est en force-dynamic, donc elle est
           relue a chaque visite, et l'horloge du visiteur ne decide de rien. */}
-      <EmporterFlow items={items} serverNow={new Date().toISOString()} />
+      {etat.ouvert ? (
+        <EmporterFlow items={items} serverNow={new Date().toISOString()} />
+      ) : (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-20">
+          <CanalFerme etat={etat} />
+        </section>
+      )}
 
       {/* CTA événementiel */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">

@@ -5,6 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import AtelierForm from "../AtelierForm";
+import CanalFerme from "@/components/shop/CanalFerme";
+import { getEtatCanal } from "@/lib/disponibilite";
 import YouTubeShort from "@/components/shop/YouTubeShort";
 import { getContent } from "@/lib/content";
 
@@ -153,6 +155,9 @@ export default async function AtelierTypePage({ params }: { params: Promise<{ ty
   } catch {
     // ignore
   }
+
+  // Ouverture des réservations, pilotée depuis Admin → Disponibilité.
+  const etat = await getEtatCanal("ateliers");
 
   const price = atelier?.price ?? data.defaultPrice;
   const isQuoteOnly = type === "chef-prive";
@@ -323,13 +328,15 @@ export default async function AtelierTypePage({ params }: { params: Promise<{ ty
                   <ArrowRight size={13} />
                 </Link>
               </div>
-            ) : (
+            ) : etat.ouvert ? (
               <AtelierForm
                 productId={atelier?._id}
                 productName={data.title}
                 atelierSlug={`atelier-${type}`}
                 price={price}
               />
+            ) : (
+              <CanalFerme etat={etat} />
             )}
           </div>
         </div>

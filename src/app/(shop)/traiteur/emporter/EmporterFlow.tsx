@@ -681,7 +681,10 @@ export default function EmporterFlow({ items, serverNow }: Props) {
                   <Field label="Téléphone" type="tel" required value={phone} onChange={setPhone} placeholder="06 ..." autoComplete="tel" />
                 </div>
 
-                <Field label="Email (optionnel)" type="email" value={email} onChange={setEmail} placeholder="vous@exemple.com" autoComplete="email" />
+                <div>
+                  <Field label="Email" type="email" required value={email} onChange={setEmail} placeholder="vous@exemple.com" autoComplete="email" />
+                  <p className="mt-1.5 text-[11px] text-gray-400">Votre confirmation de commande y sera envoyée.</p>
+                </div>
 
                 {/* Créneau */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

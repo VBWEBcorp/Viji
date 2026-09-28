@@ -55,6 +55,18 @@ export interface ISiteSettings extends Document {
   integrations: {
     formspreeId?: string; // ex: xrgvozge
   };
+  /**
+   * Ouverture des canaux de vente. Permet de suspendre les commandes pendant
+   * une absence sans dépublier le site. Voir `src/lib/disponibilite.ts`.
+   */
+  availability: {
+    vacationMode?: boolean; // ferme les trois canaux d'un coup
+    message?: string; // texte affiché aux visiteurs
+    returnDate?: string; // « YYYY-MM-DD », annoncé aux visiteurs
+    traiteurEmporter?: boolean;
+    ateliers?: boolean;
+    boutique?: boolean;
+  };
   social: {
     facebook?: string;
     instagram?: string;
@@ -80,6 +92,8 @@ export interface ISiteSettings extends Document {
     sendcloudSecretKey?: string;
     resendApiKey?: string;
     resendFromEmail?: string;
+    /** Secret de signature du webhook Resend (suivi de remise). */
+    resendWebhookSecret?: string;
     mondialRelayBrandCode?: string;
   };
   updatedAt: Date;
@@ -158,6 +172,15 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     integrations: {
       formspreeId: { type: String },
     },
+    availability: {
+      vacationMode: { type: Boolean, default: false },
+      message: { type: String, default: "" },
+      returnDate: { type: String, default: "" },
+      // Par défaut tout est ouvert : un site fraîchement installé vend.
+      traiteurEmporter: { type: Boolean, default: true },
+      ateliers: { type: Boolean, default: true },
+      boutique: { type: Boolean, default: true },
+    },
     social: {
       facebook: { type: String },
       instagram: { type: String },
@@ -181,6 +204,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       sendcloudSecretKey: { type: String },
       resendApiKey: { type: String },
       resendFromEmail: { type: String },
+      resendWebhookSecret: { type: String },
       mondialRelayBrandCode: { type: String },
     },
   },

@@ -139,6 +139,8 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
       await sendEmail({
         to: customerEmail,
         subject: `Confirmation de votre commande ${order.orderNumber}`,
+        kind: "confirmation-commande",
+        reference: order.orderNumber,
         html: generateOrderConfirmationEmail({
           orderNumber: order.orderNumber,
           customerName: order.shippingAddress.name,
@@ -173,6 +175,8 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
       to: await getNotificationEmail(),
       subject: `Nouvelle commande – ${order.orderNumber} – ${formatEUR(order.total)}`,
       html: buildAdminOrderEmail(order, customerEmail),
+      kind: "notification-commande",
+      reference: order.orderNumber,
       ...(customerEmail ? { replyTo: customerEmail } : {}),
     });
   } catch (err) {

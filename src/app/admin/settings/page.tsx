@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Store, Mail, Truck, CreditCard, Shield, Eye, EyeOff, Check, Key, MapPin, BarChart3, FileText, Receipt, Plug } from "lucide-react";
+import { Store, Mail, Truck, CreditCard, Shield, Eye, EyeOff, Check, Key, MapPin, BarChart3, FileText, Receipt, Plug, CalendarClock, Palmtree } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, Card, GoldButton, Badge } from "@/components/admin/ui";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -51,6 +51,14 @@ interface Settings {
   integrations: {
     formspreeId: string;
   };
+  availability: {
+    vacationMode: boolean;
+    message: string;
+    returnDate: string;
+    traiteurEmporter: boolean;
+    ateliers: boolean;
+    boutique: boolean;
+  };
   social: {
     facebook: string;
     instagram: string;
@@ -74,6 +82,7 @@ interface Settings {
     sendcloudSecretKey: string;
     resendApiKey: string;
     resendFromEmail: string;
+    resendWebhookSecret: string;
     mondialRelayBrandCode: string;
   };
 }
@@ -107,6 +116,14 @@ const defaultSettings: Settings = {
   },
   analytics: { googleAnalyticsId: "", plausibleDomain: "", metaPixelId: "", customHeadScript: "" },
   integrations: { formspreeId: "" },
+  availability: {
+    vacationMode: false,
+    message: "",
+    returnDate: "",
+    traiteurEmporter: true,
+    ateliers: true,
+    boutique: true,
+  },
   social: { facebook: "", instagram: "", twitter: "", tiktok: "", youtube: "" },
   legal: { siret: "", tva: "", rcs: "", capital: "", legalForm: "" },
   apiKeys: {
@@ -118,6 +135,7 @@ const defaultSettings: Settings = {
     sendcloudSecretKey: "",
     resendApiKey: "",
     resendFromEmail: "",
+    resendWebhookSecret: "",
     mondialRelayBrandCode: "",
   },
 };
@@ -204,6 +222,14 @@ export default function AdminSettingsPage() {
             integrations: {
               formspreeId: data.integrations?.formspreeId || "",
             },
+            availability: {
+              vacationMode: data.availability?.vacationMode ?? false,
+              message: data.availability?.message || "",
+              returnDate: data.availability?.returnDate || "",
+              traiteurEmporter: data.availability?.traiteurEmporter ?? true,
+              ateliers: data.availability?.ateliers ?? true,
+              boutique: data.availability?.boutique ?? true,
+            },
             social: {
               facebook: data.social?.facebook || "",
               instagram: data.social?.instagram || "",
@@ -227,6 +253,7 @@ export default function AdminSettingsPage() {
               sendcloudSecretKey: data.apiKeys?.sendcloudSecretKey || "",
               resendApiKey: data.apiKeys?.resendApiKey || "",
               resendFromEmail: data.apiKeys?.resendFromEmail || "",
+              resendWebhookSecret: data.apiKeys?.resendWebhookSecret || "",
               mondialRelayBrandCode: data.apiKeys?.mondialRelayBrandCode || "",
             },
           });
@@ -250,6 +277,7 @@ export default function AdminSettingsPage() {
 
   const tabs = [
     { id: "general", label: "General", icon: Store },
+    { id: "availability", label: "Disponibilite", icon: CalendarClock },
     { id: "api", label: "Cles API", icon: Key },
     { id: "shipping", label: "Livraison", icon: Truck },
     { id: "tax", label: "TVA / Facture", icon: Receipt },
@@ -369,6 +397,139 @@ export default function AdminSettingsPage() {
         )}
 
         {/* API Keys */}
+        {/* Disponibilite */}
+        {activeTab === "availability" && (
+          <div className="space-y-6">
+            {/* Mode vacances */}
+            <Card className="p-5 sm:p-6 space-y-5">
+              <div>
+                <h2 className={sectionTitleCls}>
+                  <Palmtree size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Mode vacances
+                </h2>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  Ferme les trois canaux de vente d&apos;un seul coup, sans toucher aux
+                  interrupteurs ci-dessous. Au retour, il suffit de le decocher pour
+                  tout retrouver comme avant. Le site reste en ligne : seules les
+                  commandes et reservations sont suspendues.
+                </p>
+              </div>
+
+              <label className="flex items-start gap-3 p-4 border border-[var(--brand-gold)]/15 cursor-pointer hover:bg-[var(--brand-cream)]/40 transition">
+                <input
+                  type="checkbox"
+                  checked={settings.availability.vacationMode}
+                  onChange={(e) => setSettings({ ...settings, availability: { ...settings.availability, vacationMode: e.target.checked } })}
+                  className="w-4 h-4 mt-0.5 accent-[var(--brand-gold)]"
+                />
+                <div className="flex-1">
+                  <p className="text-[13px] font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                    Je suis absente, tout est ferme
+                    {settings.availability.vacationMode && <Badge tone="amber">Ventes suspendues</Badge>}
+                  </p>
+                  <p className="text-[12px] text-gray-500 mt-0.5">
+                    Traiteur a emporter, ateliers et boutique : plus aucun paiement n&apos;est accepte.
+                  </p>
+                </div>
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Date de reprise (optionnel)</label>
+                  <input
+                    type="date"
+                    value={settings.availability.returnDate}
+                    onChange={(e) => setSettings({ ...settings, availability: { ...settings.availability, returnDate: e.target.value } })}
+                    className={inputCls}
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1.5">
+                    Affichee aux visiteurs : « Reprise des commandes le mardi 9 septembre ».
+                    Cette date est indicative : rien ne se rouvre tout seul, vous
+                    decidez du moment ou vous reactivez.
+                  </p>
+                </div>
+                <div>
+                  <label className={labelCls}>Message affiche aux visiteurs (optionnel)</label>
+                  <textarea
+                    value={settings.availability.message}
+                    onChange={(e) => setSettings({ ...settings, availability: { ...settings.availability, message: e.target.value } })}
+                    rows={3}
+                    placeholder="Je suis en conges jusqu'au 9 septembre, les commandes reprendront a mon retour. Merci de votre patience !"
+                    className={inputCls}
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1.5">
+                    Laisse vide, un message neutre est affiche automatiquement.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Canaux au cas par cas */}
+            <Card className="p-5 sm:p-6 space-y-4">
+              <div>
+                <h2 className={sectionTitleCls}>
+                  <CalendarClock size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Fermer une activite seulement
+                </h2>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  Pour arreter une seule activite, par exemple le traiteur pendant deux
+                  jours en gardant les ateliers ouverts. Decochez ce que vous ne voulez
+                  plus vendre pour le moment.
+                  {settings.availability.vacationMode && (
+                    <span className="block mt-1 text-[var(--brand-gold-dark)]">
+                      Le mode vacances est actif : tout est deja ferme, ces reglages
+                      reprendront effet a votre retour.
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              {[
+                {
+                  cle: "traiteurEmporter" as const,
+                  titre: "Traiteur a emporter",
+                  detail: "Le menu reste visible, la commande Click & Collect est suspendue.",
+                },
+                {
+                  cle: "ateliers" as const,
+                  titre: "Ateliers",
+                  detail: "Les pages ateliers restent en ligne, la reservation est suspendue.",
+                },
+                {
+                  cle: "boutique" as const,
+                  titre: "Boutique en ligne",
+                  detail: "Les produits restent visibles, le paiement de la commande est bloque.",
+                },
+              ].map((canal) => (
+                <label
+                  key={canal.cle}
+                  className={`flex items-start gap-3 p-4 border border-[var(--brand-gold)]/15 transition ${settings.availability.vacationMode ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[var(--brand-cream)]/40"}`}
+                >
+                  <input
+                    type="checkbox"
+                    disabled={settings.availability.vacationMode}
+                    checked={settings.availability[canal.cle]}
+                    onChange={(e) => setSettings({ ...settings, availability: { ...settings.availability, [canal.cle]: e.target.checked } })}
+                    className="w-4 h-4 mt-0.5 accent-[var(--brand-gold)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-[13px] font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                      {canal.titre}
+                      {!settings.availability.vacationMode && !settings.availability[canal.cle] && (
+                        <Badge tone="amber">Ferme</Badge>
+                      )}
+                    </p>
+                    <p className="text-[12px] text-gray-500 mt-0.5">{canal.detail}</p>
+                  </div>
+                </label>
+              ))}
+
+              <p className="text-[11px] text-gray-400 pt-1">
+                La fermeture s&apos;applique en moins d&apos;une minute apres la sauvegarde,
+                sans remise en ligne du site.
+              </p>
+            </Card>
+          </div>
+        )}
+
         {activeTab === "api" && (
           <div className="space-y-6">
             {/* Stripe */}
@@ -494,6 +655,26 @@ export default function AdminSettingsPage() {
                   onChange={(e) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, resendFromEmail: e.target.value } })}
                   placeholder="Entre Maman et Moi <noreply@mondomaine.com>"
                   className={inputCls} />
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  Doit utiliser un domaine verifie sur resend.com/domains.
+                  L&apos;adresse de test <code>onboarding@resend.dev</code> n&apos;ecrit
+                  qu&apos;au titulaire du compte Resend : tous les emails aux clientes
+                  sont refuses, sans que rien ne le signale sur le site.
+                </p>
+              </div>
+              <div>
+                <label className={labelCls}>Secret du webhook (suivi de reception)</label>
+                <SecretInput value={settings.apiKeys.resendWebhookSecret}
+                  onChange={(v) => setSettings({ ...settings, apiKeys: { ...settings.apiKeys, resendWebhookSecret: v } })}
+                  placeholder="whsec_..." />
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  Sur resend.com/webhooks, ajoutez l&apos;URL
+                  <code> https://entre-maman-et-moi.fr/api/webhooks/resend </code>
+                  avec les evenements delivered, bounced, complained et
+                  delivery_delayed, puis collez ici le secret fourni. Le journal
+                  des envois affichera alors la reception reelle, et plus
+                  seulement l&apos;acceptation par Resend.
+                </p>
               </div>
             </Card>
           </div>

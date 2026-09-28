@@ -40,6 +40,21 @@ const TRAITEUR_LINKS = [
 
 type DropdownKey = "kits" | "ateliers" | "traiteur" | null;
 
+/**
+ * Remplace le sous-titre d'une entree de menu par une mention de fermeture.
+ * La cliente demandait que la page soit « indisponible » pendant ses absences :
+ * plutot que de faire disparaitre le lien (le visiteur ne comprend pas, et la
+ * page perd son referencement), le menu annonce lui-meme que c'est ferme.
+ */
+function marqueFermeture(
+  liens: { href: string; label: string; tagline: string }[],
+  fermes: Record<string, boolean>
+) {
+  return liens.map((lien) =>
+    fermes[lien.href] ? { ...lien, tagline: "Momentanément fermé" } : lien
+  );
+}
+
 export default function Header() {
   const { data: session } = useSession();
   const { itemCount, toggleCart } = useCart();
@@ -47,6 +62,30 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const [scrolled, setScrolled] = useState(false);
+
+  // Activites suspendues depuis l'admin : le menu le dit avant le clic.
+  const [fermes, setFermes] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/disponibilite")
+      .then((r) => r.json())
+      .then((d) => {
+        const c = d?.canaux;
+        if (!c) return;
+        setFermes({
+          "/traiteur/emporter": c.traiteurEmporter?.ouvert === false,
+          "/ateliers/a-domicile": c.ateliers?.ouvert === false,
+          "/ateliers/collectif": c.ateliers?.ouvert === false,
+          "/ateliers/chef-prive": c.ateliers?.ouvert === false,
+        });
+      })
+      .catch(() => {
+        // Le menu reste tel quel : la fermeture reelle est verrouillee cote serveur.
+      });
+  }, []);
+
+  const liensAteliers = marqueFermeture(ATELIER_LINKS, fermes);
+  const liensTraiteur = marqueFermeture(TRAITEUR_LINKS, fermes);
 
   useEffect(() => {
     let ticking = false;
@@ -165,7 +204,7 @@ export default function Header() {
 
             <Dropdown
               label="Ateliers"
-              links={ATELIER_LINKS}
+              links={liensAteliers}
               groupHref="/ateliers/collectif"
               isOpen={openDropdown === "ateliers"}
               onOpen={() => setOpenDropdown("ateliers")}
@@ -175,7 +214,7 @@ export default function Header() {
 
             <Dropdown
               label="Traiteur"
-              links={TRAITEUR_LINKS}
+              links={liensTraiteur}
               isOpen={openDropdown === "traiteur"}
               onOpen={() => setOpenDropdown("traiteur")}
               onClose={() => setOpenDropdown(null)}
@@ -241,6 +280,8 @@ export default function Header() {
         onClose={() => setMenuOpen(false)}
         session={session}
         pathname={pathname}
+        liensAteliers={liensAteliers}
+        liensTraiteur={liensTraiteur}
       />
     </header>
   );
@@ -396,11 +437,15 @@ function MobileDrawer({
   onClose,
   session,
   pathname,
+  liensAteliers,
+  liensTraiteur,
 }: {
   open: boolean;
   onClose: () => void;
   session: ReturnType<typeof useSession>["data"];
   pathname: string;
+  liensAteliers: { href: string; label: string; tagline: string }[];
+  liensTraiteur: { href: string; label: string; tagline: string }[];
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -466,13 +511,13 @@ function MobileDrawer({
           />
           <DrawerSection
             label="Ateliers"
-            links={ATELIER_LINKS}
+            links={liensAteliers}
             onClose={onClose}
             pathname={pathname}
           />
           <DrawerSection
             label="Traiteur"
-            links={TRAITEUR_LINKS}
+            links={liensTraiteur}
             onClose={onClose}
             pathname={pathname}
           />

@@ -5,6 +5,8 @@ import { Calendar, Clock, MapPin, ArrowLeft, ArrowDown } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import AtelierSession from "@/models/AtelierSession";
 import AtelierReservationForm from "./AtelierReservationForm";
+import CanalFerme from "@/components/shop/CanalFerme";
+import { getEtatCanal } from "@/lib/disponibilite";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +94,9 @@ export default async function AtelierSessionDetailPage({
   const { session } = await params;
   const data = await fetchSession(session);
   if (!data) notFound();
+
+  // Ouverture des réservations, pilotée depuis Admin → Disponibilité.
+  const etat = await getEtatCanal("ateliers");
 
   const firstOcc = data.occurrences[0];
   const hasMultiple = data.occurrences.length > 1;
@@ -236,14 +241,18 @@ export default async function AtelierSessionDetailPage({
             </p>
           </div>
 
-          <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-10 py-10 sm:py-12">
-            <AtelierReservationForm
-              sessionSlug={data.slug}
-              sessionTitle={data.title}
-              price={data.price}
-              occurrences={data.occurrences}
-            />
-          </div>
+          {etat.ouvert ? (
+            <div className="bg-white border border-[var(--brand-gold)]/15 px-6 sm:px-10 py-10 sm:py-12">
+              <AtelierReservationForm
+                sessionSlug={data.slug}
+                sessionTitle={data.title}
+                price={data.price}
+                occurrences={data.occurrences}
+              />
+            </div>
+          ) : (
+            <CanalFerme etat={etat} />
+          )}
         </div>
       </section>
     </div>

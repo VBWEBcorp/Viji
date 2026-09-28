@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import SiteSettings from "@/models/SiteSettings";
 import { invalidateApiKeysCache } from "@/lib/apikeys";
 import { invalidateNotificationEmailCache } from "@/lib/notify";
+import { invalidateDisponibiliteCache } from "@/lib/disponibilite";
+import { invalidateCoordonneesCache } from "@/lib/reservation-emails";
 
 // GET /api/settings
 export async function GET() {
@@ -42,9 +44,12 @@ export async function POST(req: NextRequest) {
       settings = await SiteSettings.create(body);
     }
 
-    // Invalider les caches dérivés des réglages (clés API, email de notification)
+    // Invalider les caches dérivés des réglages : une fermeture décidée dans
+    // l'admin doit prendre effet tout de suite, pas au bout d'une minute.
     invalidateApiKeysCache();
     invalidateNotificationEmailCache();
+    invalidateDisponibiliteCache();
+    invalidateCoordonneesCache();
 
     return NextResponse.json(settings);
   } catch (error) {

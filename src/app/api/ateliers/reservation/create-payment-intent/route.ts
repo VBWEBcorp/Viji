@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { resolveAtelierUnitPrice } from "@/lib/ateliers";
+import { getEtatCanal, messageCanalFerme } from "@/lib/disponibilite";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
 const STRIPE_MIN_CHARGE = 50;
@@ -19,6 +20,16 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
+
+    // Le vrai verrou d'une fermeture : on refuse AVANT d'encaisser. Une page
+    // laissée ouverte pendant la mise en pause ne doit pas pouvoir payer.
+    const etat = await getEtatCanal("ateliers");
+    if (!etat.ouvert) {
+      return NextResponse.json(
+        { error: messageCanalFerme(etat) },
+        { status: 503 }
+      );
+    }
 
     const body = await req.json();
     const { sessionSlug, participants } = schema.parse(body);
