@@ -16,6 +16,7 @@ import { computeTraiteurAmount } from "@/lib/traiteur";
 import Reservation from "@/models/Reservation";
 import { generateReservationNumber } from "@/lib/utils";
 import { verifieDateRetrait } from "@/lib/traiteur-horaires";
+import { compteUtilisation, remiseDuPaiement } from "@/lib/promo";
 
 /**
  * Le paiement est deja encaisse quand on arrive ici : la vraie fermeture se
@@ -112,7 +113,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (pi.amount !== computed.amount) {
+    // La remise d'un code promo est gravée dans le paiement à sa création.
+    const { promoCode, discount } = remiseDuPaiement(pi.metadata);
+    if (pi.amount !== computed.amount - discount) {
       return NextResponse.json(
         { error: "Montant du paiement incorrect" },
         { status: 400 }
@@ -126,7 +129,7 @@ export async function POST(req: NextRequest) {
     }
 
     const items = computed.lines;
-    const total = computed.amount;
+    const total = pi.amount;
 
     // Persistance : la commande Click & Collect devient visible dans l'admin.
     const reservationNumber = generateReservationNumber();
@@ -141,6 +144,8 @@ export async function POST(req: NextRequest) {
       pickupTime: data.pickupTime,
       notes: data.comment || undefined,
       amount: total,
+      promoCode: promoCode || undefined,
+      discount: discount || undefined,
       paymentId: pi.id,
       status: "pending",
     });
@@ -164,6 +169,7 @@ export async function POST(req: NextRequest) {
                     </tr>`
                 )
                 .join("")}
+              ${promoCode ? `<tr><td colspan="3" style="padding:14px 0 0;text-align:right;color:#374151;">Code promo ${escapeHtml(promoCode)} : -${formatEUR(discount)}</td></tr>` : ""}
               <tr><td colspan="3" style="padding:14px 0 0;text-align:right;font-weight:700;color:#15803d;">Payé en ligne : ${formatEUR(total)}</td></tr>
             </tbody>
           </table>`;
@@ -194,6 +200,15 @@ export async function POST(req: NextRequest) {
   </div>
 </body></html>`;
 
+    // Le code a servi : on le compte (best-effort, la commande est payée).
+    if (promoCode) {
+      try {
+        await compteUtilisation(promoCode);
+      } catch (err) {
+        console.error("Compteur du code promo non mis à jour:", err);
+      }
+    }
+
     // Deux envois indépendants, tous deux best-effort : la commande est déjà
     // payée et enregistrée, un email qui échoue ne doit ni la faire disparaître
     // ni empêcher l'autre envoi.
@@ -210,6 +225,7 @@ export async function POST(req: NextRequest) {
           pickupTime: data.pickupTime,
           lines: items,
           total,
+          promo: promoCode ? { code: promoCode, discount } : undefined,
           comment: data.comment || undefined,
           coordonnees: await getCoordonneesBoutique(),
         }),

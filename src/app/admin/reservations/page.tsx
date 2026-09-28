@@ -30,6 +30,8 @@ interface Reservation {
   pickupTime?: string;
   notes?: string;
   amount: number;
+  promoCode?: string;
+  discount?: number;
   status: Status;
   createdAt: string;
 }
@@ -264,6 +266,12 @@ function DetailModal({
             <Badge tone={statusMap[r.status].tone}>{statusMap[r.status].label}</Badge>
             <span className="font-serif text-2xl text-gray-900">{formatPrice(r.amount)}</span>
           </div>
+          {r.promoCode && (
+            <p className="text-[12px] text-gray-500 -mt-3 text-right">
+              Code promo <span className="font-mono text-gray-800">{r.promoCode}</span>
+              {r.discount ? <> · remise de {formatPrice(r.discount)}</> : null}
+            </p>
+          )}
 
           {/* Client */}
           <div className="space-y-2">

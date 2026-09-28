@@ -24,6 +24,7 @@ export default function DevisForm() {
           date: data.get("date"),
           guests: data.get("guests"),
           message: data.get("message"),
+          promoCode: data.get("promoCode"),
           _gotcha: data.get("_gotcha"),
           formType: "devis",
         }),
@@ -53,7 +54,10 @@ export default function DevisForm() {
         <Field name="phone" label="Téléphone" type="tel" />
         <Field name="date" label="Date envisagée" type="date" />
       </div>
-      <Field name="guests" label="Nombre de convives" type="number" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
+        <Field name="guests" label="Nombre de convives" type="number" />
+        <Field name="promoCode" label="Code promo (optionnel)" uppercase />
+      </div>
 
       <div>
         <label
@@ -97,11 +101,13 @@ function Field({
   label,
   type = "text",
   required = false,
+  uppercase = false,
 }: {
   name: string;
   label: string;
   type?: string;
   required?: boolean;
+  uppercase?: boolean;
 }) {
   return (
     <div>
@@ -117,7 +123,7 @@ function Field({
         name={name}
         type={type}
         required={required}
-        className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300"
+        className={`w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300 ${uppercase ? "uppercase font-mono" : ""}`}
       />
     </div>
   );

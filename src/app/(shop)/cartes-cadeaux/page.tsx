@@ -511,10 +511,12 @@ export default function GiftCardPurchasePage() {
                     {paymentError}
                   </p>
                 )}
-                <p className="font-serif italic text-[12px] text-gray-400 mt-6 text-center">
+                {process.env.NODE_ENV !== "production" && (
+                  <p className="font-serif italic text-[12px] text-gray-400 mt-6 text-center">
                   Carte de test Stripe : 4242 4242 4242 4242 · date future · CVC au
                   choix.
                 </p>
+                )}
               </Card>
             )}
 

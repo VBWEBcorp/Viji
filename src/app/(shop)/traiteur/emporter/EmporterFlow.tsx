@@ -11,6 +11,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
+import PromoCodeInput, { remiseAffichee, type AppliedPromo } from "@/components/shop/PromoCodeInput";
 import {
   HEURE_LIMITE,
   ajouteJours,
@@ -164,6 +165,9 @@ export default function EmporterFlow({ items, serverNow }: Props) {
   }, [premierJour]);
   const [comment, setComment] = useState("");
   const [website, setWebsite] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const remise = remiseAffichee(appliedPromo, selectionTotal);
+  const totalAPayer = selectionTotal - remise;
 
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -204,6 +208,7 @@ export default function EmporterFlow({ items, serverNow }: Props) {
         body: JSON.stringify({
           pickupDate,
           items: selectedEntries.map((e) => ({ id: e.dish._id, quantity: e.qty })),
+          promoCode: appliedPromo?.code,
         }),
       });
 
@@ -215,7 +220,7 @@ export default function EmporterFlow({ items, serverNow }: Props) {
       }
       setClientSecret(data.clientSecret);
       setPaymentIntentId(data.paymentIntentId);
-      setAmountDue(typeof data.amount === "number" ? data.amount : selectionTotal);
+      setAmountDue(typeof data.amount === "number" ? data.amount : totalAPayer);
       setPaying(true);
       setSubmitting(false);
     } catch {
@@ -559,9 +564,11 @@ export default function EmporterFlow({ items, serverNow }: Props) {
                   <ShieldCheck size={13} />
                   <span>Paiement sécurisé par Stripe.</span>
                 </div>
-                <p className="font-serif italic text-[12px] text-gray-400 text-center">
+                {process.env.NODE_ENV !== "production" && (
+                  <p className="font-serif italic text-[12px] text-gray-400 text-center">
                   Carte de test : 4242 4242 4242 4242 · date future · CVC au choix.
                 </p>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-7">
@@ -671,7 +678,39 @@ export default function EmporterFlow({ items, serverNow }: Props) {
                           {formatEUR(selectionTotal)}
                         </span>
                       </li>
+                      {remise > 0 && (
+                        <>
+                          <li className="flex items-center justify-between px-3 sm:px-4 py-2.5">
+                            <span className="text-[11px] uppercase tracking-[0.25em] text-gray-500">
+                              Code {appliedPromo?.code}
+                            </span>
+                            <span className="font-serif text-[15px] text-[var(--brand-gold-dark)]">
+                              -{formatEUR(remise)}
+                            </span>
+                          </li>
+                          <li className="flex items-center justify-between px-3 sm:px-4 py-3 bg-[var(--brand-cream)]/40">
+                            <span className="text-[11px] uppercase tracking-[0.25em] text-gray-500">
+                              À payer
+                            </span>
+                            <span className="font-serif text-[18px] text-gray-900">
+                              {formatEUR(totalAPayer)}
+                            </span>
+                          </li>
+                        </>
+                      )}
                     </ul>
+                  )}
+
+                  {selectedEntries.length > 0 && (
+                    <div className="mt-4">
+                      <PromoCodeInput
+                        subtotal={selectionTotal}
+                        appliedPromo={appliedPromo}
+                        onApply={setAppliedPromo}
+                        onRemove={() => setAppliedPromo(null)}
+                        disabled={submitting}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -749,7 +788,7 @@ export default function EmporterFlow({ items, serverNow }: Props) {
                   disabled={submitting || selectedEntries.length === 0}
                   className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Préparation du paiement…" : <>Commander et payer {formatEUR(selectionTotal)} <ArrowRight size={13} /></>}
+                  {submitting ? "Préparation du paiement…" : <>Commander et payer {formatEUR(totalAPayer)} <ArrowRight size={13} /></>}
                 </button>
               </form>
             )}

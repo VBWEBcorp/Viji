@@ -642,9 +642,11 @@ export default function CheckoutPage() {
                       />
                     </Elements>
                   )}
-                  <p className="font-serif italic text-[12px] text-gray-400 mt-6 text-center">
+                  {process.env.NODE_ENV !== "production" && (
+                    <p className="font-serif italic text-[12px] text-gray-400 mt-6 text-center">
                     Carte de test Stripe : 4242 4242 4242 4242 · n&apos;importe quelle date future · n&apos;importe quel CVC.
                   </p>
+                  )}
                 </Card>
               </>
             )}

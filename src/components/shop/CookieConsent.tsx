@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 type ConsentState = {
@@ -40,6 +41,7 @@ export function useCookieConsent() {
 }
 
 export default function CookieConsent() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [analytics, setAnalytics] = useState(false);
@@ -68,7 +70,8 @@ export default function CookieConsent() {
     setVisible(false);
   }
 
-  if (!visible) return null;
+  // Le bandeau concerne les visiteurs du site, pas l'espace d'administration.
+  if (!visible || pathname?.startsWith("/admin")) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

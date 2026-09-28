@@ -4,6 +4,7 @@ import Cart from "@/models/Cart";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
+import { calculeRemise } from "@/lib/promo";
 import SiteSettings from "@/models/SiteSettings";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
@@ -223,11 +224,8 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        if (promo.type === "percentage") {
-          discount = Math.round(subtotal * (promo.value / 100));
-        } else {
-          discount = promo.value;
-        }
+        // Même calcul que partout ailleurs : jamais plus que le sous-total.
+        discount = calculeRemise(promo, subtotal);
 
         promoCodeId = promo._id;
       }

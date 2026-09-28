@@ -4,7 +4,6 @@ import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import { ArrowRight, Star } from "lucide-react";
 import YouTubeShort from "@/components/shop/YouTubeShort";
-import NewsletterSignup from "@/components/shop/NewsletterSignup";
 import HeroSection from "@/components/shop/HeroSection";
 import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
@@ -465,31 +464,6 @@ export default async function HomePage() {
               />
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── CTA NEWSLETTER — bandeau compact ─────────────────────── */}
-      <section className="bg-white border-y border-[var(--brand-gold)]/20 py-14 md:py-16">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 text-center md:text-left">
-          <div className="md:flex-1">
-            <p className="text-[10px] uppercase tracking-[0.45em] text-[var(--brand-gold)] mb-3">
-              {t("home_news_eyebrow")}
-            </p>
-            <h2 className="font-serif text-2xl md:text-3xl text-gray-900 leading-tight">
-              {t("home_news_title")}{" "}
-              <span className="text-gray-500 font-serif italic text-xl md:text-2xl">
-                {t("home_news_subtitle")}
-              </span>
-            </h2>
-          </div>
-
-          <div className="w-12 h-px bg-[var(--brand-gold)]/40 md:hidden" />
-
-          <NewsletterSignup
-            source="accueil"
-            cta={t("home_news_cta")}
-            className="shrink-0"
-          />
         </div>
       </section>
     </div>

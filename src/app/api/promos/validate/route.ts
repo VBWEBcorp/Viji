@@ -1,65 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import PromoCode from "@/models/PromoCode";
+import { resoutPromo } from "@/lib/promo";
 import { z } from "zod";
 
 const schema = z.object({
   code: z.string().trim().min(1, "Code requis"),
-  subtotal: z.number().min(0), // sous-total panier en centimes
+  subtotal: z.number().min(0), // sous-total en centimes
 });
 
 // POST /api/promos/validate — vérifie un code promo et renvoie la remise (public).
-// La validation/application autoritaire reste faite dans /api/checkout ; cet
-// endpoint sert uniquement à afficher la remise avant paiement.
+// Sert à afficher la remise avant paiement, sur la boutique, le traiteur à
+// emporter et les ateliers. L'application qui fait foi reste côté serveur, au
+// moment de créer le paiement.
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
     const { code, subtotal } = schema.parse(body);
 
-    const now = new Date();
-    const promo = await PromoCode.findOne({
-      code: code.toUpperCase(),
-      isActive: true,
-      validFrom: { $lte: now },
-      validUntil: { $gte: now },
-    });
-
-    if (!promo) {
-      return NextResponse.json(
-        { error: "Code promo invalide ou expiré" },
-        { status: 404 }
-      );
+    const res = await resoutPromo(code, subtotal);
+    if (!res.ok) {
+      return NextResponse.json({ error: res.error }, { status: 400 });
     }
-
-    if (promo.maxUses && promo.currentUses >= promo.maxUses) {
-      return NextResponse.json(
-        { error: "Ce code promo a atteint son nombre maximum d'utilisations" },
-        { status: 400 }
-      );
-    }
-
-    if (promo.minOrderAmount && subtotal < promo.minOrderAmount) {
-      return NextResponse.json(
-        {
-          error: `Montant minimum de commande non atteint pour ce code`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Mêmes règles que /api/checkout : pourcentage sinon montant fixe (centimes).
-    let discount =
-      promo.type === "percentage"
-        ? Math.round(subtotal * (promo.value / 100))
-        : promo.value;
-    discount = Math.min(discount, subtotal); // jamais plus que le sous-total
 
     return NextResponse.json({
-      code: promo.code,
-      type: promo.type,
-      value: promo.value,
-      discount,
+      code: res.promo.code,
+      type: res.promo.type,
+      value: res.promo.value,
+      discount: res.discount,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

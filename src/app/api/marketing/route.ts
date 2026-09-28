@@ -13,6 +13,15 @@ export async function GET() {
       marketing = await Marketing.create({});
     }
 
+    // Le code envoyé par la pop-up ne s'affiche jamais en clair côté public :
+    // il se mérite en laissant son email.
+    const session = await auth();
+    if (!session || session.user.role !== "admin") {
+      const popup = { ...(marketing as { popup?: Record<string, unknown> }).popup };
+      delete popup.promoCode;
+      return NextResponse.json({ ...marketing, popup });
+    }
+
     return NextResponse.json(marketing);
   } catch (error) {
     console.error("GET /api/marketing error:", error);

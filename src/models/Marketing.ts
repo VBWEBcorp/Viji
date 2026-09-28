@@ -9,6 +9,12 @@ export interface IMarketing extends Document {
     buttonText: string;
     buttonUrl: string;
     delay: number; // secondes avant affichage
+    /**
+     * « lien » : le bouton mène à une page. « code » : le visiteur laisse son
+     * email et reçoit `promoCode` dans sa boîte, à saisir au paiement.
+     */
+    mode: "lien" | "code";
+    promoCode: string;
   };
   banner: {
     isActive: boolean;
@@ -31,6 +37,8 @@ const MarketingSchema = new Schema<IMarketing>(
       buttonText: { type: String, default: "En profiter" },
       buttonUrl: { type: String, default: "/kits/decouverte" },
       delay: { type: Number, default: 5 },
+      mode: { type: String, enum: ["lien", "code"], default: "lien" },
+      promoCode: { type: String, default: "", uppercase: true, trim: true },
     },
     banner: {
       isActive: { type: Boolean, default: false },

@@ -104,6 +104,7 @@ export function buildAtelierCustomerEmail(params: {
   sessionLocation?: string;
   participants: number;
   amount: number;
+  promo?: { code: string; discount: number };
   notes?: string;
   coordonnees: CoordonneesBoutique;
 }): string {
@@ -115,6 +116,7 @@ export function buildAtelierCustomerEmail(params: {
     sessionLocation,
     participants,
     amount,
+    promo,
     notes,
     coordonnees,
   } = params;
@@ -132,6 +134,7 @@ export function buildAtelierCustomerEmail(params: {
       ligne("Date", esc(sessionDate), true) +
       (sessionLocation ? ligne("Lieu", esc(sessionLocation)) : "") +
       ligne("Participants", String(participants)) +
+      (promo ? ligne(`Code promo ${esc(promo.code)}`, `-${formatEUR(promo.discount)}`) : "") +
       ligne("Montant réglé", formatEUR(amount), true) +
       ligne("N° de réservation", esc(reservationNumber)) +
       `</table>` +
@@ -152,6 +155,7 @@ export function buildTraiteurCustomerEmail(params: {
   pickupTime: string;
   lines: { name: string; quantity: number; unitPrice: number }[];
   total: number;
+  promo?: { code: string; discount: number };
   comment?: string;
   coordonnees: CoordonneesBoutique;
 }): string {
@@ -162,6 +166,7 @@ export function buildTraiteurCustomerEmail(params: {
     pickupTime,
     lines,
     total,
+    promo,
     comment,
     coordonnees,
   } = params;
@@ -193,6 +198,7 @@ export function buildTraiteurCustomerEmail(params: {
       ) +
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 6px;">${platsHtml}</table>` +
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">` +
+      (promo ? ligne(`Code promo ${esc(promo.code)}`, `-${formatEUR(promo.discount)}`) : "") +
       ligne("Montant réglé", formatEUR(total), true) +
       ligne("N° de commande", esc(reservationNumber)) +
       `</table>` +

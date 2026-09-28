@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import PromoPopupCard from "./PromoPopupCard";
 import { getMarketing, type MarketingData } from "@/lib/marketingCache";
 
 type PopupData = NonNullable<MarketingData["popup"]>;
 
 const DISMISSED_KEY = "promo_popup_dismissed";
+// Code déjà reçu : on ne le repropose plus, même lors d'une autre visite.
+const CODE_RECU_KEY = "promo_popup_code_recu";
 
 export default function PromoPopup() {
   const [popup, setPopup] = useState<PopupData | null>(null);
@@ -14,20 +16,54 @@ export default function PromoPopup() {
 
   useEffect(() => {
     // Ne pas afficher si déjà fermé dans cette session
-    if (typeof window !== "undefined" && sessionStorage.getItem(DISMISSED_KEY)) return;
+    try {
+      if (sessionStorage.getItem(DISMISSED_KEY) || localStorage.getItem(CODE_RECU_KEY)) return;
+    } catch {
+      // Stockage indisponible (navigation privée) : on affiche quand même.
+    }
 
     getMarketing().then((data) => {
       if (data.popup?.isActive && data.popup?.title) {
         setPopup(data.popup);
-        setTimeout(() => setVisible(true), (data.popup!.delay || 5) * 1000);
+        // Jamais par-dessus le bandeau cookies : on attend que le visiteur
+        // ait fait son choix, puis le délai réglé dans l'admin.
+        const delai = (data.popup!.delay || 5) * 1000;
+        const attendreCookies = () => {
+          let choix: string | null = null;
+          try {
+            choix = localStorage.getItem("cookie_consent");
+          } catch {
+            choix = "indisponible";
+          }
+          if (choix) setTimeout(() => setVisible(true), delai);
+          else setTimeout(attendreCookies, 1000);
+        };
+        attendreCookies();
       }
     });
   }, []);
 
   function close() {
     setVisible(false);
-    sessionStorage.setItem(DISMISSED_KEY, "1");
+    try {
+      sessionStorage.setItem(DISMISSED_KEY, "1");
+    } catch {}
   }
+
+  function codeRecu() {
+    try {
+      localStorage.setItem(CODE_RECU_KEY, "1");
+      sessionStorage.setItem(DISMISSED_KEY, "1");
+    } catch {}
+  }
+
+  // Échap ferme la pop-up, comme on s'y attend.
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visible]);
 
   if (!popup || !visible) return null;
 
@@ -40,44 +76,9 @@ export default function PromoPopup() {
       />
 
       {/* Pop-up */}
-      <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full relative transform transition-all duration-300 scale-100">
-          {/* Close */}
-          <button
-            onClick={close}
-            className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 shadow-sm transition"
-          >
-            <X size={16} />
-          </button>
-
-          {/* Image */}
-          {popup.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={popup.image}
-              alt={popup.title}
-              className="w-full h-52 object-cover"
-            />
-          )}
-
-          {/* Contenu */}
-          <div className="p-7 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{popup.title}</h2>
-            <p className="text-sm text-gray-500 leading-relaxed mb-6">{popup.description}</p>
-            <a
-              href={popup.buttonUrl || "/kits/decouverte"}
-              onClick={close}
-              className="block w-full bg-gray-900 text-white py-3.5 rounded-xl text-[15px] font-semibold hover:bg-gray-800 transition-colors text-center"
-            >
-              {popup.buttonText || "En profiter"}
-            </a>
-            <button
-              onClick={close}
-              className="mt-3 text-[13px] text-gray-400 hover:text-gray-600 transition"
-            >
-              Non merci
-            </button>
-          </div>
+      <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-md">
+          <PromoPopupCard popup={popup} onClose={close} onSent={codeRecu} />
         </div>
       </div>
     </>

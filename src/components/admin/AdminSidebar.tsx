@@ -26,6 +26,7 @@ import {
   Send,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -165,6 +166,22 @@ export default function AdminSidebar() {
   function BottomSection({ isCollapsed }: { isCollapsed: boolean }) {
     return (
       <div className="border-t border-[var(--brand-gold)]/15 px-3 py-3 space-y-1">
+        {/* Réglages : toujours visible en bas du menu, même sur un petit
+            écran où la liste du haut défile (sinon on ne le trouve pas). */}
+        <Link
+          href="/admin/settings"
+          title={isCollapsed ? "Réglages" : undefined}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium transition",
+            pathname.startsWith("/admin/settings")
+              ? "bg-[var(--brand-cream)] text-[var(--brand-gold-dark)]"
+              : "text-gray-700 hover:text-[var(--brand-gold)] hover:bg-[var(--brand-cream)]/40",
+            isCollapsed && "justify-center px-2"
+          )}
+        >
+          <Settings size={16} strokeWidth={1.5} className="shrink-0" />
+          {!isCollapsed && <span className="truncate">Réglages</span>}
+        </Link>
         <Link
           href="/"
           title={isCollapsed ? "Voir la boutique" : undefined}

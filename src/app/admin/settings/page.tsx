@@ -177,6 +177,13 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
 
+  // Lien direct vers un onglet (ex. /admin/settings?onglet=availability),
+  // pour guider la commerçante sans lui décrire le chemin.
+  useEffect(() => {
+    const onglet = new URLSearchParams(window.location.search).get("onglet");
+    if (onglet) setActiveTab(onglet);
+  }, []);
+
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
@@ -270,26 +277,26 @@ export default function AdminSettingsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(settings),
     });
-    if (res.ok) toast.success("Paramètres sauvegardes");
+    if (res.ok) toast.success("Réglages enregistrés");
     else toast.error("Erreur");
     setSaving(false);
   }
 
   const tabs = [
-    { id: "general", label: "General", icon: Store },
-    { id: "availability", label: "Disponibilite", icon: CalendarClock },
-    { id: "api", label: "Cles API", icon: Key },
+    { id: "general", label: "Général", icon: Store },
+    { id: "availability", label: "Disponibilité", icon: CalendarClock },
+    { id: "api", label: "Clés API", icon: Key },
     { id: "shipping", label: "Livraison", icon: Truck },
     { id: "tax", label: "TVA / Facture", icon: Receipt },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
-    { id: "integrations", label: "Integrations", icon: Plug },
-    { id: "legal", label: "Legal", icon: Shield },
+    { id: "integrations", label: "Intégrations", icon: Plug },
+    { id: "legal", label: "Légal", icon: Shield },
   ];
 
   if (loading) {
     return (
       <div>
-        <PageHeader eyebrow="Configuration" title="Paramètres" />
+        <PageHeader eyebrow="Configuration" title="Réglages" />
         <Card className="h-96 animate-pulse"><span className="sr-only">Chargement…</span></Card>
       </div>
     );
@@ -299,7 +306,7 @@ export default function AdminSettingsPage() {
     <div>
       <PageHeader
         eyebrow="Configuration"
-        title="Paramètres"
+        title="Réglages"
         subtitle="Configuration de votre boutique"
       />
 
@@ -408,9 +415,9 @@ export default function AdminSettingsPage() {
                 </h2>
                 <p className="text-[12px] text-gray-400 mt-1">
                   Ferme les trois canaux de vente d&apos;un seul coup, sans toucher aux
-                  interrupteurs ci-dessous. Au retour, il suffit de le decocher pour
+                  interrupteurs ci-dessous. Au retour, il suffit de le décocher pour
                   tout retrouver comme avant. Le site reste en ligne : seules les
-                  commandes et reservations sont suspendues.
+                  commandes et réservations sont suspendues.
                 </p>
               </div>
 
@@ -423,11 +430,11 @@ export default function AdminSettingsPage() {
                 />
                 <div className="flex-1">
                   <p className="text-[13px] font-medium text-gray-900 flex items-center gap-2 flex-wrap">
-                    Je suis absente, tout est ferme
+                    Je suis absente, tout est fermé
                     {settings.availability.vacationMode && <Badge tone="amber">Ventes suspendues</Badge>}
                   </p>
                   <p className="text-[12px] text-gray-500 mt-0.5">
-                    Traiteur a emporter, ateliers et boutique : plus aucun paiement n&apos;est accepte.
+                    Traiteur à emporter, ateliers et boutique : plus aucun paiement n&apos;est accepté.
                   </p>
                 </div>
               </label>
@@ -442,22 +449,22 @@ export default function AdminSettingsPage() {
                     className={inputCls}
                   />
                   <p className="text-[11px] text-gray-400 mt-1.5">
-                    Affichee aux visiteurs : « Reprise des commandes le mardi 9 septembre ».
+                    Affichée aux visiteurs : « Reprise des commandes le mardi 9 septembre ».
                     Cette date est indicative : rien ne se rouvre tout seul, vous
-                    decidez du moment ou vous reactivez.
+                    décidez du moment où vous réactivez.
                   </p>
                 </div>
                 <div>
-                  <label className={labelCls}>Message affiche aux visiteurs (optionnel)</label>
+                  <label className={labelCls}>Message affiché aux visiteurs (optionnel)</label>
                   <textarea
                     value={settings.availability.message}
                     onChange={(e) => setSettings({ ...settings, availability: { ...settings.availability, message: e.target.value } })}
                     rows={3}
-                    placeholder="Je suis en conges jusqu'au 9 septembre, les commandes reprendront a mon retour. Merci de votre patience !"
+                    placeholder="Je suis en congés jusqu'au 9 septembre, les commandes reprendront à mon retour. Merci de votre patience !"
                     className={inputCls}
                   />
                   <p className="text-[11px] text-gray-400 mt-1.5">
-                    Laisse vide, un message neutre est affiche automatiquement.
+                    Laissé vide, un message neutre est affiché automatiquement.
                   </p>
                 </div>
               </div>
@@ -467,16 +474,16 @@ export default function AdminSettingsPage() {
             <Card className="p-5 sm:p-6 space-y-4">
               <div>
                 <h2 className={sectionTitleCls}>
-                  <CalendarClock size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Fermer une activite seulement
+                  <CalendarClock size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Fermer une activité seulement
                 </h2>
                 <p className="text-[12px] text-gray-400 mt-1">
-                  Pour arreter une seule activite, par exemple le traiteur pendant deux
-                  jours en gardant les ateliers ouverts. Decochez ce que vous ne voulez
+                  Pour arrêter une seule activité, par exemple le traiteur pendant deux
+                  jours en gardant les ateliers ouverts. Décochez ce que vous ne voulez
                   plus vendre pour le moment.
                   {settings.availability.vacationMode && (
                     <span className="block mt-1 text-[var(--brand-gold-dark)]">
-                      Le mode vacances est actif : tout est deja ferme, ces reglages
-                      reprendront effet a votre retour.
+                      Le mode vacances est actif : tout est déjà fermé, ces réglages
+                      reprendront effet à votre retour.
                     </span>
                   )}
                 </p>
@@ -485,18 +492,18 @@ export default function AdminSettingsPage() {
               {[
                 {
                   cle: "traiteurEmporter" as const,
-                  titre: "Traiteur a emporter",
+                  titre: "Traiteur à emporter",
                   detail: "Le menu reste visible, la commande Click & Collect est suspendue.",
                 },
                 {
                   cle: "ateliers" as const,
                   titre: "Ateliers",
-                  detail: "Les pages ateliers restent en ligne, la reservation est suspendue.",
+                  detail: "Les pages ateliers restent en ligne, la réservation est suspendue.",
                 },
                 {
                   cle: "boutique" as const,
                   titre: "Boutique en ligne",
-                  detail: "Les produits restent visibles, le paiement de la commande est bloque.",
+                  detail: "Les produits restent visibles, le paiement de la commande est bloqué.",
                 },
               ].map((canal) => (
                 <label
@@ -523,7 +530,7 @@ export default function AdminSettingsPage() {
               ))}
 
               <p className="text-[11px] text-gray-400 pt-1">
-                La fermeture s&apos;applique en moins d&apos;une minute apres la sauvegarde,
+                La fermeture s&apos;applique en moins d&apos;une minute après la sauvegarde,
                 sans remise en ligne du site.
               </p>
             </Card>

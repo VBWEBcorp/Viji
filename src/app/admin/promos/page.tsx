@@ -29,13 +29,22 @@ const emptyForm = {
   code: "",
   description: "",
   type: "percentage" as "percentage" | "fixed",
-  value: 0,
-  minOrderAmount: 0,
-  maxUses: 0,
+  value: "" as number | "",
+  minOrderAmount: "" as number | "",
+  maxUses: "" as number | "",
   validFrom: new Date().toISOString().split("T")[0],
   validUntil: "",
   isActive: true,
 };
+
+/** Ce que la commerçante doit comprendre d'un coup d'œil. */
+function etat(p: PromoCode): { label: string; tone: "green" | "gray" | "amber" } {
+  if (!p.isActive) return { label: "Désactivé", tone: "gray" };
+  if (new Date(p.validUntil).getTime() < Date.now()) return { label: "Expiré", tone: "gray" };
+  if (new Date(p.validFrom).getTime() > Date.now()) return { label: "À venir", tone: "amber" };
+  if (p.maxUses && p.currentUses >= p.maxUses) return { label: "Épuisé", tone: "amber" };
+  return { label: "Actif", tone: "green" };
+}
 
 export default function AdminPromosPage() {
   const [promos, setPromos] = useState<PromoCode[]>([]);
@@ -60,7 +69,12 @@ export default function AdminPromosPage() {
     const res = await fetch("/api/promos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        value: Number(form.value) || 0,
+        minOrderAmount: Number(form.minOrderAmount) || 0,
+        maxUses: Number(form.maxUses) || 0,
+      }),
     });
 
     if (res.ok) {
@@ -71,6 +85,20 @@ export default function AdminPromosPage() {
     } else {
       const data = await res.json();
       toast.error(data.error || "Erreur");
+    }
+  }
+
+  async function toggleActive(promo: PromoCode) {
+    const res = await fetch("/api/promos", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: promo._id, isActive: !promo.isActive }),
+    });
+    if (res.ok) {
+      toast.success(promo.isActive ? `${promo.code} désactivé` : `${promo.code} réactivé`);
+      fetchPromos();
+    } else {
+      toast.error("Erreur");
     }
   }
 
@@ -98,6 +126,13 @@ export default function AdminPromosPage() {
         </GoldButton>
       </PageHeader>
 
+      <p className="text-[13px] text-gray-600 leading-relaxed mb-6 max-w-2xl">
+        Un code est valable <strong>partout sur le site</strong> : kits, plats à emporter,
+        ateliers, et demandes de devis événementiel. Le client le tape dans la case
+        « Code promo » au moment de payer. Pour l&apos;envoyer par email depuis une pop-up,
+        rendez-vous dans <strong>Marketing</strong>.
+      </p>
+
       {showForm && (
         <Card className="p-5 sm:p-6 mb-6">
           <form onSubmit={createPromo} className="space-y-4">
@@ -109,7 +144,7 @@ export default function AdminPromosPage() {
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                   required
-                  placeholder="PROMO2024"
+                  placeholder="NOEL2026"
                   className={`${inputCls} font-mono`}
                 />
               </div>
@@ -119,7 +154,7 @@ export default function AdminPromosPage() {
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Promo de lancement"
+                  placeholder="Carte glissée dans les kits de Noël"
                   className={inputCls}
                 />
               </div>
@@ -127,7 +162,7 @@ export default function AdminPromosPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={labelCls}>Type *</label>
+                <label className={labelCls}>Type de réduction *</label>
                 <select
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value as "percentage" | "fixed" })}
@@ -138,23 +173,30 @@ export default function AdminPromosPage() {
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Valeur *</label>
+                <label className={labelCls}>
+                  {form.type === "percentage" ? "Réduction en % *" : "Réduction en € *"}
+                </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step={form.type === "percentage" ? "1" : "0.01"}
+                  min={form.type === "percentage" ? 1 : 0.01}
+                  max={form.type === "percentage" ? 100 : undefined}
                   value={form.value}
-                  onChange={(e) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setForm({ ...form, value: e.target.value === "" ? "" : parseFloat(e.target.value) })}
                   required
+                  placeholder={form.type === "percentage" ? "Ex. 10" : "Ex. 5"}
                   className={inputCls}
                 />
               </div>
               <div>
-                <label className={labelCls}>Commande min (€)</label>
+                <label className={labelCls}>Montant minimum (€)</label>
                 <input
                   type="number"
                   step="0.01"
+                  min={0}
                   value={form.minOrderAmount}
-                  onChange={(e) => setForm({ ...form, minOrderAmount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value === "" ? "" : parseFloat(e.target.value) })}
+                  placeholder="Aucun"
                   className={inputCls}
                 />
               </div>
@@ -162,7 +204,7 @@ export default function AdminPromosPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={labelCls}>Valide du *</label>
+                <label className={labelCls}>Valable du *</label>
                 <input
                   type="date"
                   value={form.validFrom}
@@ -172,21 +214,24 @@ export default function AdminPromosPage() {
                 />
               </div>
               <div>
-                <label className={labelCls}>Valide au *</label>
+                <label className={labelCls}>Jusqu&apos;au (inclus) *</label>
                 <input
                   type="date"
                   value={form.validUntil}
+                  min={form.validFrom}
                   onChange={(e) => setForm({ ...form, validUntil: e.target.value })}
                   required
                   className={inputCls}
                 />
               </div>
               <div>
-                <label className={labelCls}>Max utilisations</label>
+                <label className={labelCls}>Nombre d&apos;utilisations max</label>
                 <input
                   type="number"
+                  min={0}
                   value={form.maxUses}
-                  onChange={(e) => setForm({ ...form, maxUses: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setForm({ ...form, maxUses: e.target.value === "" ? "" : parseInt(e.target.value) })}
+                  placeholder="Illimité"
                   className={inputCls}
                 />
               </div>
@@ -241,9 +286,13 @@ export default function AdminPromosPage() {
                         {new Date(promo.validFrom).toLocaleDateString("fr-FR")} → {new Date(promo.validUntil).toLocaleDateString("fr-FR")}
                       </td>
                       <td className="px-5 py-4">
-                        <Badge tone={promo.isActive ? "green" : "gray"}>
-                          {promo.isActive ? "Actif" : "Inactif"}
-                        </Badge>
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(promo)}
+                          title={promo.isActive ? "Cliquer pour désactiver" : "Cliquer pour réactiver"}
+                        >
+                          <Badge tone={etat(promo).tone}>{etat(promo).label}</Badge>
+                        </button>
                       </td>
                       <td className="px-5 py-4 text-right">
                         <button
@@ -267,9 +316,9 @@ export default function AdminPromosPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-mono text-[14px] font-semibold text-gray-900">{promo.code}</span>
-                      <Badge tone={promo.isActive ? "green" : "gray"}>
-                        {promo.isActive ? "Actif" : "Inactif"}
-                      </Badge>
+                      <button type="button" onClick={() => toggleActive(promo)}>
+                        <Badge tone={etat(promo).tone}>{etat(promo).label}</Badge>
+                      </button>
                     </div>
                     <p className="text-[13px] text-gray-700">
                       {promo.type === "percentage" ? `${promo.value} % de réduction` : `${formatPrice(promo.value)} de réduction`}

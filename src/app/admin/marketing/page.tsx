@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Megaphone, Image as ImageIcon, Upload, X, Eye, Save, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, GoldButton } from "@/components/admin/ui";
+import PromoPopupCard from "@/components/shop/PromoPopupCard";
+import Link from "next/link";
 
 const inputCls =
   "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
@@ -18,6 +20,8 @@ interface MarketingData {
     buttonText: string;
     buttonUrl: string;
     delay: number;
+    mode: "lien" | "code";
+    promoCode: string;
   };
   banner: {
     isActive: boolean;
@@ -38,6 +42,8 @@ const defaultData: MarketingData = {
     buttonText: "En profiter",
     buttonUrl: "/products",
     delay: 5,
+    mode: "lien",
+    promoCode: "",
   },
   banner: {
     isActive: false,
@@ -49,12 +55,50 @@ const defaultData: MarketingData = {
   },
 };
 
+interface PromoOption {
+  _id: string;
+  code: string;
+  type: string;
+  value: number;
+  isActive: boolean;
+  validUntil: string;
+  maxUses?: number;
+  currentUses: number;
+}
+
+/** Pourquoi un code ne marcherait pas aujourd'hui, ou null s'il est bon. */
+function etatCode(p: PromoOption): string | null {
+  if (!p.isActive) return "désactivé";
+  if (new Date(p.validUntil).getTime() < Date.now()) return "expiré";
+  if (p.maxUses && p.currentUses >= p.maxUses) return "épuisé";
+  return null;
+}
+
 export default function AdminMarketingPage() {
   const [data, setData] = useState<MarketingData>(defaultData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"popup" | "banner">("popup");
   const [uploading, setUploading] = useState(false);
+  const [promos, setPromos] = useState<PromoOption[]>([]);
+
+  // Codes promo existants, pour la pop-up « code par email ».
+  useEffect(() => {
+    fetch("/api/promos")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => setPromos(Array.isArray(list) ? list : []))
+      .catch(() => setPromos([]));
+  }, []);
+
+  const codeChoisi = promos.find((p) => p.code === data.popup.promoCode);
+  const codeProbleme =
+    data.popup.mode === "code"
+      ? !data.popup.promoCode
+        ? "Choisissez le code à envoyer."
+        : !codeChoisi
+        ? "Ce code n'existe plus."
+        : etatCode(codeChoisi)
+      : null;
 
   useEffect(() => {
     fetch("/api/marketing")
@@ -71,6 +115,10 @@ export default function AdminMarketingPage() {
   }, []);
 
   async function handleSave() {
+    if (data.popup.isActive && codeProbleme) {
+      toast.error(`Pop-up : ${codeProbleme}`);
+      return;
+    }
     setSaving(true);
     const res = await fetch("/api/marketing", {
       method: "POST",
@@ -168,6 +216,60 @@ export default function AdminMarketingPage() {
                 </label>
               </div>
 
+              {/* Ce que fait la pop-up */}
+              <div>
+                <label className={labelCls}>Que fait la pop-up ?</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { v: "lien", titre: "Un bouton vers une page", aide: "Ex. : découvrir les kits" },
+                    { v: "code", titre: "Envoyer un code par email", aide: "Le client laisse son email et reçoit le code" },
+                  ] as const).map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setData({ ...data, popup: { ...data.popup, mode: o.v, buttonText: o.v === "code" && data.popup.buttonText === "En profiter" ? "Recevoir mon code" : o.v === "lien" && data.popup.buttonText === "Recevoir mon code" ? "En profiter" : data.popup.buttonText } })}
+                      className={`text-left px-4 py-3 border transition ${
+                        data.popup.mode === o.v
+                          ? "border-[var(--brand-gold)] bg-[var(--brand-cream)]/60"
+                          : "border-[var(--brand-gold)]/20 hover:border-[var(--brand-gold)]/50"
+                      }`}
+                    >
+                      <span className="block text-[13px] font-medium text-gray-900">{o.titre}</span>
+                      <span className="block text-[11px] text-gray-500 mt-0.5">{o.aide}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {data.popup.mode === "code" && (
+                <div className="bg-[var(--brand-cream)]/40 border border-[var(--brand-gold)]/20 p-4 space-y-2">
+                  <label className={labelCls}>Code envoyé par email</label>
+                  <select
+                    value={data.popup.promoCode}
+                    onChange={(e) => setData({ ...data, popup: { ...data.popup, promoCode: e.target.value } })}
+                    className={inputCls}
+                  >
+                    <option value="">Choisir un code…</option>
+                    {promos.map((p) => (
+                      <option key={p._id} value={p.code}>
+                        {p.code} · {p.type === "percentage" ? `-${p.value} %` : `-${(p.value / 100).toFixed(2).replace(".", ",")} €`}
+                        {etatCode(p) ? ` (${etatCode(p)})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {codeProbleme ? (
+                    <p className="text-[12px] text-red-600">{codeProbleme}</p>
+                  ) : (
+                    <p className="text-[12px] text-gray-500">
+                      Le client le saisira dans la case « Code promo » au moment de payer (kits, plats à emporter, ateliers) ou dans sa demande de devis.
+                    </p>
+                  )}
+                  <Link href="/admin/promos" className="inline-block text-[12px] text-[var(--brand-gold-dark)] underline">
+                    Créer ou modifier un code promo
+                  </Link>
+                </div>
+              )}
+
               {/* Image */}
               <div>
                 <label className={labelCls}>Image</label>
@@ -233,7 +335,7 @@ export default function AdminMarketingPage() {
                     className={inputCls}
                   />
                 </div>
-                <div>
+                {data.popup.mode !== "code" && <div>
                   <label className={labelCls}>Lien du bouton</label>
                   <input
                     type="text"
@@ -242,7 +344,7 @@ export default function AdminMarketingPage() {
                     placeholder="/products"
                     className={inputCls}
                   />
-                </div>
+                </div>}
               </div>
 
               {/* Délai */}
@@ -272,24 +374,7 @@ export default function AdminMarketingPage() {
               <Eye size={13} className="text-[var(--brand-gold)]" /> Aperçu
             </label>
             <div className="bg-[var(--brand-cream)]/50 border border-[var(--brand-gold)]/15 p-8 flex items-center justify-center min-h-[400px]">
-              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full">
-                {data.popup.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.popup.image} alt="" className="w-full h-48 object-cover" />
-                )}
-                <div className="p-6 text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {data.popup.title || "Titre de votre pop-up"}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-6">
-                    {data.popup.description || "Description de votre offre promotionnelle..."}
-                  </p>
-                  <button className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-semibold">
-                    {data.popup.buttonText || "En profiter"}
-                  </button>
-                  <button className="mt-3 text-xs text-gray-400">Non merci</button>
-                </div>
-              </div>
+              <PromoPopupCard popup={data.popup} onClose={() => {}} preview />
             </div>
           </div>
         </div>

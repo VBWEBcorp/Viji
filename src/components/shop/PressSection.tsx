@@ -21,9 +21,98 @@ interface PressArticle {
   photo: { src: string; alt: string; caption: string; credit: string };
   body: Block[];
   contact?: string;
+  /** Lien vers l'article en ligne, quand il existe (la presse papier n'en a pas). */
+  link?: { href: string; label: string };
 }
 
 const ARTICLES: PressArticle[] = [
+  {
+    id: "elle-a-table",
+    publication: "Elle à Table",
+    publicationLogo: {
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-elle-a-table-logo.png",
+      alt: "Elle à Table",
+      width: 415,
+      height: 141,
+    },
+    publicationLogoClass: "h-10 sm:h-12 md:h-14 w-auto",
+    cityTag: "Rennes",
+    cityTagColor: "#B3122E",
+    title: "Gastronomie indienne, direction le goût et l'authenticité",
+    photo: {
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-elle-a-table-photo.jpg",
+      alt: "Table dressée : raïta, chutneys, samoussas et boissons à la menthe",
+      caption: "Les recettes d'Entre Maman et Moi, une invitation au voyage.",
+      credit: "ELLE À TABLE",
+    },
+    body: [
+      {
+        type: "p",
+        text: "Du côté de Rennes, Viji Tinot redonne vie à la cuisine indienne familiale, moderne, accessible et délicatement parfumée, transmise par sa mère. Ses kits culinaires, disponibles en ligne, procurent une expérience gourmande à recréer dans votre cuisine.",
+      },
+      {
+        type: "p",
+        text: "Ses recettes (korma fondant, tandoori parfumé ou raïta tout en fraîcheur) sont une véritable invitation au voyage, conviviale et sensorielle.",
+      },
+      {
+        type: "p",
+        text: "Viji organise également des ateliers culinaires pour partager sa passion et transmettre les bons gestes, les justes équilibres et tous les secrets de cette cuisine traditionnelle.",
+      },
+      {
+        type: "p",
+        text: "Elle propose aussi un service traiteur à emporter, ainsi qu'une offre dédiée à vos événements professionnels et privés. Plus besoin de réserver l'avion !",
+      },
+    ],
+    contact: "www.entre-maman-et-moi.fr",
+  },
+  {
+    id: "face2breton",
+    publication: "Face2Breton",
+    publicationLogo: {
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-face2breton-logo-v2.jpg",
+      alt: "Face2Breton",
+      width: 706,
+      height: 570,
+    },
+    publicationLogoClass: "h-14 sm:h-16 md:h-[72px] w-auto",
+    cityTag: "Bretagne",
+    cityTagColor: "#1F1F1F",
+    title: "Racines & passion",
+    photo: {
+      src: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-face2breton-viji.jpg",
+      alt: "Portrait de Viji Tinot",
+      caption: "Viji Tinot, fondatrice d'Entre Maman et Moi.",
+      credit: "FACE2BRETON",
+    },
+    body: [
+      {
+        type: "p",
+        text: "Lorsque l'on pense à l'Inde, les premières images qui viennent à l'esprit sont celles des ashrams, des saris, du Taj Mahal et du Gange. Mais qu'en est-il de la cuisine indienne ?",
+      },
+      { type: "h4", text: "L'Inde au cœur de la table" },
+      {
+        type: "p",
+        text: "« Mes parents ont des goûts plutôt éclectiques. Chaque dimanche, ils aimaient nous faire découvrir les cuisines du monde. Ces rendez-vous dominicaux étaient bien plus qu'un simple repas, c'était un rituel familial. »",
+      },
+      {
+        type: "p",
+        text: "La petite Viji observe avec attention les gestes de sa maman, les portions qu'elle prépare et les associations. À travers *Entre Maman et Moi*, elle imagine des mets à la fois enracinés dans ses origines et résolument contemporains.",
+      },
+      { type: "h4", text: "Entre tradition et modernité" },
+      {
+        type: "p",
+        text: "« J'ambitionne de moderniser l'image de la cuisine indienne sans en effacer les racines. Les recettes sont simples à réaliser pour que chacun prenne plaisir à cuisiner. »",
+      },
+      {
+        type: "p",
+        text: "Kits d'épices et de recettes, plats frais à emporter, cours de cuisine, tables privées et grands événements : les recettes d'*Entre Maman et Moi* font entrer l'Inde dans les cuisines bretonnes.",
+      },
+    ],
+    link: {
+      href: "https://face2breton.fr/2026/08/22/racines-passion/",
+      label: "Lire l'article complet sur face2breton.fr",
+    },
+  },
   {
     id: "ouest-france",
     publication: "Ouest France",
@@ -160,13 +249,13 @@ export default function PressSection() {
             Ils <span className="italic text-[var(--brand-gold)]">parlent</span> de nous
           </h2>
           <p className="text-[11px] sm:text-[12px] uppercase tracking-[0.35em] text-[var(--brand-gold)] font-medium mb-7">
-            Ouest&nbsp;France · Actu&nbsp;Rennes
+            {ARTICLES.map((a) => a.publication).join(" · ")}
           </p>
           <div className="w-12 h-px bg-[var(--brand-gold)] mx-auto mb-7" />
           <p className="font-serif italic text-[15px] md:text-[17px] text-gray-600 leading-relaxed max-w-xl mx-auto">
             Découvrez l&apos;histoire d&apos;
             <em className="not-italic font-medium text-gray-800">Entre Maman et Moi</em>,
-            mise en lumière par <em className="not-italic font-medium text-gray-800">Ouest&nbsp;France</em> et <em className="not-italic font-medium text-gray-800">Actu&nbsp;Rennes</em>.
+            racontée par la presse.
           </p>
         </div>
 
@@ -320,6 +409,19 @@ function PressCard({ article }: { article: PressArticle }) {
                 dangerouslySetInnerHTML={{ __html: formatParagraph(block.text) }}
               />
             ),
+          )}
+
+          {article.link && (
+            <p className="text-[11px] sm:text-[11.5px] leading-[1.55] mt-3 break-inside-avoid not-italic">
+              <a
+                href={article.link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[var(--brand-gold-dark)] underline underline-offset-2 hover:text-[var(--brand-gold)]"
+              >
+                {article.link.label}
+              </a>
+            </p>
           )}
 
           {article.contact && (

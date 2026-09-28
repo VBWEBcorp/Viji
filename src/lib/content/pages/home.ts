@@ -132,15 +132,5 @@ export const homePage: ContentPageDef = {
         { key: "home_reseaux_video_2", type: "url", label: "ID vidéo YouTube 2", default: "tTjZz_wRNLg" },
       ],
     },
-    {
-      id: "newsletter",
-      title: "Bandeau newsletter (bas de page)",
-      fields: [
-        { key: "home_news_eyebrow", type: "text", label: "Surtitre", default: "Restons en cuisine" },
-        { key: "home_news_title", type: "text", label: "Titre", default: "Une recette par mois," },
-        { key: "home_news_subtitle", type: "text", label: "Sous-titre", default: "directement chez vous." },
-        { key: "home_news_cta", type: "text", label: "Bouton", default: "S'inscrire" },
-      ],
-    },
   ],
 };

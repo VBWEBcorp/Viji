@@ -128,3 +128,58 @@ export async function sendCampaign(
   const { sent, failed } = await sendBatchEmails(messages);
   return { sent, failed, total };
 }
+
+/**
+ * Email de la pop-up « code par email » : le visiteur a laissé son adresse,
+ * il reçoit le code à saisir dans la case « Code promo » au moment de payer
+ * (boutique, traiteur à emporter, ateliers, ou demande de devis).
+ */
+export async function sendCodePopup(params: {
+  email: string;
+  code: string;
+  avantage: string;
+  validUntil: Date;
+}) {
+  const { email, code, avantage, validUntil } = params;
+  const site = SITE_URL || "https://entre-maman-et-moi.fr";
+  const jusquau = validUntil.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Paris",
+  });
+
+  const content =
+    emailEyebrow("Votre code") +
+    emailHeading("Voici votre code promo") +
+    emailParagraph("Bonjour,") +
+    emailParagraph(
+      `Merci pour votre inscription. Comme promis, voici votre code (${esc(
+        avantage
+      )}) :`
+    ) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:10px 0 18px;"><tr><td align="center" style="border:2px dashed ${EMAIL_COLORS.gold}; border-radius:10px; padding:18px;">
+      <span style="font-family:'Courier New',monospace; font-size:26px; letter-spacing:0.18em; font-weight:700; color:${EMAIL_COLORS.goldDark};">${esc(code)}</span>
+    </td></tr></table>` +
+    emailParagraph(
+      `Saisissez-le dans la case <strong>« Code promo »</strong> au moment de payer : kits, plats à emporter ou ateliers. Pour un événement, indiquez-le dans votre demande de devis. Valable jusqu'au ${esc(jusquau)}.`
+    ) +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 8px;"><tr><td>${emailButton(
+      site,
+      "En profiter"
+    )}</td></tr></table>` +
+    emailDivider() +
+    unsubscribeNote(email);
+
+  return sendEmail({
+    to: email,
+    subject: `Votre code promo ${code} · ${SHOP_NAME}`,
+    html: emailShell({
+      title: `Votre code promo ${SHOP_NAME}`,
+      preheader: `Votre code : ${code} (${avantage})`,
+      content,
+    }),
+    kind: "code-popup",
+    reference: code,
+  });
+}

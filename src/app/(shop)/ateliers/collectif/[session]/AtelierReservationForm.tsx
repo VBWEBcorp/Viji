@@ -11,6 +11,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
+import PromoCodeInput, { remiseAffichee, type AppliedPromo } from "@/components/shop/PromoCodeInput";
 
 type Occurrence = {
   date: string;
@@ -59,7 +60,10 @@ export default function AtelierReservationForm({
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [amountDue, setAmountDue] = useState<number>(price);
 
-  const totalEstimate = price * participants;
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const sousTotal = price * participants;
+  const remise = remiseAffichee(appliedPromo, sousTotal);
+  const totalEstimate = sousTotal - remise;
 
   // Étape 1 → 2 : valide le formulaire puis crée l'intention de paiement.
   async function goToPayment(e: React.FormEvent) {
@@ -81,7 +85,7 @@ export default function AtelierReservationForm({
       const res = await fetch("/api/ateliers/reservation/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionSlug, participants }),
+        body: JSON.stringify({ sessionSlug, participants, promoCode: appliedPromo?.code }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -220,9 +224,11 @@ export default function AtelierReservationForm({
           <ShieldCheck size={13} />
           <span>Paiement sécurisé par Stripe.</span>
         </div>
-        <p className="font-serif italic text-[12px] text-gray-400 text-center">
+        {process.env.NODE_ENV !== "production" && (
+          <p className="font-serif italic text-[12px] text-gray-400 text-center">
           Carte de test : 4242 4242 4242 4242 · date future · CVC au choix.
         </p>
+        )}
       </div>
     );
   }
@@ -335,12 +341,34 @@ export default function AtelierReservationForm({
         />
       </div>
 
+      <PromoCodeInput
+        subtotal={sousTotal}
+        appliedPromo={appliedPromo}
+        onApply={setAppliedPromo}
+        onRemove={() => setAppliedPromo(null)}
+        disabled={submitting}
+      />
+
       {/* Récap montant */}
-      <div className="flex items-center justify-between border-t border-[var(--brand-gold)]/15 pt-5">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-gray-400">
-          Total ({participants} × {formatPrice(price)})
-        </span>
-        <span className="font-serif text-2xl text-gray-900">{formatPrice(totalEstimate)}</span>
+      <div className="border-t border-[var(--brand-gold)]/15 pt-5 space-y-2">
+        {remise > 0 && (
+          <div className="flex items-center justify-between text-[13px] text-gray-600">
+            <span>{participants} × {formatPrice(price)}</span>
+            <span>{formatPrice(sousTotal)}</span>
+          </div>
+        )}
+        {remise > 0 && (
+          <div className="flex items-center justify-between text-[13px] text-[var(--brand-gold-dark)]">
+            <span>Code {appliedPromo?.code}</span>
+            <span>-{formatPrice(remise)}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-gray-400">
+            {remise > 0 ? "Total" : <>Total ({participants} × {formatPrice(price)})</>}
+          </span>
+          <span className="font-serif text-2xl text-gray-900">{formatPrice(totalEstimate)}</span>
+        </div>
       </div>
 
       <button

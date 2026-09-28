@@ -19,6 +19,7 @@ interface PopupData {
   buttonText: string;
   buttonUrl: string;
   delay: number;
+  mode?: "lien" | "code";
 }
 
 export interface MarketingData {

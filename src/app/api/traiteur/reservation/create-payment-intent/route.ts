@@ -5,6 +5,7 @@ import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { computeTraiteurAmount } from "@/lib/traiteur";
 import { verifieDateRetrait } from "@/lib/traiteur-horaires";
 import { getEtatCanal, messageCanalFerme } from "@/lib/disponibilite";
+import { resoutPromo } from "@/lib/promo";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
 const STRIPE_MIN_CHARGE = 50;
@@ -25,6 +26,8 @@ const schema = z.object({
       })
     )
     .min(1, "Sélectionnez au moins un plat"),
+  /** Code promo saisi par le client (optionnel), revérifié ici. */
+  promoCode: z.string().trim().max(40).optional(),
 });
 
 // POST /api/traiteur/reservation/create-payment-intent
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, pickupDate } = schema.parse(body);
+    const { items, pickupDate, promoCode } = schema.parse(body);
 
     // Champ absent = page ouverte avant la mise en ligne, on laisse passer et
     // l'enregistrement final tranchera. Champ present mais vide = requete
@@ -62,7 +65,22 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (computed.amount < STRIPE_MIN_CHARGE) {
+    // Code promo : la remise est calculée ici et gravée dans le paiement, pour
+    // que l'enregistrement final vérifie le montant sans recalculer (un code
+    // qui expire entre les deux ne doit pas bloquer un client qui a payé).
+    let discount = 0;
+    let appliedCode = "";
+    if (promoCode) {
+      const promo = await resoutPromo(promoCode, computed.amount);
+      if (!promo.ok) {
+        return NextResponse.json({ error: promo.error }, { status: 400 });
+      }
+      discount = promo.discount;
+      appliedCode = promo.promo.code;
+    }
+    const amount = computed.amount - discount;
+
+    if (amount < STRIPE_MIN_CHARGE) {
       return NextResponse.json(
         { error: "Montant trop faible pour un paiement en ligne" },
         { status: 400 }
@@ -77,15 +95,21 @@ export async function POST(req: NextRequest) {
 
     const stripe = await getStripe();
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: computed.amount,
+      amount,
       currency: "eur",
-      metadata: { kind: "traiteur" },
+      metadata: {
+        kind: "traiteur",
+        ...(appliedCode
+          ? { promoCode: appliedCode, promoDiscount: String(discount) }
+          : {}),
+      },
     });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount: computed.amount,
+      amount,
+      discount,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

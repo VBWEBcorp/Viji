@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { resolveAtelierUnitPrice } from "@/lib/ateliers";
 import { getEtatCanal, messageCanalFerme } from "@/lib/disponibilite";
+import { resoutPromo } from "@/lib/promo";
 
 // Montant minimum facturable par Stripe (50 centimes pour l'EUR).
 const STRIPE_MIN_CHARGE = 50;
@@ -11,6 +12,8 @@ const STRIPE_MIN_CHARGE = 50;
 const schema = z.object({
   sessionSlug: z.string().min(1),
   participants: z.coerce.number().int().min(1).max(20),
+  /** Code promo saisi par le client (optionnel), revérifié ici. */
+  promoCode: z.string().trim().max(40).optional(),
 });
 
 // POST /api/ateliers/reservation/create-payment-intent
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { sessionSlug, participants } = schema.parse(body);
+    const { sessionSlug, participants, promoCode } = schema.parse(body);
 
     const unitPrice = await resolveAtelierUnitPrice(sessionSlug);
     if (unitPrice === null) {
@@ -42,7 +45,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const amount = unitPrice * participants;
+    const subtotal = unitPrice * participants;
+
+    // Code promo : remise calculée ici et gravée dans le paiement (voir le
+    // traiteur à emporter, même principe).
+    let discount = 0;
+    let appliedCode = "";
+    if (promoCode) {
+      const promo = await resoutPromo(promoCode, subtotal);
+      if (!promo.ok) {
+        return NextResponse.json({ error: promo.error }, { status: 400 });
+      }
+      discount = promo.discount;
+      appliedCode = promo.promo.code;
+    }
+    const amount = subtotal - discount;
+
     if (amount < STRIPE_MIN_CHARGE) {
       return NextResponse.json(
         { error: "Montant trop faible pour un paiement en ligne" },
@@ -64,6 +82,9 @@ export async function POST(req: NextRequest) {
         kind: "atelier",
         sessionSlug,
         participants: String(participants),
+        ...(appliedCode
+          ? { promoCode: appliedCode, promoDiscount: String(discount) }
+          : {}),
       },
     });
 
@@ -71,6 +92,7 @@ export async function POST(req: NextRequest) {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
       amount,
+      discount,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

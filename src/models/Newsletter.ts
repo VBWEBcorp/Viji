@@ -5,6 +5,8 @@ export interface ISubscriber extends Document {
   /** Origine de l'inscription (footer, popup, page blog…) — utile pour les stats. */
   source: string;
   status: "active" | "unsubscribed";
+  /** Dernier envoi du code de la pop-up : évite de le renvoyer en boucle. */
+  popupCodeSentAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +26,7 @@ const SubscriberSchema = new Schema<ISubscriber>(
       enum: ["active", "unsubscribed"],
       default: "active",
     },
+    popupCodeSentAt: { type: Date },
   },
   { timestamps: true }
 );

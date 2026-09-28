@@ -10,6 +10,18 @@ type Logo = {
 
 const LOGOS: Logo[] = [
   {
+    name: "Elle à Table",
+    href: "#presse",
+    external: false,
+    Mark: ElleATableMark,
+  },
+  {
+    name: "Face2Breton",
+    href: "#presse",
+    external: false,
+    Mark: Face2BretonMark,
+  },
+  {
     name: "Ouest France",
     href: "#presse",
     external: false,
@@ -96,3 +108,29 @@ function ActuRennesMark() {
   );
 }
 
+
+function ElleATableMark() {
+  return (
+    <Image
+      src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-elle-a-table-logo.png"
+      alt="Elle à Table"
+      width={415}
+      height={141}
+      className="h-8 sm:h-9 md:h-10 w-auto object-contain"
+      unoptimized
+    />
+  );
+}
+
+function Face2BretonMark() {
+  return (
+    <Image
+      src="https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/presse-face2breton-logo-v2.jpg"
+      alt="Face2Breton"
+      width={706}
+      height={570}
+      className="h-12 sm:h-14 md:h-16 w-auto object-contain"
+      unoptimized
+    />
+  );
+}

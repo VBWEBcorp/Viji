@@ -15,6 +15,7 @@ import {
 import { resolveAtelierUnitPrice } from "@/lib/ateliers";
 import Reservation from "@/models/Reservation";
 import { generateReservationNumber } from "@/lib/utils";
+import { compteUtilisation, remiseDuPaiement } from "@/lib/promo";
 
 const schema = z.object({
   sessionSlug: z.string().min(1),
@@ -95,7 +96,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (pi.amount !== expectedAmount) {
+    // La remise d'un code promo est gravée dans le paiement à sa création.
+    const { promoCode, discount } = remiseDuPaiement(pi.metadata);
+    if (pi.amount !== expectedAmount - discount) {
       return NextResponse.json(
         { error: "Montant du paiement incorrect" },
         { status: 400 }
@@ -124,6 +127,8 @@ export async function POST(req: NextRequest) {
       participants: data.participants,
       notes: data.notes || undefined,
       amount: pi.amount,
+      promoCode: promoCode || undefined,
+      discount: discount || undefined,
       paymentId: pi.id,
       status: "pending",
     });
@@ -140,6 +145,7 @@ export async function POST(req: NextRequest) {
       <tr><td style="padding:8px 0;color:#6b7280;">Téléphone</td><td style="padding:8px 0;color:#111827;font-weight:600;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#111827;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>
       ${data.email ? `<tr><td style="padding:8px 0;color:#6b7280;">Email</td><td style="padding:8px 0;"><a href="mailto:${escapeHtml(data.email)}" style="color:#b08438;text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : ""}
       <tr><td style="padding:8px 0;color:#6b7280;">Participants</td><td style="padding:8px 0;color:#111827;font-weight:600;">${data.participants}</td></tr>
+      ${promoCode ? `<tr><td style="padding:8px 0;color:#6b7280;">Code promo</td><td style="padding:8px 0;color:#111827;font-weight:600;">${escapeHtml(promoCode)} · -${formatEUR(discount)}</td></tr>` : ""}
       <tr><td style="padding:8px 0;color:#6b7280;">Paiement</td><td style="padding:8px 0;color:#15803d;font-weight:700;">Payé en ligne · ${formatEUR(pi.amount)}</td></tr>
     </table>
     ${data.notes ? `<div style="margin-top:24px;padding:16px;background:#faf6ee;border-left:3px solid #b08438;">
@@ -149,6 +155,15 @@ export async function POST(req: NextRequest) {
     <p style="font-size:12px;color:#9ca3af;margin-top:32px;">Envoyé depuis la page atelier (${escapeHtml(data.sessionSlug)}).</p>
   </div>
 </body></html>`;
+
+    // Le code a servi : on le compte (best-effort, la réservation est payée).
+    if (promoCode) {
+      try {
+        await compteUtilisation(promoCode);
+      } catch (err) {
+        console.error("Compteur du code promo non mis à jour:", err);
+      }
+    }
 
     // Deux envois indépendants, tous deux best-effort : la réservation est déjà
     // payée et enregistrée, un email qui échoue ne doit ni la faire disparaître
@@ -168,6 +183,7 @@ export async function POST(req: NextRequest) {
           sessionLocation: data.sessionLocation || undefined,
           participants: data.participants,
           amount: pi.amount,
+          promo: promoCode ? { code: promoCode, discount } : undefined,
           notes: data.notes || undefined,
           coordonnees: await getCoordonneesBoutique(),
         }),
