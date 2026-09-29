@@ -11,11 +11,14 @@ import Header from "@/components/shop/Header";
  * une adresse inconnue n'y passe pas.
  */
 
+// Verifie en ligne : /kits, /ateliers et /traiteur ne sont PAS des pages,
+// seulement des dossiers de sous-routes (/kits/<box>, /ateliers/collectif,
+// /traiteur/emporter). Ne lister ici que des adresses qui repondent.
 const sorties = [
-  { href: "/kits", label: "Les box" },
-  { href: "/ateliers", label: "Les ateliers" },
-  { href: "/traiteur", label: "Traiteur" },
+  { href: "/ateliers/collectif", label: "Ateliers collectifs" },
+  { href: "/traiteur/emporter", label: "Traiteur à emporter" },
   { href: "/cartes-cadeaux", label: "Carte cadeau" },
+  { href: "/blog", label: "Le journal" },
 ];
 
 export default function NotFound() {
@@ -46,10 +49,10 @@ export default function NotFound() {
               Retour à l&apos;accueil
             </Link>
             <Link
-              href="/kits"
+              href="/contact"
               className="inline-flex h-12 items-center justify-center rounded-full border border-foreground/25 px-7 text-[0.95rem] font-medium text-foreground transition-colors hover:bg-foreground hover:text-white"
             >
-              Découvrir les box
+              Nous contacter
             </Link>
           </div>
 
