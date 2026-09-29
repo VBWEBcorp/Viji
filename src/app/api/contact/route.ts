@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/resend";
 import { getNotificationEmail } from "@/lib/notify";
-import { connectDB } from "@/lib/db";
-import { resoutPromo, libelleRemise } from "@/lib/promo";
 
 function escapeHtml(s: string) {
   return s
@@ -52,19 +50,6 @@ export async function POST(req: NextRequest) {
     const date = String(data.date || "").trim();
     const guests = String(data.guests || "").trim();
 
-    // Code promo d'une demande de devis : pas de paiement en ligne ici, on
-    // vérifie le code et on le transmet, pour qu'il soit appliqué au devis.
-    const rawPromo = formType === "devis" ? String(data.promoCode || "").trim() : "";
-    let promoLigne = "";
-    if (rawPromo) {
-      await connectDB();
-      const promo = await resoutPromo(rawPromo, null);
-      if (!promo.ok) {
-        return NextResponse.json({ error: promo.error }, { status: 400 });
-      }
-      promoLigne = `${promo.promo.code} (${libelleRemise(promo.promo)}), à appliquer sur le devis`;
-    }
-
     const html = `
       <div style="font-family:Helvetica,Arial,sans-serif;color:#1f1d1a;line-height:1.6;">
         <h2 style="font-family:Georgia,serif;color:#b8923c;margin:0 0 16px;">
@@ -78,7 +63,6 @@ export async function POST(req: NextRequest) {
           ${phone ? `<tr><td style="padding:8px 0;color:#777;">Téléphone</td><td style="padding:8px 0;">${escapeHtml(phone)}</td></tr>` : ""}
           ${date ? `<tr><td style="padding:8px 0;color:#777;">Date événement</td><td style="padding:8px 0;">${escapeHtml(date)}</td></tr>` : ""}
           ${guests ? `<tr><td style="padding:8px 0;color:#777;">Convives</td><td style="padding:8px 0;">${escapeHtml(guests)}</td></tr>` : ""}
-          ${promoLigne ? `<tr><td style="padding:8px 0;color:#777;">Code promo</td><td style="padding:8px 0;"><strong>${escapeHtml(promoLigne)}</strong></td></tr>` : ""}
           ${subject ? `<tr><td style="padding:8px 0;color:#777;">Sujet</td><td style="padding:8px 0;">${escapeHtml(subject)}</td></tr>` : ""}
         </table>
         <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />

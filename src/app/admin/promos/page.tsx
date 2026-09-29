@@ -127,8 +127,8 @@ export default function AdminPromosPage() {
       </PageHeader>
 
       <p className="text-[13px] text-gray-600 leading-relaxed mb-6 max-w-2xl">
-        Un code est valable <strong>partout sur le site</strong> : kits, plats à emporter,
-        ateliers, et demandes de devis événementiel. Le client le tape dans la case
+        Un code est valable <strong>partout sur le site</strong> : kits, plats à emporter
+        et ateliers (pas l&apos;événementiel). Le client le tape dans la case
         « Code promo » au moment de payer. Pour l&apos;envoyer par email depuis une pop-up,
         rendez-vous dans <strong>Marketing</strong>.
       </p>

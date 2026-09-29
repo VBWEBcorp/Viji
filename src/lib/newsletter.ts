@@ -132,7 +132,7 @@ export async function sendCampaign(
 /**
  * Email de la pop-up « code par email » : le visiteur a laissé son adresse,
  * il reçoit le code à saisir dans la case « Code promo » au moment de payer
- * (boutique, traiteur à emporter, ateliers, ou demande de devis).
+ * (boutique, traiteur à emporter, ateliers).
  */
 export async function sendCodePopup(params: {
   email: string;
@@ -162,7 +162,7 @@ export async function sendCodePopup(params: {
       <span style="font-family:'Courier New',monospace; font-size:26px; letter-spacing:0.18em; font-weight:700; color:${EMAIL_COLORS.goldDark};">${esc(code)}</span>
     </td></tr></table>` +
     emailParagraph(
-      `Saisissez-le dans la case <strong>« Code promo »</strong> au moment de payer : kits, plats à emporter ou ateliers. Pour un événement, indiquez-le dans votre demande de devis. Valable jusqu'au ${esc(jusquau)}.`
+      `Saisissez-le dans la case <strong>« Code promo »</strong> au moment de payer : kits, plats à emporter ou ateliers. Valable jusqu'au ${esc(jusquau)}.`
     ) +
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 8px;"><tr><td>${emailButton(
       site,

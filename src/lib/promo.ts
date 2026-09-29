@@ -2,8 +2,8 @@ import PromoCode, { type IPromoCode } from "@/models/PromoCode";
 
 /**
  * Règle unique d'un code promo, partagée par tous les canaux payants du site :
- * boutique (kits), traiteur à emporter et ateliers. La demande de devis
- * événementiel s'en sert aussi, pour vérifier le code avant de le transmettre.
+ * boutique (kits), traiteur à emporter et ateliers. Pas l'événementiel : la
+ * commerçante ne veut pas de code promo sur ses devis.
  *
  * Un même code (ex. une carte glissée dans les kits de Noël) vaut donc partout.
  */
@@ -30,7 +30,7 @@ export function calculeRemise(
 /**
  * Cherche un code actif et en cours de validité, et calcule la remise.
  * `subtotal` à null : on vérifie seulement que le code existe et vit encore
- * (demande de devis, montant inconnu à ce stade).
+ * (pop-up, montant inconnu à ce stade).
  */
 export async function resoutPromo(
   code: string,

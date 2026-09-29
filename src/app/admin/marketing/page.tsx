@@ -261,7 +261,7 @@ export default function AdminMarketingPage() {
                     <p className="text-[12px] text-red-600">{codeProbleme}</p>
                   ) : (
                     <p className="text-[12px] text-gray-500">
-                      Le client le saisira dans la case « Code promo » au moment de payer (kits, plats à emporter, ateliers) ou dans sa demande de devis.
+                      Le client le saisira dans la case « Code promo » au moment de payer (kits, plats à emporter, ateliers).
                     </p>
                   )}
                   <Link href="/admin/promos" className="inline-block text-[12px] text-[var(--brand-gold-dark)] underline">
