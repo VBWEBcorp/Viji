@@ -45,6 +45,7 @@ interface Settings {
   };
   virement: {
     evenementiel: boolean;
+    ateliers: boolean;
   };
   analytics: {
     googleAnalyticsId: string;
@@ -119,7 +120,7 @@ const defaultSettings: Settings = {
     bankName: "",
     accountHolder: "",
   },
-  virement: { evenementiel: false },
+  virement: { evenementiel: false, ateliers: false },
   analytics: { googleAnalyticsId: "", plausibleDomain: "", metaPixelId: "", customHeadScript: "" },
   integrations: { formspreeId: "" },
   availability: {
@@ -229,6 +230,7 @@ export default function AdminSettingsPage() {
             },
             virement: {
               evenementiel: data.virement?.evenementiel ?? false,
+              ateliers: data.virement?.ateliers ?? false,
             },
             analytics: {
               googleAnalyticsId: data.analytics?.googleAnalyticsId || "",
@@ -844,6 +846,25 @@ export default function AdminSettingsPage() {
                 </div>
               </label>
 
+              <label className="flex items-start gap-3 p-4 border border-[var(--brand-gold)]/15 cursor-pointer hover:bg-[var(--brand-cream)]/40 transition">
+                <input
+                  type="checkbox"
+                  checked={settings.virement.ateliers}
+                  onChange={(e) => setSettings({ ...settings, virement: { ...settings.virement, ateliers: e.target.checked } })}
+                  className="w-4 h-4 mt-0.5 accent-[var(--brand-gold)]"
+                />
+                <div className="flex-1">
+                  <p className="text-[13px] font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                    Ateliers cuisine réglés par virement
+                    {settings.virement.ateliers && <Badge tone="green">Actif</Badge>}
+                  </p>
+                  <p className="text-[12px] text-gray-500 mt-0.5">
+                    Plus de carte pour les ateliers : le client réserve, reçoit ton RIB et une référence par email,
+                    et tu vois la réservation « Virement à recevoir ». Les kits restent payés par carte.
+                  </p>
+                </div>
+              </label>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Titulaire du compte</label>
@@ -872,7 +893,7 @@ export default function AdminSettingsPage() {
                     className={inputCls} />
                 </div>
               </div>
-              {settings.virement.evenementiel && !settings.invoice.iban && (
+              {(settings.virement.evenementiel || settings.virement.ateliers) && !settings.invoice.iban && (
                 <p className="text-[12px] text-amber-700">
                   Ajoute ton IBAN pour qu&apos;il apparaisse dans les demandes de devis.
                 </p>

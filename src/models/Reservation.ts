@@ -40,7 +40,9 @@ export interface IReservation extends Document {
   /** Code promo appliqué au paiement, et la remise qu'il a donnée (centimes). */
   promoCode?: string;
   discount?: number;
-  paymentId: string; // PaymentIntent Stripe
+  paymentId: string; // PaymentIntent Stripe, ou « virement-<n° de réservation> »
+  /** carte = payé en ligne par Stripe ; virement = réservé, règlement à recevoir. */
+  paymentMethod?: "carte" | "virement";
 
   /** pending = à préparer, confirmed = confirmée, done = terminée, cancelled = annulée */
   status: ReservationStatus;
@@ -83,6 +85,7 @@ const ReservationSchema = new Schema<IReservation>(
     promoCode: { type: String, trim: true },
     discount: { type: Number, min: 0 },
     paymentId: { type: String, required: true, index: true },
+    paymentMethod: { type: String, enum: ["carte", "virement"], default: "carte" },
 
     status: {
       type: String,

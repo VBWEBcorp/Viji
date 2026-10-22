@@ -1,5 +1,6 @@
 import { connectDB } from "./db";
 import SiteSettings from "@/models/SiteSettings";
+import type { Rib } from "./virement";
 import {
   emailShell,
   emailEyebrow,
@@ -95,7 +96,19 @@ function blocNote(titre: string, texte: string): string {
   );
 }
 
-/** Confirmation d'une réservation d'atelier payée, envoyée au participant. */
+/** Coordonnées bancaires pour un atelier réglé par virement. */
+function blocRib(rib: Rib, amount: number, reference: string): string {
+  const l = (k: string, v: string) =>
+    v ? `<tr><td style="padding:4px 0; font-family:${SANS}; font-size:13px; color:${C.muted};">${k}</td><td style="padding:4px 0; font-family:${SANS}; font-size:13px; color:${C.ink}; font-weight:600; text-align:right;">${esc(v)}</td></tr>` : "";
+  return emailInfoBox(
+    `<p style="font-family:${SANS}; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:${C.muted}; margin:0 0 10px;">Virement</p>
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+       ${l("Titulaire", rib.titulaire)}${l("IBAN", rib.iban)}${l("BIC", rib.bic)}${l("Montant", formatEUR(amount))}${l("Référence", reference)}
+     </table>`
+  );
+}
+
+/** Confirmation d'une réservation d'atelier (payée par carte, ou à régler par virement), envoyée au participant. */
 export function buildAtelierCustomerEmail(params: {
   reservationNumber: string;
   name: string;
@@ -107,8 +120,11 @@ export function buildAtelierCustomerEmail(params: {
   promo?: { code: string; discount: number };
   notes?: string;
   coordonnees: CoordonneesBoutique;
+  /** Atelier réglé par virement : le RIB et la référence à indiquer. */
+  virement?: Rib;
 }): string {
   const {
+    virement,
     reservationNumber,
     name,
     sessionTitle,
@@ -123,19 +139,22 @@ export function buildAtelierCustomerEmail(params: {
 
   return emailShell({
     title: `Votre réservation ${esc(sessionTitle)}`,
-    preheader: `${sessionDate} · ${participants} participant${participants > 1 ? "s" : ""} · paiement reçu`,
+    preheader: `${sessionDate} · ${participants} participant${participants > 1 ? "s" : ""} · ${virement ? "règlement par virement" : "paiement reçu"}`,
     content:
-      emailEyebrow("Réservation confirmée") +
+      emailEyebrow(virement ? "Réservation enregistrée" : "Réservation confirmée") +
       emailHeading(esc(sessionTitle)) +
       emailParagraph(
-        `Bonjour <strong style="color:${C.ink};">${esc(name)}</strong>, votre place est réservée et votre paiement bien reçu. Voici le récapitulatif à conserver.`
+        virement
+          ? `Bonjour <strong style="color:${C.ink};">${esc(name)}</strong>, votre réservation est bien enregistrée. Il ne reste plus qu'à régler <strong style="color:${C.ink};">${formatEUR(amount)}</strong> par virement, en indiquant la référence <strong style="color:${C.ink};">${esc(reservationNumber)}</strong>.`
+          : `Bonjour <strong style="color:${C.ink};">${esc(name)}</strong>, votre place est réservée et votre paiement bien reçu. Voici le récapitulatif à conserver.`
       ) +
+      (virement ? blocRib(virement, amount, reservationNumber) : "") +
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 4px;">` +
       ligne("Date", esc(sessionDate), true) +
       (sessionLocation ? ligne("Lieu", esc(sessionLocation)) : "") +
       ligne("Participants", String(participants)) +
       (promo ? ligne(`Code promo ${esc(promo.code)}`, `-${formatEUR(promo.discount)}`) : "") +
-      ligne("Montant réglé", formatEUR(amount), true) +
+      ligne(virement ? "Montant à régler par virement" : "Montant réglé", formatEUR(amount), true) +
       ligne("N° de réservation", esc(reservationNumber)) +
       `</table>` +
       emailDivider() +

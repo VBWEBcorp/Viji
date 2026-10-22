@@ -32,6 +32,7 @@ interface Reservation {
   amount: number;
   promoCode?: string;
   discount?: number;
+  paymentMethod?: "carte" | "virement";
   status: Status;
   createdAt: string;
 }
@@ -156,6 +157,7 @@ export default function AdminReservationsPage() {
                       <td className="px-5 py-4 font-serif text-[14px] text-gray-900">{formatPrice(r.amount)}</td>
                       <td className="px-5 py-4">
                         <Badge tone={statusMap[r.status].tone}>{statusMap[r.status].label}</Badge>
+                        {r.paymentMethod === "virement" && <span className="ml-1.5"><Badge tone="amber">Virement</Badge></span>}
                       </td>
                       <td className="px-5 py-4 text-[12px] text-gray-400">{formatDate(r.createdAt)}</td>
                       <td className="px-5 py-4 text-right">
@@ -266,6 +268,11 @@ function DetailModal({
             <Badge tone={statusMap[r.status].tone}>{statusMap[r.status].label}</Badge>
             <span className="font-serif text-2xl text-gray-900">{formatPrice(r.amount)}</span>
           </div>
+          {r.paymentMethod === "virement" && (
+            <p className="text-[12px] text-amber-700 -mt-3 text-right">
+              Règlement par virement, référence <span className="font-mono">{r.reservationNumber}</span> : vérifie sa réception sur ton compte.
+            </p>
+          )}
           {r.promoCode && (
             <p className="text-[12px] text-gray-500 -mt-3 text-right">
               Code promo <span className="font-mono text-gray-800">{r.promoCode}</span>

@@ -47,9 +47,11 @@ export interface ISiteSettings extends Document {
     bankName?: string;
     accountHolder?: string; // titulaire du compte, tel qu'il figure sur le RIB
   };
-  /** Paiement par virement : proposé pour l'événementiel (pas de frais Stripe). */
+  /** Paiement par virement (pas de frais Stripe) : devis événementiel, ateliers. */
   virement: {
     evenementiel?: boolean;
+    /** Ateliers réservés en ligne puis réglés par virement, sans carte. */
+    ateliers?: boolean;
   };
   analytics: {
     googleAnalyticsId?: string; // ex: G-XXXXXXX
@@ -171,6 +173,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     },
     virement: {
       evenementiel: { type: Boolean, default: false },
+      ateliers: { type: Boolean, default: false },
     },
     analytics: {
       googleAnalyticsId: { type: String },

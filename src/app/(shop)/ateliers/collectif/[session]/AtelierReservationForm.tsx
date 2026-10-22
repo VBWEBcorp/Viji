@@ -25,7 +25,11 @@ interface Props {
   /** Prix par personne, en centimes. */
   price: number;
   occurrences: Occurrence[];
+  /** Ateliers réglés par virement (Réglages → Virement) : pas de carte. */
+  virement?: boolean;
 }
+
+type Rib = { titulaire: string; iban: string; bic: string };
 
 type Step = "form" | "payment" | "done";
 
@@ -34,6 +38,7 @@ export default function AtelierReservationForm({
   sessionTitle,
   price,
   occurrences,
+  virement = false,
 }: Props) {
   // Clé publique servie par le serveur (Réglages admin), pour qu'elle provienne
   // toujours du même compte Stripe que la clé secrète.
@@ -61,9 +66,46 @@ export default function AtelierReservationForm({
   const [amountDue, setAmountDue] = useState<number>(price);
 
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  // Réservation par virement : référence, montant et RIB renvoyés par le serveur.
+  const [transfer, setTransfer] = useState<{ reference: string; amount: number; rib: Rib } | null>(null);
   const sousTotal = price * participants;
   const remise = remiseAffichee(appliedPromo, sousTotal);
   const totalEstimate = sousTotal - remise;
+
+  // Ateliers réglés par virement : la réservation est enregistrée directement.
+  async function reserveByTransfer(chosen: Occurrence) {
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/ateliers/reservation/virement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionSlug,
+          sessionTitle,
+          sessionDate: `${chosen.date} · ${chosen.schedule}`,
+          sessionLocation: chosen.location,
+          name,
+          phone,
+          email,
+          participants,
+          notes,
+          promoCode: appliedPromo?.code,
+          website,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "La réservation n'a pas pu être enregistrée. Réessayez.");
+        setSubmitting(false);
+        return;
+      }
+      if (data.rib) setTransfer({ reference: data.reservationNumber, amount: data.amount, rib: data.rib });
+      setStep("done");
+    } catch {
+      setError("Erreur réseau, réessayez.");
+    }
+    setSubmitting(false);
+  }
 
   // Étape 1 → 2 : valide le formulaire puis crée l'intention de paiement.
   async function goToPayment(e: React.FormEvent) {
@@ -77,6 +119,11 @@ export default function AtelierReservationForm({
     const chosen = occurrences[occIndex];
     if (!chosen) {
       setError("Date / lieu invalide.");
+      return;
+    }
+
+    if (virement) {
+      await reserveByTransfer(chosen);
       return;
     }
 
@@ -134,6 +181,31 @@ export default function AtelierReservationForm({
       return;
     }
     setStep("done");
+  }
+
+  if (step === "done" && transfer) {
+    return (
+      <div className="text-center py-10 px-6 bg-[var(--brand-cream)]/50 border border-[var(--brand-gold)]/20">
+        <div className="w-14 h-14 rounded-full border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] flex items-center justify-center mx-auto mb-5">
+          <Check size={20} strokeWidth={1.5} />
+        </div>
+        <p className="font-serif italic text-[18px] text-gray-800 mb-2">Réservation enregistrée</p>
+        <p className="text-[13px] text-gray-600 max-w-md mx-auto leading-relaxed">
+          Pour la régler, faites un virement de <strong>{formatPrice(transfer.amount)}</strong> en indiquant la
+          référence <strong>{transfer.reference}</strong>. Ces informations vous ont aussi été envoyées par email.
+        </p>
+        <dl className="mt-6 max-w-sm mx-auto text-left text-[13px] bg-white border border-[var(--brand-gold)]/15 px-5 py-4 space-y-1.5">
+          {transfer.rib.titulaire && (
+            <div className="flex justify-between gap-4"><dt className="text-gray-500">Titulaire</dt><dd className="font-medium text-gray-900 text-right">{transfer.rib.titulaire}</dd></div>
+          )}
+          <div className="flex justify-between gap-4"><dt className="text-gray-500">IBAN</dt><dd className="font-medium text-gray-900 text-right break-all">{transfer.rib.iban}</dd></div>
+          {transfer.rib.bic && (
+            <div className="flex justify-between gap-4"><dt className="text-gray-500">BIC</dt><dd className="font-medium text-gray-900 text-right">{transfer.rib.bic}</dd></div>
+          )}
+          <div className="flex justify-between gap-4"><dt className="text-gray-500">Référence</dt><dd className="font-medium text-gray-900 text-right">{transfer.reference}</dd></div>
+        </dl>
+      </div>
+    );
   }
 
   if (step === "done") {
@@ -376,7 +448,9 @@ export default function AtelierReservationForm({
         disabled={submitting}
         className="w-full inline-flex items-center justify-center gap-3 bg-[var(--brand-gold)] text-white py-4 text-[11px] uppercase tracking-[0.3em] font-medium hover:bg-[var(--brand-gold-dark)] transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {submitting ? "Préparation du paiement…" : <>Réserver et payer <ArrowRight size={13} /></>}
+        {virement
+          ? submitting ? "Enregistrement…" : <>Réserver, règlement par virement <ArrowRight size={13} /></>
+          : submitting ? "Préparation du paiement…" : <>Réserver et payer <ArrowRight size={13} /></>}
       </button>
     </form>
   );

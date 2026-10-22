@@ -108,3 +108,30 @@ describe("confirmation Click & Collect", () => {
     expect(html).toContain("Sans piment");
   });
 });
+
+describe("atelier réglé par virement", () => {
+  const html = buildAtelierCustomerEmail({
+    reservationNumber: "RES-2610-7777",
+    name: "Claire Dupont",
+    sessionTitle: "Atelier cuisine indienne",
+    sessionDate: "samedi 12 septembre, 14h",
+    participants: 2,
+    amount: 13000,
+    coordonnees,
+    virement: { titulaire: "Viji Tinot", iban: "FR76 0000 0000 0000", bic: "AGRIFRPP" },
+  });
+
+  it("ne dit jamais que le paiement est reçu", () => {
+    expect(html).not.toContain("paiement bien reçu");
+    expect(html).not.toContain("Montant réglé");
+    expect(html).toContain("Montant à régler par virement");
+  });
+
+  it("donne le RIB, le montant et la référence à indiquer", () => {
+    expect(html).toContain("FR76 0000 0000 0000");
+    expect(html).toContain("AGRIFRPP");
+    expect(html).toContain("Viji Tinot");
+    expect(html).toContain("130,00 €");
+    expect(html).toContain("RES-2610-7777");
+  });
+});

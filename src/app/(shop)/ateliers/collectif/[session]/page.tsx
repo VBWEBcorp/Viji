@@ -7,6 +7,7 @@ import AtelierSession from "@/models/AtelierSession";
 import AtelierReservationForm from "./AtelierReservationForm";
 import CanalFerme from "@/components/shop/CanalFerme";
 import { getEtatCanal } from "@/lib/disponibilite";
+import { ribPourAteliers } from "@/lib/virement";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +98,8 @@ export default async function AtelierSessionDetailPage({
 
   // Ouverture des réservations, pilotée depuis Admin → Disponibilité.
   const etat = await getEtatCanal("ateliers");
+  // Ateliers réglés par virement si l'option est cochée et l'IBAN saisi (Réglages → Virement).
+  const parVirement = Boolean(await ribPourAteliers().catch(() => null));
 
   const firstOcc = data.occurrences[0];
   const hasMultiple = data.occurrences.length > 1;
@@ -236,8 +239,8 @@ export default async function AtelierSessionDetailPage({
             </h2>
             <p className="text-[14px] text-gray-600 leading-relaxed max-w-md mx-auto">
               {hasMultiple
-                ? "Choisissez la date et le lieu, indiquez le nombre de participants et réglez votre place en ligne."
-                : "Indiquez le nombre de participants, vos coordonnées et réglez votre place en ligne."}
+                ? `Choisissez la date et le lieu, indiquez le nombre de participants et réglez votre place ${parVirement ? "par virement" : "en ligne"}.`
+                : `Indiquez le nombre de participants, vos coordonnées et réglez votre place ${parVirement ? "par virement" : "en ligne"}.`}
             </p>
           </div>
 
@@ -248,6 +251,7 @@ export default async function AtelierSessionDetailPage({
                 sessionTitle={data.title}
                 price={data.price}
                 occurrences={data.occurrences}
+                virement={parVirement}
               />
             </div>
           ) : (
