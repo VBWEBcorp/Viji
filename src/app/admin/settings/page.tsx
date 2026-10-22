@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Store, Mail, Truck, CreditCard, Shield, Eye, EyeOff, Check, Key, MapPin, BarChart3, FileText, Receipt, Plug, CalendarClock, Palmtree } from "lucide-react";
+import { Store, Mail, Truck, CreditCard, Shield, Eye, EyeOff, Check, Key, MapPin, BarChart3, FileText, Receipt, Plug, CalendarClock, Palmtree, Landmark } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, Card, GoldButton, Badge } from "@/components/admin/ui";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -41,6 +41,10 @@ interface Settings {
     iban: string;
     bic: string;
     bankName: string;
+    accountHolder: string;
+  };
+  virement: {
+    evenementiel: boolean;
   };
   analytics: {
     googleAnalyticsId: string;
@@ -113,7 +117,9 @@ const defaultSettings: Settings = {
     iban: "",
     bic: "",
     bankName: "",
+    accountHolder: "",
   },
+  virement: { evenementiel: false },
   analytics: { googleAnalyticsId: "", plausibleDomain: "", metaPixelId: "", customHeadScript: "" },
   integrations: { formspreeId: "" },
   availability: {
@@ -219,6 +225,10 @@ export default function AdminSettingsPage() {
               iban: data.invoice?.iban || "",
               bic: data.invoice?.bic || "",
               bankName: data.invoice?.bankName || "",
+              accountHolder: data.invoice?.accountHolder || "",
+            },
+            virement: {
+              evenementiel: data.virement?.evenementiel ?? false,
             },
             analytics: {
               googleAnalyticsId: data.analytics?.googleAnalyticsId || "",
@@ -285,6 +295,7 @@ export default function AdminSettingsPage() {
   const tabs = [
     { id: "general", label: "Général", icon: Store },
     { id: "availability", label: "Disponibilité", icon: CalendarClock },
+    { id: "virement", label: "Virement", icon: Landmark },
     { id: "api", label: "Clés API", icon: Key },
     { id: "shipping", label: "Livraison", icon: Truck },
     { id: "tax", label: "TVA / Facture", icon: Receipt },
@@ -800,6 +811,76 @@ export default function AdminSettingsPage() {
         )}
 
         {/* Tax / Invoice */}
+        {activeTab === "virement" && (
+          <div className="space-y-6">
+            <Card className="p-5 sm:p-6 space-y-5">
+              <div>
+                <h2 className={sectionTitleCls}>
+                  <Landmark size={18} strokeWidth={1.5} className="text-[var(--brand-gold)]" /> Paiement par virement
+                </h2>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  Pour les devis traiteur événementiel, le client te règle par virement,
+                  directement sur ton compte, sans frais Stripe. Tes coordonnées bancaires
+                  ne sont jamais affichées sur le site : elles s&apos;ajoutent à chaque demande
+                  de devis que tu reçois, prêtes à coller dans ta réponse.
+                </p>
+              </div>
+
+              <label className="flex items-start gap-3 p-4 border border-[var(--brand-gold)]/15 cursor-pointer hover:bg-[var(--brand-cream)]/40 transition">
+                <input
+                  type="checkbox"
+                  checked={settings.virement.evenementiel}
+                  onChange={(e) => setSettings({ ...settings, virement: { ...settings.virement, evenementiel: e.target.checked } })}
+                  className="w-4 h-4 mt-0.5 accent-[var(--brand-gold)]"
+                />
+                <div className="flex-1">
+                  <p className="text-[13px] font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                    Proposer le virement pour l&apos;événementiel
+                    {settings.virement.evenementiel && <Badge tone="green">Actif</Badge>}
+                  </p>
+                  <p className="text-[12px] text-gray-500 mt-0.5">
+                    La page traiteur événementiel annonce le règlement par virement.
+                  </p>
+                </div>
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Titulaire du compte</label>
+                  <input type="text" value={settings.invoice.accountHolder}
+                    onChange={(e) => setSettings({ ...settings, invoice: { ...settings.invoice, accountHolder: e.target.value } })}
+                    placeholder="Comme sur ton RIB"
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Banque</label>
+                  <input type="text" value={settings.invoice.bankName}
+                    onChange={(e) => setSettings({ ...settings, invoice: { ...settings.invoice, bankName: e.target.value } })}
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>IBAN</label>
+                  <input type="text" value={settings.invoice.iban}
+                    onChange={(e) => setSettings({ ...settings, invoice: { ...settings.invoice, iban: e.target.value } })}
+                    placeholder="FR76 …"
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>BIC</label>
+                  <input type="text" value={settings.invoice.bic}
+                    onChange={(e) => setSettings({ ...settings, invoice: { ...settings.invoice, bic: e.target.value } })}
+                    className={inputCls} />
+                </div>
+              </div>
+              {settings.virement.evenementiel && !settings.invoice.iban && (
+                <p className="text-[12px] text-amber-700">
+                  Ajoute ton IBAN pour qu&apos;il apparaisse dans les demandes de devis.
+                </p>
+              )}
+            </Card>
+          </div>
+        )}
+
         {activeTab === "tax" && (
           <div className="space-y-6">
             {/* TVA */}

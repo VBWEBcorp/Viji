@@ -612,6 +612,6 @@ const DEFAULT_KITS = [
   { slug: "decouverte", name: "Kit Découverte", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/RT04pLXX-samoussa.jpg" },
   // Signature → Poulet Tandoori (rouge dramatique, visuel "signature")
   { slug: "signature", name: "Kit Signature", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gF9GBhD7-poulet-tandoori.jpg" },
-  // Familiale → Beef Rice Lemon (assiette complète, idée de festin partagé)
-  { slug: "familiale", name: "Kit Familiale", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gLLnvsYg-beef-rice-lemon.jpg" },
+  // Familial → Beef Rice Lemon (assiette complète, idée de festin partagé)
+  { slug: "familiale", name: "Kit Familial", image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gLLnvsYg-beef-rice-lemon.jpg" },
 ];

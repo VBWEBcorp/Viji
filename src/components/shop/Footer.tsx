@@ -63,7 +63,7 @@ export default async function Footer() {
             links={[
               { href: "/kits/decouverte", label: "Kit Découverte" },
               { href: "/kits/signature", label: "Kit Signature" },
-              { href: "/kits/familiale", label: "Kit Familiale" },
+              { href: "/kits/familiale", label: "Kit Familial" },
             ]}
           />
 

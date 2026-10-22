@@ -195,4 +195,26 @@ describe("réglages de disponibilité", () => {
     );
     expect(res.status).toBe(401);
   });
+
+  it("ne livre jamais les clés secrètes ni le RIB à un visiteur", async () => {
+    await SiteSettings.create({
+      apiKeys: { stripeSecretKey: "sk_live_secret", stripePublishableKey: "pk_live_public", resendApiKey: "re_secret" },
+      invoice: { iban: "FR7600000000000000000000000" },
+    });
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValueOnce(null as never);
+
+    const data = await (await litReglages()).json();
+    const texte = JSON.stringify(data);
+    expect(texte).not.toContain("sk_live_secret");
+    expect(texte).not.toContain("re_secret");
+    expect(texte).not.toContain("FR7600000000000000000000000");
+    expect(data.apiKeys.stripePublishableKey).toBe("pk_live_public");
+  });
+
+  it("donne tout à l'administratrice connectée", async () => {
+    await SiteSettings.create({ apiKeys: { stripeSecretKey: "sk_live_secret" } });
+    const data = await (await litReglages()).json();
+    expect(data.apiKeys.stripeSecretKey).toBe("sk_live_secret");
+  });
 });

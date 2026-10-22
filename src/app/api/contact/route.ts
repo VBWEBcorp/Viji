@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/resend";
 import { getNotificationEmail } from "@/lib/notify";
+import { connectDB } from "@/lib/db";
+import SiteSettings from "@/models/SiteSettings";
+
+/**
+ * Pour une demande de devis, le RIB de la commerçante prêt à coller dans sa
+ * réponse, quand le virement est activé pour l'événementiel (Réglages →
+ * Virement). Rien n'est envoyé au visiteur : le RIB ne quitte pas sa boîte.
+ */
+async function blocVirement(): Promise<string> {
+  try {
+    await connectDB();
+    const s = await SiteSettings.findOne({}, { virement: 1, invoice: 1 }).lean();
+    if (!s?.virement?.evenementiel || !s.invoice?.iban) return "";
+    const lignes = [
+      s.invoice.accountHolder ? `Titulaire : ${s.invoice.accountHolder}` : "",
+      `IBAN : ${s.invoice.iban}`,
+      s.invoice.bic ? `BIC : ${s.invoice.bic}` : "",
+      s.invoice.bankName ? `Banque : ${s.invoice.bankName}` : "",
+    ].filter(Boolean);
+    return `
+        <div style="background:#faf6ee;padding:14px 16px;margin:20px 0;font-size:13px;">
+          <p style="margin:0 0 8px;color:#777;">À coller dans ta réponse avec le devis (règlement par virement, sans frais) :</p>
+          <p style="margin:0;white-space:pre-wrap;">${lignes.map(escapeHtml).join("<br>")}</p>
+        </div>`;
+  } catch {
+    return "";
+  }
+}
 
 function escapeHtml(s: string) {
   return s
@@ -50,6 +78,8 @@ export async function POST(req: NextRequest) {
     const date = String(data.date || "").trim();
     const guests = String(data.guests || "").trim();
 
+    const virement = formType === "devis" ? await blocVirement() : "";
+
     const html = `
       <div style="font-family:Helvetica,Arial,sans-serif;color:#1f1d1a;line-height:1.6;">
         <h2 style="font-family:Georgia,serif;color:#b8923c;margin:0 0 16px;">
@@ -67,6 +97,7 @@ export async function POST(req: NextRequest) {
         </table>
         <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
         <p style="white-space:pre-wrap;font-size:14px;">${escapeHtml(message)}</p>
+        ${virement}
         <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
         <p style="font-size:11px;color:#999;">
           Envoyé depuis le formulaire ${formType === "devis" ? "de devis traiteur" : "de contact"} d'<em>Entre Maman et Moi</em>.

@@ -239,7 +239,7 @@ const CATEGORIES = [
     order: 2,
   },
   {
-    name: "Kit Familiale",
+    name: "Kit Familial",
     slug: "familiale",
     description: "Kit à faire soi-même, un repas généreux pour cuisiner et partager en famille.",
     image: "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/gLLnvsYg-beef-rice-lemon.jpg",
@@ -338,7 +338,7 @@ const PRODUCTS: ProductSeed[] = [
     isFeatured: true,
   },
 
-  // ── Box Familiale ─────────────────────────────────────────────────
+  // ── Kit Familial ─────────────────────────────────────────────────
   {
     name: "Le Festin du Maharaja",
     slug: "festin-maharaja",

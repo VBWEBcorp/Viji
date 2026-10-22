@@ -45,6 +45,11 @@ export interface ISiteSettings extends Document {
     iban?: string;
     bic?: string;
     bankName?: string;
+    accountHolder?: string; // titulaire du compte, tel qu'il figure sur le RIB
+  };
+  /** Paiement par virement : proposé pour l'événementiel (pas de frais Stripe). */
+  virement: {
+    evenementiel?: boolean;
   };
   analytics: {
     googleAnalyticsId?: string; // ex: G-XXXXXXX
@@ -162,6 +167,10 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       iban: { type: String },
       bic: { type: String },
       bankName: { type: String },
+      accountHolder: { type: String },
+    },
+    virement: {
+      evenementiel: { type: Boolean, default: false },
     },
     analytics: {
       googleAnalyticsId: { type: String },

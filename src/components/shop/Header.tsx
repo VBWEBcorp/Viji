@@ -24,7 +24,7 @@ const LOGO_SRC = "https://pub-ca14f007dfa948608de6202297931d65.r2.dev/images/5WW
 const KIT_LINKS = [
   { href: "/kits/decouverte", label: "Kit Découverte", tagline: "L'initiation" },
   { href: "/kits/signature", label: "Kit Signature", tagline: "Le plat complet" },
-  { href: "/kits/familiale", label: "Kit Familiale", tagline: "Le festin partagé" },
+  { href: "/kits/familiale", label: "Kit Familial", tagline: "Le festin partagé" },
 ];
 
 const ATELIER_LINKS = [

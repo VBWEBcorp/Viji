@@ -7,7 +7,31 @@ import { invalidateNotificationEmailCache } from "@/lib/notify";
 import { invalidateDisponibiliteCache } from "@/lib/disponibilite";
 import { invalidateCoordonneesCache } from "@/lib/reservation-emails";
 
-// GET /api/settings
+/**
+ * Ce qu'un visiteur a le droit de lire. La page de paiement a besoin des
+ * tarifs, de la TVA et des clés PUBLIQUES ; jamais des clés secrètes Stripe,
+ * Resend ou Sendcloud, ni des coordonnées bancaires. Avant ce filtre, la route
+ * renvoyait tout à n'importe qui, clé secrète Stripe comprise.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function versionPublique(s: any) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { apiKeys, invoice, analytics, ...reste } = s;
+  return {
+    ...reste,
+    analytics: {
+      googleAnalyticsId: analytics?.googleAnalyticsId || "",
+      plausibleDomain: analytics?.plausibleDomain || "",
+      metaPixelId: analytics?.metaPixelId || "",
+    },
+    apiKeys: {
+      stripePublishableKey: apiKeys?.stripePublishableKey || "",
+      mondialRelayBrandCode: apiKeys?.mondialRelayBrandCode || "",
+    },
+  };
+}
+
+// GET /api/settings : tout pour l'admin connecté, la version publique sinon.
 export async function GET() {
   try {
     await connectDB();
@@ -17,7 +41,9 @@ export async function GET() {
       settings = await SiteSettings.create({});
     }
 
-    return NextResponse.json(settings);
+    const session = await auth().catch(() => null);
+    if (session?.user?.role === "admin") return NextResponse.json(settings);
+    return NextResponse.json(versionPublique(settings));
   } catch (error) {
     console.error("GET /api/settings error:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

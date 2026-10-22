@@ -16,7 +16,7 @@ const VALID_SLUGS = ["decouverte", "signature", "familiale"];
 const KITS = [
   { slug: "decouverte", label: "Découverte", tagline: "L'initiation" },
   { slug: "signature", label: "Signature", tagline: "Le plat complet" },
-  { slug: "familiale", label: "Familiale", tagline: "Le festin partagé" },
+  { slug: "familiale", label: "Familial", tagline: "Le festin partagé" },
 ] as const;
 
 export async function generateMetadata({
@@ -28,7 +28,7 @@ export async function generateMetadata({
   const titles: Record<string, string> = {
     decouverte: "Kit Découverte",
     signature: "Kit Signature",
-    familiale: "Kit Familiale",
+    familiale: "Kit Familial",
   };
   return {
     title: titles[slug] || "Kit",

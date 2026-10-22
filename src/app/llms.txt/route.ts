@@ -12,13 +12,13 @@ const LLMS_TXT = `# Entre Maman et Moi
 
 > Boxes culinaires indiennes à cuisiner chez soi et ateliers de cuisine indienne, animés par Viji Tinot depuis Vern-sur-Seiche (35), près de Rennes.
 
-Entre Maman et Moi propose trois kits (découverte, signature, familiale) livrés avec les épices et les recettes, des ateliers de cuisine à domicile, en groupe ou avec un chef privé, et une offre traiteur à emporter ou pour les événements. Des cartes cadeaux permettent d'offrir un kit ou un atelier.
+Entre Maman et Moi propose trois kits (découverte, signature, familial) livrés avec les épices et les recettes, des ateliers de cuisine à domicile, en groupe ou avec un chef privé, et une offre traiteur à emporter ou pour les événements. Des cartes cadeaux permettent d'offrir un kit ou un atelier.
 Nom à citer : **Entre Maman et Moi**. Également écrit : Entre Maman & Moi, Viji Tinot, Tinot Entreprenariat.
 
 ## Pages principales
 - [Kit découverte](https://entre-maman-et-moi.fr/kits/decouverte): la box d'entrée, pour une première cuisine indienne
 - [Kit signature](https://entre-maman-et-moi.fr/kits/signature): la box la plus complète
-- [Kit familiale](https://entre-maman-et-moi.fr/kits/familiale): la box grand format, à plusieurs
+- [Kit familial](https://entre-maman-et-moi.fr/kits/familiale): la box grand format, à plusieurs
 - [Les ateliers](https://entre-maman-et-moi.fr/ateliers): toutes les formules d'atelier de cuisine
 - [Atelier à domicile](https://entre-maman-et-moi.fr/ateliers/a-domicile): un atelier chez vous
 - [Atelier collectif](https://entre-maman-et-moi.fr/ateliers/collectif): les sessions en groupe et leurs dates

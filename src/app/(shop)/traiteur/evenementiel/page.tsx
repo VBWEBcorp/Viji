@@ -1,6 +1,19 @@
 import Image from "next/image";
 import DevisForm from "./DevisForm";
 import { getContent } from "@/lib/content";
+import { connectDB } from "@/lib/db";
+import SiteSettings from "@/models/SiteSettings";
+
+/** Le virement est-il proposé pour l'événementiel (Réglages → Virement) ? */
+async function virementActif(): Promise<boolean> {
+  try {
+    await connectDB();
+    const s = await SiteSettings.findOne({}, { virement: 1 }).lean();
+    return !!s?.virement?.evenementiel;
+  } catch {
+    return false;
+  }
+}
 
 // Rendu dynamique : la page relit la photo à chaque visite pour que les
 // modifications faites dans l'admin apparaissent immédiatement.
@@ -14,11 +27,13 @@ export const metadata = {
 
 export default async function TraiteurEvenementielPage() {
   const t = await getContent();
+  const virement = await virementActif();
   const HIGHLIGHTS = [
     { label: t("traiteur_evenementiel_hl1_label"), value: t("traiteur_evenementiel_hl1_value") },
     { label: t("traiteur_evenementiel_hl2_label"), value: t("traiteur_evenementiel_hl2_value") },
     { label: t("traiteur_evenementiel_hl3_label"), value: t("traiteur_evenementiel_hl3_value") },
     { label: t("traiteur_evenementiel_hl4_label"), value: t("traiteur_evenementiel_hl4_value") },
+    ...(virement ? [{ label: "Règlement", value: "Par virement bancaire, sans frais, une fois le devis validé" }] : []),
   ];
   return (
     <div className="bg-white">
