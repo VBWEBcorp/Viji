@@ -39,7 +39,7 @@ describe("bases distantes", () => {
   it("refuse une base Atlas", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(
-      seedAutorise("mongodb+srv://vbweb:motdepasse@vbweb.mdm1f65.mongodb.net/viji")
+      seedAutorise("mongodb+srv://utilisateur:motdepasse@vbweb.mdm1f65.mongodb.net/viji")
     ).toBe(false);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();

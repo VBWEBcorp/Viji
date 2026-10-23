@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://vbweb:mwLtZRnKL40UGo6q@vbweb.mdm1f65.mongodb.net/template-ecommerce";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // Schemas inline (pas de TS, juste pour le seed)
 const CategorySchema = new mongoose.Schema({
