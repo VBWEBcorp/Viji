@@ -71,7 +71,11 @@ export default function AdminReservationsPage() {
     load();
   }, [load]);
 
+  // Message affiché dans le détail après un changement (ex. client prévenu de son virement).
+  const [info, setInfo] = useState<{ id: string; texte: string } | null>(null);
+
   async function updateStatus(id: string, status: Status) {
+    setInfo(null);
     const res = await fetch(`/api/reservations/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -81,6 +85,11 @@ export default function AdminReservationsPage() {
       const updated = await res.json();
       setReservations((list) => list.map((r) => (r._id === id ? { ...r, status: updated.status } : r)));
       setSelected((s) => (s && s._id === id ? { ...s, status: updated.status } : s));
+      if (updated.clientPrevenu) {
+        setInfo({ id, texte: "C'est noté : le client a reçu un mail lui confirmant que son virement est bien arrivé et que sa place est confirmée." });
+      }
+    } else {
+      setInfo({ id, texte: "La mise à jour n'a pas pu être enregistrée, réessaie dans un instant." });
     }
   }
 
@@ -203,6 +212,7 @@ export default function AdminReservationsPage() {
           reservation={selected}
           onClose={() => setSelected(null)}
           onUpdateStatus={updateStatus}
+          info={info && info.id === selected._id ? info.texte : ""}
         />
       )}
     </div>
@@ -236,10 +246,12 @@ function DetailModal({
   reservation: r,
   onClose,
   onUpdateStatus,
+  info,
 }: {
   reservation: Reservation;
   onClose: () => void;
   onUpdateStatus: (id: string, status: Status) => void;
+  info: string;
 }) {
   return (
     <div
@@ -268,11 +280,20 @@ function DetailModal({
             <Badge tone={statusMap[r.status].tone}>{statusMap[r.status].label}</Badge>
             <span className="font-serif text-2xl text-gray-900">{formatPrice(r.amount)}</span>
           </div>
-          {r.paymentMethod === "virement" && (
-            <p className="text-[12px] text-amber-700 -mt-3 text-right">
-              Règlement par virement, référence <span className="font-mono">{r.reservationNumber}</span> : vérifie sa réception sur ton compte.
+          {r.paymentMethod === "virement" && r.status === "pending" && (
+            <div className="-mt-1 border border-amber-200 bg-amber-50 px-4 py-3 space-y-2.5">
+              <p className="text-[13px] text-amber-800">
+                Règlement par virement, référence <span className="font-mono">{r.reservationNumber}</span>. Dès que le virement est arrivé sur ton compte, clique ici : le client reçoit aussitôt un mail qui lui confirme sa place.
+              </p>
+              <GoldButton onClick={() => onUpdateStatus(r._id, "confirmed")}>Virement reçu : confirmer au client</GoldButton>
+            </div>
+          )}
+          {r.paymentMethod === "virement" && r.status !== "pending" && (
+            <p className="text-[12px] text-gray-500 -mt-3 text-right">
+              Réglée par virement, référence <span className="font-mono">{r.reservationNumber}</span>.
             </p>
           )}
+          {info && <p className="text-[13px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2.5">{info}</p>}
           {r.promoCode && (
             <p className="text-[12px] text-gray-500 -mt-3 text-right">
               Code promo <span className="font-mono text-gray-800">{r.promoCode}</span>
