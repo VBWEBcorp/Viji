@@ -15,6 +15,7 @@ import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
 import CanalFerme from "@/components/shop/CanalFerme";
 import type { EtatCanal } from "@/lib/disponibilite";
+import { toutEnClickCollect } from "@/lib/click-collect";
 
 // Chargé une seule fois au niveau module : Stripe.js doit rester unique sur la page.
 interface CartItem {
@@ -127,9 +128,14 @@ export default function CheckoutPage() {
   const discount = promo ? Math.min(promo.discount, cartTotal) : 0;
   const discountedSubtotal = Math.max(0, cartTotal - discount);
 
-  // Mondial Relay only. Le seuil de gratuité s'apprécie après remise (comme le serveur).
-  const shippingCost =
-    shippingRates.pickupFreeThreshold > 0 && discountedSubtotal >= shippingRates.pickupFreeThreshold
+  // Tout le panier en Click & Collect : retrait à Vern-sur-Seiche, ni point
+  // relais ni frais de port (le serveur applique la même règle).
+  const retraitSurPlace = toutEnClickCollect(cartItems);
+
+  // Mondial Relay. Le seuil de gratuité s'apprécie après remise (comme le serveur).
+  const shippingCost = retraitSurPlace
+    ? 0
+    : shippingRates.pickupFreeThreshold > 0 && discountedSubtotal >= shippingRates.pickupFreeThreshold
       ? 0
       : shippingRates.pickupRate;
 
@@ -182,7 +188,7 @@ export default function CheckoutPage() {
       // Construit l'adresse de livraison à partir du point relais (la commande
       // physique part chez Mondial Relay), tout en conservant le nom et le
       // téléphone du client pour la fiche transporteur.
-      const shippingForApi = pickupPoint
+      const shippingForApi = pickupPoint && !retraitSurPlace
         ? {
             name: shippingAddress.name,
             street: [pickupPoint.Adresse1, pickupPoint.Adresse2].filter(Boolean).join(" "),
@@ -223,8 +229,8 @@ export default function CheckoutPage() {
           billingAddress: billingForApi,
           paymentMethod: "stripe",
           shippingCost,
-          shippingMethod: "pickup",
-          pickupPoint: pickupPoint
+          shippingMethod: retraitSurPlace ? "click-collect" : "pickup",
+          pickupPoint: pickupPoint && !retraitSurPlace
             ? {
                 id: pickupPoint.ID,
                 name: pickupPoint.Nom,
@@ -494,19 +500,27 @@ export default function CheckoutPage() {
                   </Card>
                 )}
 
-                {/* Sélecteur point relais Mondial Relay (gratuit) */}
-                <Card eyebrow="Retrait" title="Choisissez votre point relais">
-                  <p className="font-serif italic text-[13px] text-gray-500 mb-6">
-                    Toutes les commandes sont expédiées gratuitement via Mondial Relay. Choisissez le point relais où récupérer votre commande.
-                  </p>
+                {retraitSurPlace ? (
+                  <Card eyebrow="Retrait" title="Click & Collect">
+                    <p className="font-serif italic text-[13px] text-gray-500">
+                      Votre commande est à retirer à Vern-sur-Seiche. Aucun point relais à choisir.
+                    </p>
+                  </Card>
+                ) : (
+                  /* Sélecteur point relais Mondial Relay (gratuit) */
+                  <Card eyebrow="Retrait" title="Choisissez votre point relais">
+                    <p className="font-serif italic text-[13px] text-gray-500 mb-6">
+                      Toutes les commandes sont expédiées gratuitement via Mondial Relay. Choisissez le point relais où récupérer votre commande.
+                    </p>
 
-                  <MondialRelayPicker
-                    brandCode={mondialRelayBrandCode}
-                    postCode={shippingAddress.zip}
-                    value={pickupPoint}
-                    onSelect={(p) => setPickupPoint(p)}
-                  />
-                </Card>
+                    <MondialRelayPicker
+                      brandCode={mondialRelayBrandCode}
+                      postCode={shippingAddress.zip}
+                      value={pickupPoint}
+                      onSelect={(p) => setPickupPoint(p)}
+                    />
+                  </Card>
+                )}
 
                 <button
                   disabled={loading}
@@ -524,7 +538,7 @@ export default function CheckoutPage() {
                       return;
                     }
                     if (!shippingAddress.phone) {
-                      toast.error("Le téléphone est obligatoire pour Mondial Relay");
+                      toast.error(retraitSurPlace ? "Le téléphone est obligatoire" : "Le téléphone est obligatoire pour Mondial Relay");
                       return;
                     }
                     if (!shippingAddress.street || !shippingAddress.zip || !shippingAddress.city) {
@@ -538,7 +552,7 @@ export default function CheckoutPage() {
                       toast.error("Veuillez compléter l'adresse de facturation");
                       return;
                     }
-                    if (!pickupPoint) {
+                    if (!retraitSurPlace && !pickupPoint) {
                       toast.error("Veuillez choisir un point relais sur la carte");
                       return;
                     }
@@ -554,7 +568,12 @@ export default function CheckoutPage() {
             {step === "payment" && (
               <>
                 {/* Récapitulatif retrait */}
-                {pickupPoint && (
+                {retraitSurPlace && (
+                  <Card eyebrow="Retrait" title="Click & Collect">
+                    <p className="text-[14px] text-gray-600">Retrait à Vern-sur-Seiche.</p>
+                  </Card>
+                )}
+                {pickupPoint && !retraitSurPlace && (
                   <Card eyebrow="Retrait" title="Votre point relais">
                     <div className="flex items-start gap-3">
                       <span className="w-10 h-10 rounded-full border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] flex items-center justify-center shrink-0">
@@ -670,7 +689,7 @@ export default function CheckoutPage() {
                         {item.product.name}
                       </p>
                       <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--brand-gold)] mt-1">
-                        × {item.quantity}
+                        × {item.quantity}{item.variant ? ` · ${item.variant}` : ""}
                       </p>
                     </div>
                     <span className="font-serif text-[14px] text-gray-900 shrink-0">
@@ -692,9 +711,11 @@ export default function CheckoutPage() {
                   />
                 )}
                 <SummaryRow
-                  label="Livraison"
+                  label={retraitSurPlace ? "Retrait sur place" : "Livraison"}
                   value={
-                    shippingCost === 0 ? (
+                    retraitSurPlace ? (
+                      formatPrice(0)
+                    ) : shippingCost === 0 ? (
                       <span className="font-serif italic text-[var(--brand-gold)]">Offerte</span>
                     ) : (
                       formatPrice(shippingCost)

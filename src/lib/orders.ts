@@ -48,7 +48,9 @@ function buildAdminOrderEmail(order: IOrder, customerEmail: string): string {
 
   const a = order.shippingAddress;
   const livraison =
-    order.shippingMethod === "pickup" && order.pickupPoint
+    order.shippingMethod === "click-collect"
+      ? `<strong style="color:${C.ink};">Click & Collect</strong><br>Retrait à Vern-sur-Seiche`
+      : order.shippingMethod === "pickup" && order.pickupPoint
       ? `<strong style="color:${C.ink};">Point relais</strong><br>${esc(order.pickupPoint.name)}<br>${esc(order.pickupPoint.street)}<br>${esc(order.pickupPoint.zip)} ${esc(order.pickupPoint.city)}`
       : `<strong style="color:${C.ink};">Livraison à domicile</strong><br>${esc(a.name)}<br>${esc(a.street)}<br>${esc(a.zip)} ${esc(a.city)}<br>${esc(a.country)}`;
 
@@ -154,6 +156,7 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
           discount: order.discount,
           giftCardAmount: order.giftCard?.amount || 0,
           total: order.total,
+          shippingMethod: order.shippingMethod,
           shippingAddress: {
             name: order.shippingAddress.name,
             street: order.shippingAddress.street,

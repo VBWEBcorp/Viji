@@ -17,6 +17,8 @@ interface OrderConfirmationProps {
   discount: number;
   giftCardAmount?: number;
   total: number;
+  /** "click-collect" : retrait sur place, pas d'adresse de livraison. */
+  shippingMethod?: string;
   shippingAddress: {
     name: string;
     street: string;
@@ -94,7 +96,15 @@ export function generateOrderConfirmationEmail(
       </td></tr>
     </table>
 
-    <p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">Adresse de livraison</p>
+    ${props.shippingMethod === "click-collect"
+      ? `<p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">Retrait</p>
+    ${emailInfoBox(
+      `<p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0;">
+        <strong style="color:${C.ink};">Click & Collect</strong><br>
+        Retrait à Vern-sur-Seiche.
+      </p>`
+    )}`
+      : `<p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">Adresse de livraison</p>
     ${emailInfoBox(
       `<p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0;">
         <strong style="color:${C.ink};">${esc(props.shippingAddress.name)}</strong><br>
@@ -102,7 +112,7 @@ export function generateOrderConfirmationEmail(
         ${esc(props.shippingAddress.zip)} ${esc(props.shippingAddress.city)}<br>
         ${esc(props.shippingAddress.country)}
       </p>`
-    )}
+    )}`}
 
     ${emailParagraph(
       `<span style="color:${C.muted}; font-size:14px;">Vous recevrez un nouvel email dès que votre commande sera expédiée. À très vite !</span>`

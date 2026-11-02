@@ -47,7 +47,7 @@ export interface IOrder extends Document {
   };
   shippingAddress: IOrderAddress;
   billingAddress: IOrderAddress;
-  shippingMethod: "home" | "pickup";
+  shippingMethod: "home" | "pickup" | "click-collect";
   pickupPoint?: IPickupPoint;
   paymentMethod: "stripe";
   paymentId?: string;
@@ -140,7 +140,7 @@ const OrderSchema = new Schema<IOrder>(
     billingAddress: { type: OrderAddressSchema, required: true },
     shippingMethod: {
       type: String,
-      enum: ["home", "pickup"],
+      enum: ["home", "pickup", "click-collect"],
       default: "home",
       required: true,
     },

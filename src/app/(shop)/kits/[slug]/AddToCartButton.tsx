@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ShoppingCart, Minus, Plus, Truck, Store } from "lucide-react";
+import { VARIANTE_CLICK_COLLECT, prixUnitaire } from "@/lib/click-collect";
 
 type DeliveryMethod = "mondial-relay" | "click-collect";
 
@@ -17,14 +18,20 @@ interface Props {
   };
   /** Methods available. Default = both (kits). Pass ["click-collect"] only for traiteur. */
   methods?: DeliveryMethod[];
+  /** Centimes déduits du prix en Click & Collect (le prix affiché inclut la livraison). */
+  remiseClickCollect?: number;
+}
+
+function formatEUR(cents: number): string {
+  return (cents / 100).toFixed(2).replace(".", ",") + " €";
 }
 
 const METHOD_LABELS: Record<DeliveryMethod, { label: string; sub: string; Icon: typeof Truck }> = {
   "mondial-relay": { label: "Mondial Relay", sub: "Livraison en point relais", Icon: Truck },
-  "click-collect": { label: "Click & Collect", sub: "Retrait à Vern-sur-Seiche", Icon: Store },
+  "click-collect": { label: VARIANTE_CLICK_COLLECT, sub: "Retrait à Vern-sur-Seiche", Icon: Store },
 };
 
-export default function AddToCartButton({ product, methods = ["mondial-relay", "click-collect"] }: Props) {
+export default function AddToCartButton({ product, methods = ["mondial-relay", "click-collect"], remiseClickCollect = 0 }: Props) {
   const { addItem, loading } = useCart();
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -39,7 +46,19 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
     else toast.error("Impossible d'ajouter au panier");
   }
 
+  const prix = prixUnitaire(product.price, METHOD_LABELS[method].label, remiseClickCollect);
+  const deduit = product.price - prix;
+
   return (
+    <div className="mt-auto">
+      {/* Bloc prix */}
+      <div className="flex items-baseline gap-3 mb-5">
+        <p className="text-2xl font-serif text-gray-900">{formatEUR(prix)}</p>
+        {deduit > 0 && (
+          <p className="text-[12px] text-gray-500">livraison déduite ({formatEUR(deduit)})</p>
+        )}
+      </div>
+
     <div className="space-y-4">
       {methods.length > 1 && (
         <fieldset>
@@ -113,6 +132,7 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
           {busy ? "Ajout..." : "Ajouter au panier"}
         </button>
       </div>
+    </div>
     </div>
   );
 }

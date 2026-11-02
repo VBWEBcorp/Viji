@@ -5,6 +5,8 @@ import { Snowflake, BookOpen, Sprout, Sparkles, Star } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
+import SiteSettings from "@/models/SiteSettings";
+import { remiseClickCollect } from "@/lib/click-collect";
 import AddToCartButton from "./AddToCartButton";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
@@ -37,10 +39,6 @@ export async function generateMetadata({
   };
 }
 
-function formatEUR(cents: number): string {
-  return (cents / 100).toFixed(2).replace(".", ",") + " €";
-}
-
 export default async function KitCategoryPage({
   params,
 }: {
@@ -57,6 +55,10 @@ export default async function KitCategoryPage({
   const products = await Product.find({ category: cat._id, isActive: true })
     .sort({ isFeatured: -1, createdAt: 1 })
     .lean();
+
+  // Montant déduit du prix d'un kit retiré en Click & Collect (Réglages → Livraison).
+  const settings = await SiteSettings.findOne().select("shipping").lean();
+  const remiseCC = remiseClickCollect(settings?.shipping);
 
   const items = products.map((p) => ({
     _id: String(p._id),
@@ -200,14 +202,9 @@ export default async function KitCategoryPage({
                     </p>
                   )}
 
-                  {/* Bloc prix */}
-                  <div className="flex items-baseline gap-3 mb-5 mt-auto">
-                    <p className="text-2xl font-serif text-gray-900">
-                      {formatEUR(item.price)}
-                    </p>
-                  </div>
-
+                  {/* Bloc prix + choix du retrait : le prix suit le mode choisi */}
                   <AddToCartButton
+                    remiseClickCollect={remiseCC}
                     product={{
                       _id: item._id,
                       name: item.name,

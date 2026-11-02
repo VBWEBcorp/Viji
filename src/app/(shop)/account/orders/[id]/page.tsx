@@ -23,6 +23,7 @@ interface OrderDetail {
   shippingCost: number;
   discount: number;
   total: number;
+  shippingMethod?: string;
   shippingAddress: { name: string; street: string; city: string; zip: string; country: string; phone?: string };
   paymentMethod: string;
   paymentStatus: string;
@@ -220,7 +221,7 @@ export default function OrderDetailPage() {
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <h3 className="text-[14px] font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <MapPin size={14} /> Adresse de livraison
+              <MapPin size={14} /> {order.shippingMethod === "click-collect" ? "Click & Collect, retrait à Vern-sur-Seiche" : "Adresse de livraison"}
             </h3>
             <div className="text-sm text-gray-600 space-y-0.5">
               <p className="font-medium">{order.shippingAddress.name}</p>

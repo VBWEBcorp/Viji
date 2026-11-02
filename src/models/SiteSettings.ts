@@ -17,6 +17,7 @@ export interface ISiteSettings extends Document {
     pickupRate?: number; // centimes
     homeFreeThreshold?: number; // centimes
     pickupFreeThreshold?: number; // centimes
+    clickCollectDiscount?: number; // centimes, déduits du prix d'un kit retiré sur place
   };
   tax: {
     rate?: number; // pourcentage (ex: 20 pour 20%)
@@ -128,6 +129,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       pickupRate: { type: Number, default: 399 },
       homeFreeThreshold: { type: Number, default: 5000 },
       pickupFreeThreshold: { type: Number, default: 5000 },
+      clickCollectDiscount: { type: Number, default: 500, min: 0 },
     },
     tax: {
       rate: { type: Number, default: 20 },

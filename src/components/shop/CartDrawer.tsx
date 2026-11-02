@@ -153,7 +153,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                       <p className="text-[14px] text-gray-900">
-                        {formatPrice(item.product.price * item.quantity)}
+                        {formatPrice(item.subtotal)}
                       </p>
                     </div>
                   </div>

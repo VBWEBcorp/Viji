@@ -6,6 +6,7 @@ import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
 import { calculeRemise } from "@/lib/promo";
 import SiteSettings from "@/models/SiteSettings";
+import { prixUnitaire, remiseClickCollect, toutEnClickCollect } from "@/lib/click-collect";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/resend";
@@ -63,7 +64,7 @@ const checkoutSchema = z.object({
     phone: z.string().optional(),
   }),
   paymentMethod: z.enum(["stripe"]),
-  shippingMethod: z.enum(["home", "pickup"]).default("home"),
+  shippingMethod: z.enum(["home", "pickup", "click-collect"]).default("home"),
   pickupPoint: z
     .object({
       id: z.string().min(1),
@@ -164,6 +165,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Réglages (frais de port, remise Click & Collect, TVA) : source de vérité
+    const settings = await SiteSettings.findOne().lean();
+    const remiseCC = remiseClickCollect(settings?.shipping);
+
     // Calculer le sous-total et vérifier les stocks
     let subtotal = 0;
     const orderItems = [];
@@ -184,7 +189,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const itemTotal = product.price * item.quantity;
+      const unitPrice = prixUnitaire(product.price, item.variant, remiseCC);
+      const itemTotal = unitPrice * item.quantity;
       subtotal += itemTotal;
 
       orderItems.push({
@@ -193,7 +199,7 @@ export async function POST(req: NextRequest) {
         image: product.images?.[0]?.url,
         variant: item.variant,
         quantity: item.quantity,
-        unitPrice: product.price,
+        unitPrice,
       });
     }
 
@@ -231,29 +237,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Mode de remise : tout en Click & Collect = retrait sur place, sans point
+    // relais ni frais de port. Dès qu'un article part en point relais, la
+    // commande est expédiée : le point relais redevient obligatoire.
+    const retraitSurPlace = toutEnClickCollect(cart.items);
+    const shippingMethod: "home" | "pickup" | "click-collect" = retraitSurPlace
+      ? "click-collect"
+      : validated.shippingMethod === "click-collect"
+        ? "pickup"
+        : validated.shippingMethod;
+
     // Validation: si livraison en point relais, le point relais est obligatoire
-    if (validated.shippingMethod === "pickup" && !validated.pickupPoint) {
+    if (shippingMethod === "pickup" && !validated.pickupPoint) {
       return NextResponse.json(
         { error: "Veuillez choisir un point relais" },
         { status: 400 }
       );
     }
 
-    // Récupérer les réglages (frais de port + TVA, source de vérité)
-    const settings = await SiteSettings.findOne().lean();
     const sShipping = settings?.shipping || {};
     const sTax = settings?.tax || {};
 
     const shippingRate =
-      validated.shippingMethod === "pickup"
+      shippingMethod === "pickup"
         ? sShipping.pickupRate ?? 399
         : sShipping.homeRate ?? 499;
     const shippingThreshold =
-      validated.shippingMethod === "pickup"
+      shippingMethod === "pickup"
         ? sShipping.pickupFreeThreshold ?? 0
         : sShipping.homeFreeThreshold ?? 0;
     const shippingCost =
-      shippingThreshold > 0 && subtotal - discount >= shippingThreshold ? 0 : shippingRate;
+      shippingMethod === "click-collect"
+        ? 0
+        : shippingThreshold > 0 && subtotal - discount >= shippingThreshold ? 0 : shippingRate;
 
     // Calcul TVA côté serveur
     const taxRate = sTax.rate ?? 20;
@@ -286,8 +302,8 @@ export async function POST(req: NextRequest) {
       promoCode: promoCodeId,
       shippingAddress: validated.shippingAddress,
       billingAddress: validated.billingAddress,
-      shippingMethod: validated.shippingMethod,
-      pickupPoint: validated.pickupPoint,
+      shippingMethod,
+      pickupPoint: shippingMethod === "pickup" ? validated.pickupPoint : undefined,
       paymentMethod: validated.paymentMethod,
       paymentStatus: "pending",
       fulfillmentStatus: "pending",

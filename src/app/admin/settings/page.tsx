@@ -27,6 +27,7 @@ interface Settings {
     pickupRate: number;
     homeFreeThreshold: number;
     pickupFreeThreshold: number;
+    clickCollectDiscount: number;
   };
   tax: {
     rate: number;
@@ -108,6 +109,7 @@ const defaultSettings: Settings = {
     pickupRate: 399,
     homeFreeThreshold: 5000,
     pickupFreeThreshold: 5000,
+    clickCollectDiscount: 500,
   },
   tax: { rate: 20, pricesIncludeTax: true, label: "TVA" },
   invoice: {
@@ -212,6 +214,7 @@ export default function AdminSettingsPage() {
               pickupRate: data.shipping?.pickupRate ?? 399,
               homeFreeThreshold: data.shipping?.homeFreeThreshold ?? 5000,
               pickupFreeThreshold: data.shipping?.pickupFreeThreshold ?? 5000,
+              clickCollectDiscount: data.shipping?.clickCollectDiscount ?? 500,
             },
             tax: {
               rate: data.tax?.rate ?? 20,
@@ -797,6 +800,24 @@ export default function AdminSettingsPage() {
                       className={inputCls} />
                   </div>
                 </div>
+              </div>
+
+              <div className="border border-[var(--brand-gold)]/15 p-4 space-y-3">
+                <p className="text-[13px] font-semibold text-gray-700">Click & Collect (kits)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Montant déduit du prix (€)</label>
+                    <input type="number" step="0.01" min="0"
+                      value={(settings.shipping.clickCollectDiscount / 100).toFixed(2)}
+                      onChange={(e) => setSettings({ ...settings, shipping: { ...settings.shipping, clickCollectDiscount: Math.round(parseFloat(e.target.value) * 100) || 0 } })}
+                      className={inputCls} />
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Le prix d&apos;un kit comprend la livraison. Quand le client choisit le retrait à
+                  Vern-sur-Seiche, ce montant est retiré du prix, sur la fiche du kit comme au paiement.
+                  Mets 0 pour garder le même prix.
+                </p>
               </div>
 
               <div>

@@ -23,6 +23,7 @@ interface Order {
   shippingCost: number;
   discount: number;
   total: number;
+  shippingMethod?: string;
   shippingAddress: {
     name: string;
     street: string;
@@ -251,7 +252,7 @@ export default function AdminOrderDetailPage() {
 
           {/* Adresse */}
           <Card className="p-5 sm:p-6">
-            <h2 className="font-serif text-lg text-gray-900 mb-3">Adresse de livraison</h2>
+            <h2 className="font-serif text-lg text-gray-900 mb-3">{order.shippingMethod === "click-collect" ? "Click & Collect, retrait à Vern-sur-Seiche" : "Adresse de livraison"}</h2>
             <div className="text-sm text-gray-600 space-y-1">
               <p>{order.shippingAddress.name}</p>
               <p>{order.shippingAddress.street}</p>

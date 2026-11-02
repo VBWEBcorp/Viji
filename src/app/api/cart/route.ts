@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Cart from "@/models/Cart";
 import Product from "@/models/Product";
+import SiteSettings from "@/models/SiteSettings";
+import { prixUnitaire, remiseClickCollect } from "@/lib/click-collect";
 import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -34,6 +36,9 @@ export async function GET() {
       return NextResponse.json({ items: [], total: 0 });
     }
 
+    const settings = await SiteSettings.findOne().select("shipping").lean();
+    const remise = remiseClickCollect(settings?.shipping);
+
     const items = cart.items
       .filter((item) => item.product)
       .map((item) => {
@@ -45,6 +50,7 @@ export async function GET() {
           images: { url: string; alt: string }[];
           stock: number;
         };
+        const unitPrice = prixUnitaire(product.price, item.variant, remise);
         return {
           _id: (item as unknown as { _id: string })._id,
           product: {
@@ -57,7 +63,9 @@ export async function GET() {
           },
           variant: item.variant,
           quantity: item.quantity,
-          subtotal: product.price * item.quantity,
+          // Prix payé (remise Click & Collect déduite), à afficher partout.
+          unitPrice,
+          subtotal: unitPrice * item.quantity,
         };
       });
 
