@@ -171,8 +171,6 @@ export default function CartDrawer() {
 
             {/* Footer */}
             <div className="border-t border-[var(--brand-gold)]/15 px-6 sm:px-8 py-6 space-y-5">
-              <FreeShippingProgress total={total} />
-
               <div className="flex items-end justify-between pt-2">
                 <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400">
                   Sous-total
@@ -199,35 +197,5 @@ export default function CartDrawer() {
         )}
       </div>
     </>
-  );
-}
-
-function FreeShippingProgress({ total }: { total: number }) {
-  const threshold = 5000; // 50€ en centimes
-  const progress = Math.min((total / threshold) * 100, 100);
-  const remaining = threshold - total;
-
-  if (total >= threshold) {
-    return (
-      <div className="text-center py-3 px-4 bg-[var(--brand-cream)] border border-[var(--brand-gold)]/30">
-        <p className="font-serif italic text-[14px] text-[var(--brand-gold)]">
-          Livraison offerte ✦
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <p className="text-[11px] text-gray-500 mb-2 text-center">
-        Plus que <span className="text-[var(--brand-gold)]">{formatPrice(remaining)}</span> pour la livraison offerte
-      </p>
-      <div className="w-full h-px bg-gray-100 overflow-hidden">
-        <div
-          className="h-full bg-[var(--brand-gold)] transition-all duration-500"
-          style={{ width: `${progress}%`, height: "1.5px" }}
-        />
-      </div>
-    </div>
   );
 }
