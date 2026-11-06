@@ -86,6 +86,7 @@ const productSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   shortDescription: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   price: z.number().min(0),
   compareAtPrice: z.number().min(0).optional(),
   category: z.string().min(1),

@@ -15,6 +15,7 @@ interface ProductFormData {
   name: string;
   description: string;
   shortDescription: string;
+  tags: string[];
   price: number;
   compareAtPrice: number;
   category: string;
@@ -41,6 +42,7 @@ const defaultData: ProductFormData = {
   name: "",
   description: "",
   shortDescription: "",
+  tags: [],
   price: 0,
   compareAtPrice: 0,
   category: "",
@@ -84,6 +86,16 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
     value: ProductFormData[K]
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  // Les deux lignes affichées sous le titre d'un kit : étiquettes 0 et 1 du produit.
+  function updateTag(index: 0 | 1, value: string) {
+    setForm((prev) => {
+      const tags = [...(prev.tags || [])];
+      while (tags.length < 2) tags.push("");
+      tags[index] = value;
+      return { ...prev, tags: tags.some((t) => t.trim()) ? tags : [] };
+    });
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -257,6 +269,33 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             onChange={(e) => updateField("shortDescription", e.target.value)}
             className={fieldCls}
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>
+              Nombre de personnes
+            </label>
+            <input
+              type="text"
+              value={form.tags?.[0] || ""}
+              onChange={(e) => updateTag(0, e.target.value)}
+              placeholder="4 à 6 personnes"
+              className={fieldCls}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>
+              Contenu du kit
+            </label>
+            <input
+              type="text"
+              value={form.tags?.[1] || ""}
+              onChange={(e) => updateTag(1, e.target.value)}
+              placeholder="16 sachets d'épices + 3 recettes"
+              className={fieldCls}
+            />
+          </div>
         </div>
 
         <div>

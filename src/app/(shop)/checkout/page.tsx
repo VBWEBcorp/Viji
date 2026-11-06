@@ -507,10 +507,10 @@ export default function CheckoutPage() {
                     </p>
                   </Card>
                 ) : (
-                  /* Sélecteur point relais Mondial Relay (gratuit) */
+                  /* Sélecteur point relais Mondial Relay */
                   <Card eyebrow="Retrait" title="Choisissez votre point relais">
                     <p className="font-serif italic text-[13px] text-gray-500 mb-6">
-                      Toutes les commandes sont expédiées gratuitement via Mondial Relay. Choisissez le point relais où récupérer votre commande.
+                      Votre commande est expédiée via Mondial Relay. Choisissez le point relais où la récupérer.
                     </p>
 
                     <MondialRelayPicker
