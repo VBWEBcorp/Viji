@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.ytimg.com",
       },
+      {
+        // Couvertures des articles envoyés par PHARE (sans quoi /_next/image répond 400).
+        protocol: "https",
+        hostname: "app.vbweb.fr",
+        pathname: "/api/media/**",
+      },
     ],
   },
 };
