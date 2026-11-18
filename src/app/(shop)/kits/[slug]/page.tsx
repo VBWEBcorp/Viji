@@ -7,6 +7,7 @@ import Category from "@/models/Category";
 import Product from "@/models/Product";
 import SiteSettings from "@/models/SiteSettings";
 import { remiseClickCollect } from "@/lib/click-collect";
+import { descriptionEnHtml } from "@/lib/description-kit";
 import AddToCartButton from "./AddToCartButton";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
@@ -70,6 +71,7 @@ export default async function KitCategoryPage({
     imageAlt: p.images?.[0]?.alt || p.name,
     servings: p.tags?.[0] || "",
     contents: p.tags?.[1] || "",
+    descriptionHtml: descriptionEnHtml(p.description),
     isFeatured: !!p.isFeatured,
   }));
 
@@ -200,6 +202,20 @@ export default async function KitCategoryPage({
                     <p className="text-[11.5px] uppercase tracking-[0.12em] text-gray-400 mb-4">
                       {item.contents}
                     </p>
+                  )}
+
+                  {/* Description complète (admin), repliée : liens cliquables */}
+                  {item.descriptionHtml && (
+                    <details className="group/detail mb-4">
+                      <summary className="cursor-pointer list-none text-[12px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:underline [&::-webkit-details-marker]:hidden">
+                        <span className="group-open/detail:hidden">Voir le détail</span>
+                        <span className="hidden group-open/detail:inline">Masquer le détail</span>
+                      </summary>
+                      <div
+                        className="mt-3 space-y-3 text-[13px] text-gray-600 leading-relaxed break-words [&_a]:text-[var(--brand-gold)] [&_a]:underline [&_h3]:font-serif [&_h3]:text-[15px] [&_h3]:text-gray-900 [&_h3]:mt-3 [&_ul]:list-disc [&_ul]:pl-5"
+                        dangerouslySetInnerHTML={{ __html: item.descriptionHtml }}
+                      />
+                    </details>
                   )}
 
                   {/* Bloc prix + choix du retrait : le prix suit le mode choisi */}

@@ -309,6 +309,9 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             rows={6}
             className={`${fieldCls} leading-relaxed`}
           />
+          <p className="mt-1.5 text-[11px] text-gray-400">
+            Affichée sous « Voir le détail » sur la carte du kit. Les adresses de sites (umikan.fr) et les comptes Instagram (@umikan.zest) deviennent cliquables.
+          </p>
         </div>
 
         <div>
