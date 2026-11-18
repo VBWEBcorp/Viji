@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import GiftCardVisual, { type GiftCardTemplate } from "@/components/shop/GiftCardVisual";
 import { PageHeader, Card, GoldButton, GhostButton, EmptyState, TableSkeleton } from "@/components/admin/ui";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { preparerImage } from "@/lib/preparer-image";
 
 const inputCls =
   "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition";
@@ -367,9 +368,9 @@ function GiftCardConfig() {
     setUploading(target);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", await preparerImage(file));
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok && data.url) {
         patchTemplate(target === "logo" ? { logoUrl: data.url } : { backgroundImageUrl: data.url });
       } else {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { auth } from "@/lib/auth";
 import { uploadFile } from "@/lib/r2";
+import { typeImage } from "@/lib/preparer-image";
 
 // sharp nécessite le runtime Node (pas Edge).
 export const runtime = "nodejs";
@@ -29,7 +30,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Aucun fichier envoyé" }, { status: 400 });
     }
 
-    if (![...PASS_THROUGH, ...RASTER].includes(file.type)) {
+    // « image/jpg », type vide ou .JPG/.jpeg sans type : ramenés au vrai type.
+    const type = typeImage(file.name, file.type);
+    if (![...PASS_THROUGH, ...RASTER].includes(type)) {
       return NextResponse.json(
         { error: "Type de fichier non autorisé (JPG, PNG, WebP, GIF, SVG)" },
         { status: 400 }
@@ -47,8 +50,8 @@ export async function POST(req: NextRequest) {
     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
 
     // SVG / GIF : upload direct, sans toucher au contenu.
-    if (PASS_THROUGH.includes(file.type)) {
-      const url = await uploadFile(input, cleanName, file.type);
+    if (PASS_THROUGH.includes(type)) {
+      const url = await uploadFile(input, cleanName, type);
       return NextResponse.json({ url, compressed: false });
     }
 
@@ -74,7 +77,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       // Si sharp échoue (fichier corrompu, format exotique…), on garde l'original.
       console.error("Compression error, fallback to original:", err);
-      const url = await uploadFile(input, cleanName, file.type);
+      const url = await uploadFile(input, cleanName, type);
       return NextResponse.json({ url, compressed: false });
     }
   } catch (error) {

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { ImageIcon, Upload, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { preparerImage } from "@/lib/preparer-image";
 
 interface Props {
   label: string;
@@ -39,10 +40,10 @@ export default function ImageUploader({
 
     setUploading(true);
     const fd = new FormData();
-    fd.append("file", file);
     try {
+      fd.append("file", await preparerImage(file));
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         onChange(data.url);
         if (data.compressed && data.originalSize && data.size) {

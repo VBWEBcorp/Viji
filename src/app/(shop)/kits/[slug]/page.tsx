@@ -194,12 +194,12 @@ export default async function KitCategoryPage({
                     {item.name}
                   </h2>
 
-                  <p className="text-[13px] text-gray-600 leading-relaxed mb-3 line-clamp-2">
+                  <p className="text-[13px] text-gray-600 leading-relaxed mb-3">
                     {item.shortDescription}
                   </p>
 
                   {item.contents && (
-                    <p className="text-[11.5px] uppercase tracking-[0.12em] text-gray-400 mb-4">
+                    <p className="text-[11.5px] uppercase tracking-[0.12em] text-gray-400 mb-4 whitespace-pre-line">
                       {item.contents}
                     </p>
                   )}

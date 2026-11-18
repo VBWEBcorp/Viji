@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import SeoPanel from "./SeoPanel";
+import { preparerImage } from "@/lib/preparer-image";
 
 interface Category {
   _id: string;
@@ -107,9 +108,8 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
 
     for (const file of Array.from(files)) {
       const formData = new FormData();
-      formData.append("file", file);
-
       try {
+        formData.append("file", await preparerImage(file));
         const res = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -123,8 +123,11 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             order: newImages.length,
           });
         } else {
-          const data = await res.json();
-          toast.error(data.error || "Erreur upload");
+          const data = await res.json().catch(() => ({}));
+          toast.error(
+            data.error ||
+              (res.status === 413 ? "Photo trop lourde, même après réduction" : "Erreur upload")
+          );
         }
       } catch {
         toast.error("Erreur lors de l'upload");
@@ -288,13 +291,17 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             <label className={labelCls}>
               Contenu du kit
             </label>
-            <input
-              type="text"
+            {/* Zone de texte : un champ d'une ligne supprimait les retours à la ligne collés */}
+            <textarea
               value={form.tags?.[1] || ""}
               onChange={(e) => updateTag(1, e.target.value)}
               placeholder="16 sachets d'épices + 3 recettes"
-              className={fieldCls}
+              rows={3}
+              className={`${fieldCls} leading-relaxed`}
             />
+            <p className="mt-1.5 text-[11px] text-gray-400">
+              Affiché sous le titre du kit. Un élément par ligne si le kit en contient plusieurs.
+            </p>
           </div>
         </div>
 

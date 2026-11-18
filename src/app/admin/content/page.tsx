@@ -28,6 +28,7 @@ import {
   type ContentField,
   type ContentPageDef,
 } from "@/lib/content/registry";
+import { preparerImage } from "@/lib/preparer-image";
 
 // Map des noms d'icônes (registre) → composants lucide.
 const ICONS: Record<string, React.ElementType> = {
@@ -163,15 +164,15 @@ export default function AdminContentPage() {
     if (!file) return;
     setUploading(key);
     const formData = new FormData();
-    formData.append("file", file);
     try {
+      formData.append("file", await preparerImage(file));
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (res.ok) {
         const data = await res.json();
         updateContent(key, data.url);
         toast.success("Image importée");
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         toast.error(data.error || "Erreur d'import");
       }
     } catch {

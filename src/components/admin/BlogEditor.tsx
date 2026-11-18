@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import SeoPanel from "./SeoPanel";
 import { GoldButton, GhostButton } from "@/components/admin/ui";
 import { generateSlug } from "@/lib/utils";
+import { preparerImage } from "@/lib/preparer-image";
 
 const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
   ssr: false,
@@ -88,8 +89,8 @@ export default function BlogEditor({ initialData, editSlug }: BlogEditorProps) {
     if (!file) return;
     setUploading(true);
     const formData = new FormData();
-    formData.append("file", file);
     try {
+      formData.append("file", await preparerImage(file));
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (res.ok) {
         const data = await res.json();

@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { PageHeader, GoldButton } from "@/components/admin/ui";
 import PromoPopupCard from "@/components/shop/PromoPopupCard";
 import Link from "next/link";
+import { preparerImage } from "@/lib/preparer-image";
 
 const inputCls =
   "w-full px-3 py-2.5 bg-white border border-[var(--brand-gold)]/20 text-sm focus:ring-2 focus:ring-[var(--brand-gold)]/15 focus:border-[var(--brand-gold)]/40 outline-none transition placeholder:text-gray-300";
@@ -135,13 +136,16 @@ export default function AdminMarketingPage() {
     if (!file) return;
     setUploading(true);
     const formData = new FormData();
-    formData.append("file", file);
     try {
+      formData.append("file", await preparerImage(file));
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (res.ok) {
         const result = await res.json();
         setData({ ...data, popup: { ...data.popup, image: result.url } });
         toast.success("Image uploadée");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Erreur upload");
       }
     } catch {
       toast.error("Erreur upload");
