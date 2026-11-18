@@ -61,14 +61,56 @@ export function seedAutorise(uri: string): boolean {
   return local;
 }
 
+/**
+ * Options de connexion pour un site serverless sur un cluster partagé
+ * (500 connexions au total, une vingtaine de sites) : peu de connexions par
+ * instance, rendues dès qu'elles ne servent plus, et un échec rapide plutôt
+ * qu'une requête qui attend 30 s.
+ */
+const OPTIONS_CONNEXION = {
+  bufferCommands: false,
+  maxPoolSize: 5,
+  minPoolSize: 0,
+  maxIdleTimeMS: 30_000,
+  serverSelectionTimeoutMS: 8_000,
+} as const;
+
+/** Erreur passagère (réseau, TLS, cluster saturé) : un nouvel essai a du sens. */
+export function erreurReseau(err: unknown): boolean {
+  const e = err as { name?: string; message?: string } | null;
+  const nom = e?.name ?? "";
+  const message = e?.message ?? "";
+  return (
+    /MongoNetwork|MongoServerSelection|MongooseServerSelection|MongoPoolCleared|MongoTopologyClosed/.test(
+      nom
+    ) || /ECONNRESET|ETIMEDOUT|EPIPE|socket|tlsv1|SSL alert/i.test(message)
+  );
+}
+
+async function ouvrir(uri: string): Promise<typeof mongoose> {
+  try {
+    return await mongoose.connect(uri, OPTIONS_CONNEXION);
+  } catch (err) {
+    if (!erreurReseau(err)) throw err;
+    // Un seul nouvel essai, après une courte pause.
+    console.warn("[db] Connexion échouée, nouvel essai :", (err as Error).message);
+    await mongoose.disconnect().catch(() => {});
+    await new Promise((r) => setTimeout(r, 400));
+    return mongoose.connect(uri, OPTIONS_CONNEXION);
+  }
+}
+
 export async function connectDB() {
   if (cached.conn) {
-    return cached.conn;
+    // 0 = déconnectée : la connexion en cache est morte, on en rouvre une.
+    if (mongoose.connection.readyState !== 0) return cached.conn;
+    cached.conn = null;
+    cached.promise = null;
   }
 
   if (!cached.promise) {
     cached.promise = resolveUri().then(async (uri) => {
-      const conn = await mongoose.connect(uri, { bufferCommands: false });
+      const conn = await ouvrir(uri);
       // Compte admin depuis les variables d'env (dev ET prod) — idempotent.
       const { ensureAdminUser } = await import("./ensureAdmin");
       await ensureAdminUser();
@@ -93,6 +135,14 @@ export async function connectDB() {
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    // Ne jamais garder une promesse rejetée : sinon toutes les requêtes
+    // suivantes de l'instance échouent sans réessayer (panne du 18/11/2026).
+    cached.promise = null;
+    cached.conn = null;
+    throw err;
+  }
   return cached.conn;
 }
