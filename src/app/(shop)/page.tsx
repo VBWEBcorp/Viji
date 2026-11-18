@@ -9,6 +9,7 @@ import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
 import PressLogoBar from "@/components/shop/PressLogoBar";
 import { getContent } from "@/lib/content";
+import { libelleAvis } from "@/lib/avis-google";
 
 // Rendu dynamique : lit le contenu (et les catégories) à chaque visite, pour que
 // les modifications faites dans l'admin Contenu apparaissent immédiatement.
@@ -408,7 +409,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <span className="text-[13px] font-medium text-gray-900">{t("home_avis_rating")}</span>
-              <span className="text-[12px] text-gray-400">· {t("home_avis_count")}</span>
+              <span className="text-[12px] text-gray-400">· {libelleAvis(t("home_avis_count"))}</span>
             </div>
           </div>
         </div>

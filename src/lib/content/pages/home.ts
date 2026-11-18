@@ -112,8 +112,8 @@ export const homePage: ContentPageDef = {
       title: "Section « Avis Google »",
       fields: [
         { key: "home_avis_eyebrow", type: "text", label: "Surtitre", default: "Ils en parlent" },
-        { key: "home_avis_rating", type: "text", label: "Note affichée", default: "5,0" },
-        { key: "home_avis_count", type: "text", label: "Nombre d'avis", default: "19 avis" },
+        { key: "home_avis_rating", type: "text", label: "Note Google", default: "5,0" },
+        { key: "home_avis_count", type: "text", label: "Nombre d'avis Google (exemple : 21 avis)", default: "19 avis" },
       ],
     },
     {

@@ -9,6 +9,9 @@ import SiteSettings from "@/models/SiteSettings";
 import { remiseClickCollect } from "@/lib/click-collect";
 import { descriptionEnHtml } from "@/lib/description-kit";
 import AddToCartButton from "./AddToCartButton";
+import KitGallery from "./KitGallery";
+import { getContent } from "@/lib/content";
+import { libelleAvis } from "@/lib/avis-google";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
 // faites dans l'admin apparaissent immédiatement.
@@ -61,6 +64,10 @@ export default async function KitCategoryPage({
   const settings = await SiteSettings.findOne().select("shipping").lean();
   const remiseCC = remiseClickCollect(settings?.shipping);
 
+  // Note et nombre d'avis Google : mêmes champs que l'accueil
+  // (admin → Pages → Accueil → Section « Avis Google »).
+  const t = await getContent();
+
   const items = products.map((p) => ({
     _id: String(p._id),
     name: p.name,
@@ -69,6 +76,11 @@ export default async function KitCategoryPage({
     price: p.price,
     image: p.images?.[0]?.url,
     imageAlt: p.images?.[0]?.alt || p.name,
+    // Toutes les photos du produit, dans l'ordre choisi dans l'admin.
+    images: [...(p.images || [])]
+      .filter((img) => img?.url)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((img) => ({ url: img.url, alt: img.alt || p.name })),
     servings: p.tags?.[0] || "",
     contents: p.tags?.[1] || "",
     descriptionHtml: descriptionEnHtml(p.description),
@@ -171,7 +183,10 @@ export default async function KitCategoryPage({
               >
                 {/* Visuel + badges */}
                 <div className="relative aspect-[4/5] bg-[var(--brand-cream)] overflow-hidden">
-                  {item.image && (
+                  {item.images.length > 1 && (
+                    <KitGallery images={item.images} name={item.name} />
+                  )}
+                  {item.images.length <= 1 && item.image && (
                     <Image
                       src={item.image}
                       alt={item.imageAlt}
@@ -182,7 +197,11 @@ export default async function KitCategoryPage({
                   )}
 
                   {item.servings && (
-                    <span className="absolute bottom-3 left-3 inline-block bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] uppercase tracking-[0.18em] font-medium px-2.5 py-1">
+                    <span
+                      className={`absolute left-3 z-10 inline-block ${
+                        item.images.length > 1 ? "top-3" : "bottom-3"
+                      } bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] uppercase tracking-[0.18em] font-medium px-2.5 py-1`}
+                    >
                       {item.servings}
                     </span>
                   )}
@@ -242,7 +261,7 @@ export default async function KitCategoryPage({
               <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
             ))}
           </span>
-          <span className="text-[12px]">5,0 · 18 avis Google</span>
+          <span className="text-[12px]">{t("home_avis_rating")} · {libelleAvis(t("home_avis_count"))} Google</span>
         </div>
       </div>
     </div>
