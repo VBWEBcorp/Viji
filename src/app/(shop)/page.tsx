@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
+import Product from "@/models/Product";
+import { BOX_EN_AVANT } from "@/lib/box-en-avant";
 import { ArrowRight, Star } from "lucide-react";
 import YouTubeShort from "@/components/shop/YouTubeShort";
 import HeroSection from "@/components/shop/HeroSection";
@@ -81,6 +83,25 @@ export default async function HomePage() {
 
   if (categories.length === 0) categories = DEFAULT_KITS;
 
+  // Box mise en avant au-dessus des « Trois formules » (Viji, 19/11/2026), avec sa page /box/<slug>.
+  let box: { name: string; slug: string; shortDescription: string; mention: string; image?: string; price: number } | null = null;
+  try {
+    const p = await Product.findOne({ slug: { $in: BOX_EN_AVANT }, isActive: true }).lean();
+    if (p) {
+      const img = [...(p.images || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
+      box = {
+        name: p.name,
+        slug: p.slug,
+        shortDescription: p.shortDescription || "",
+        mention: p.tags?.[0] || "",
+        image: img?.url,
+        price: p.price,
+      };
+    }
+  } catch {
+    // ignore
+  }
+
   return (
     <div className="bg-white">
       {/* ── HERO + BANDEAU INTERACTIF ──────────────────────────── */}
@@ -95,6 +116,49 @@ export default async function HomePage() {
 
       {/* ── BANDE LOGOS PRESSE ─────────────────────────────────── */}
       <PressLogoBar />
+
+      {/* ── BOX MISE EN AVANT ──────────────────────────────────── */}
+      {box && (
+        <section className="pt-20 md:pt-28">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <Link
+              href={`/box/${box.slug}`}
+              className="group grid grid-cols-1 md:grid-cols-2 bg-[var(--brand-cream)] overflow-hidden"
+            >
+              <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[380px] overflow-hidden">
+                {box.image && (
+                  <Image
+                    src={box.image}
+                    alt={box.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                )}
+              </div>
+              <div className="flex flex-col justify-center p-7 md:p-12">
+                {box.mention && (
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--brand-gold)] mb-4">
+                    {box.mention}
+                  </p>
+                )}
+                <h2 className="font-serif text-3xl md:text-5xl text-gray-900 leading-[1.05] mb-5">
+                  {box.name}
+                </h2>
+                {box.shortDescription && (
+                  <p className="text-[14px] text-gray-600 leading-relaxed mb-6">{box.shortDescription}</p>
+                )}
+                <p className="font-serif text-2xl text-gray-900 mb-6">
+                  {(box.price / 100).toFixed(2).replace(".", ",")} €
+                </p>
+                <span className="text-[11px] uppercase tracking-[0.3em] text-[var(--brand-gold)] inline-flex items-center gap-2 group-hover:gap-3 transition-all">
+                  Découvrir la box <ArrowRight size={11} />
+                </span>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ── 3 KITS — cartes monumentales ───────────────────────── */}
       <section className="py-24 md:py-36">

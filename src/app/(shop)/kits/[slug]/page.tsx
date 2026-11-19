@@ -12,6 +12,7 @@ import AddToCartButton from "./AddToCartButton";
 import KitGallery from "./KitGallery";
 import { getContent } from "@/lib/content";
 import { libelleAvis } from "@/lib/avis-google";
+import { BOX_EN_AVANT } from "@/lib/box-en-avant";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
 // faites dans l'admin apparaissent immédiatement.
@@ -56,7 +57,8 @@ export default async function KitCategoryPage({
   const cat = await Category.findOne({ slug, isActive: true }).lean();
   if (!cat) notFound();
 
-  const products = await Product.find({ category: cat._id, isActive: true })
+  // Les box mises en avant ont leur propre page (/box/<slug>), présentée sur l'accueil.
+  const products = await Product.find({ category: cat._id, isActive: true, slug: { $nin: BOX_EN_AVANT } })
     .sort({ isFeatured: -1, createdAt: 1 })
     .lean();
 
