@@ -81,6 +81,8 @@ const checkoutSchema = z.object({
   promoCode: z.string().optional(),
   // E-mail de la personne à qui la commande est offerte (facultatif).
   giftEmail: z.union([z.string().trim().email("E-mail du destinataire du cadeau invalide"), z.literal("")]).optional(),
+  giftName: z.string().trim().max(80).optional(),
+  giftMessage: z.string().trim().max(600).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -182,6 +184,7 @@ export async function POST(req: NextRequest) {
         price: number;
         stock: number;
         images: { url: string }[];
+        lieuRetrait?: string;
       };
 
       if (product.stock < item.quantity) {
@@ -203,7 +206,7 @@ export async function POST(req: NextRequest) {
         quantity: item.quantity,
         unitPrice,
         lieuRetrait: estClickCollect(item.variant)
-          ? lieuRetrait((product as unknown as { slug?: string }).slug)
+          ? lieuRetrait(product)
           : undefined,
       });
     }
@@ -311,6 +314,8 @@ export async function POST(req: NextRequest) {
       pickupPoint: shippingMethod === "pickup" ? validated.pickupPoint : undefined,
       paymentMethod: validated.paymentMethod,
       giftEmail: validated.giftEmail ? validated.giftEmail.toLowerCase() : undefined,
+      giftName: validated.giftName || undefined,
+      giftMessage: validated.giftMessage || undefined,
       paymentStatus: "pending",
       fulfillmentStatus: "pending",
     });

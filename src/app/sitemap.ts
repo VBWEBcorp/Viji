@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await connectDB();
 
     const [products, blogPosts] = await Promise.all([
-      Product.find({ isActive: true }).select("slug updatedAt").lean(),
+      Product.find({ isActive: true }).select("slug updatedAt miseEnAvantAccueil").lean(),
       BlogPost.find({ isPublished: true }).select("slug updatedAt").lean(),
     ]);
 
@@ -43,6 +43,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly" as const,
         priority: 0.8,
       })),
+      // Pages dédiées des box mises en avant sur l'accueil.
+      ...products
+        .filter((p) => p.miseEnAvantAccueil)
+        .map((p) => ({
+          url: `${baseUrl}/box/${p.slug}`,
+          lastModified: p.updatedAt || new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.9,
+        })),
       ...blogPosts.map((p) => ({
         url: `${baseUrl}/blog/${p.slug}`,
         lastModified: p.updatedAt || new Date(),

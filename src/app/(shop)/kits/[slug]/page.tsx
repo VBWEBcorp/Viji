@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Snowflake, BookOpen, Sprout, Sparkles, Star } from "lucide-react";
+import { Snowflake, BookOpen, Sprout, Sparkles, Star, ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
@@ -12,7 +12,6 @@ import AddToCartButton from "./AddToCartButton";
 import KitGallery from "./KitGallery";
 import { getContent } from "@/lib/content";
 import { libelleAvis } from "@/lib/avis-google";
-import { BOX_EN_AVANT } from "@/lib/box-en-avant";
 
 // Rendu dynamique : relit les produits à chaque visite pour que les modifications
 // faites dans l'admin apparaissent immédiatement.
@@ -57,8 +56,8 @@ export default async function KitCategoryPage({
   const cat = await Category.findOne({ slug, isActive: true }).lean();
   if (!cat) notFound();
 
-  // Les box mises en avant ont leur propre page (/box/<slug>), présentée sur l'accueil.
-  const products = await Product.find({ category: cat._id, isActive: true, slug: { $nin: BOX_EN_AVANT } })
+  // Une box mise en avant sur l'accueil garde sa carte ici, avec un lien vers sa page /box/<slug>.
+  const products = await Product.find({ category: cat._id, isActive: true })
     .sort({ isFeatured: -1, createdAt: 1 })
     .lean();
 
@@ -87,6 +86,8 @@ export default async function KitCategoryPage({
     contents: p.tags?.[1] || "",
     descriptionHtml: descriptionEnHtml(p.description),
     isFeatured: !!p.isFeatured,
+    lieuRetrait: p.lieuRetrait || "",
+    pageDediee: p.miseEnAvantAccueil ? `/box/${p.slug}` : "",
   }));
 
   return (
@@ -225,8 +226,18 @@ export default async function KitCategoryPage({
                     </p>
                   )}
 
+                  {/* Box mise en avant : le détail est sur sa page dédiée */}
+                  {item.pageDediee && (
+                    <Link
+                      href={item.pageDediee}
+                      className="inline-flex items-center gap-1.5 mb-4 text-[12px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:underline"
+                    >
+                      Découvrir la box en détail <ArrowRight size={13} />
+                    </Link>
+                  )}
+
                   {/* Description complète (admin), repliée : liens cliquables */}
-                  {item.descriptionHtml && (
+                  {!item.pageDediee && item.descriptionHtml && (
                     <details className="group/detail mb-4">
                       <summary className="cursor-pointer list-none text-[12px] uppercase tracking-[0.15em] text-[var(--brand-gold)] hover:underline [&::-webkit-details-marker]:hidden">
                         <span className="group-open/detail:hidden">Voir le détail</span>
@@ -248,6 +259,7 @@ export default async function KitCategoryPage({
                       slug: item.slug,
                       price: item.price,
                       image: item.image,
+                      lieuRetrait: item.lieuRetrait,
                     }}
                   />
                 </div>

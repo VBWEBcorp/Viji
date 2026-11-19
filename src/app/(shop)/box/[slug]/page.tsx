@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import SiteSettings from "@/models/SiteSettings";
 import { remiseClickCollect } from "@/lib/click-collect";
-import { BOX_EN_AVANT, blocsDescription } from "@/lib/box-en-avant";
+import { FILTRE_BOX_EN_AVANT, blocsDescription } from "@/lib/box-en-avant";
 import AddToCartButton from "../../kits/[slug]/AddToCartButton";
 import KitGallery from "../../kits/[slug]/KitGallery";
 
@@ -13,9 +13,8 @@ import KitGallery from "../../kits/[slug]/KitGallery";
 export const dynamic = "force-dynamic";
 
 async function charger(slug: string) {
-  if (!BOX_EN_AVANT.includes(slug)) return null;
   await connectDB();
-  return Product.findOne({ slug, isActive: true }).lean();
+  return Product.findOne({ slug, ...FILTRE_BOX_EN_AVANT }).lean();
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -87,6 +86,7 @@ export default async function BoxPage({ params }: { params: Promise<{ slug: stri
                 slug: p.slug,
                 price: p.price,
                 image: images[0]?.url,
+                lieuRetrait: p.lieuRetrait || "",
               }}
             />
           </div>

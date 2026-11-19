@@ -31,6 +31,8 @@ interface ProductFormData {
   fulfillmentType: "self" | "dropship";
   isActive: boolean;
   isFeatured: boolean;
+  miseEnAvantAccueil: boolean;
+  lieuRetrait: string;
   seo: { metaTitle: string; metaDescription: string };
 }
 
@@ -55,6 +57,8 @@ const defaultData: ProductFormData = {
   fulfillmentType: "self",
   isActive: true,
   isFeatured: false,
+  miseEnAvantAccueil: false,
+  lieuRetrait: "",
   seo: { metaTitle: "", metaDescription: "" },
 };
 
@@ -590,6 +594,36 @@ export default function ProductForm({ initialData, slug }: ProductFormProps) {
             />
             <span className="text-sm text-gray-700">En vedette</span>
           </label>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.miseEnAvantAccueil}
+              onChange={(e) => updateField("miseEnAvantAccueil", e.target.checked)}
+              className="w-4 h-4 accent-[var(--brand-gold)]"
+            />
+            <span className="text-sm text-gray-700">Mise en avant sur l&apos;accueil</span>
+          </label>
+          <p className="mt-1.5 text-[11px] text-gray-400">
+            Bloc au-dessus des « Trois formules » sur l&apos;accueil, avec une page dédiée (/box/…).
+            Décocher ou désactiver le produit retire le bloc.
+          </p>
+        </div>
+
+        <div>
+          <label className={labelCls}>Adresse de retrait Click &amp; Collect</label>
+          <input
+            type="text"
+            value={form.lieuRetrait || ""}
+            onChange={(e) => updateField("lieuRetrait", e.target.value)}
+            placeholder="Vide = retrait à Vern-sur-Seiche"
+            className={fieldCls}
+          />
+          <p className="mt-1.5 text-[11px] text-gray-400">
+            À remplir seulement si ce produit se retire ailleurs. Affichée sur la fiche, au panier, au paiement et dans les e-mails de commande.
+          </p>
         </div>
 
         <div>

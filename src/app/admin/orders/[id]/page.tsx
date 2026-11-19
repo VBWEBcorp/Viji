@@ -44,6 +44,8 @@ interface Order {
   };
   notes?: string;
   giftEmail?: string;
+  giftName?: string;
+  giftMessage?: string;
   createdAt: string;
 }
 
@@ -261,10 +263,20 @@ export default function AdminOrderDetailPage() {
                 {lignesRetrait(order.items).map((l) => <p key={l}>{l}</p>)}
               </div>
             )}
-            {order.giftEmail && (
-              <p className="text-sm text-gray-900 mb-3">
-                Commande offerte à : <a href={`mailto:${order.giftEmail}`} className="text-[var(--brand-gold)]">{order.giftEmail}</a>
-              </p>
+            {(order.giftEmail || order.giftName || order.giftMessage) && (
+              <div className="text-sm text-gray-900 mb-3 space-y-1">
+                <p className="font-medium">C&apos;est un cadeau</p>
+                {(order.giftName || order.giftEmail) && (
+                  <p>
+                    Offert à : {order.giftName}
+                    {order.giftName && order.giftEmail ? " · " : ""}
+                    {order.giftEmail && (
+                      <a href={`mailto:${order.giftEmail}`} className="text-[var(--brand-gold)]">{order.giftEmail}</a>
+                    )}
+                  </p>
+                )}
+                {order.giftMessage && <p className="whitespace-pre-wrap text-gray-600">« {order.giftMessage} »</p>}
+              </div>
             )}
             <div className="text-sm text-gray-600 space-y-1">
               <p>{order.shippingAddress.name}</p>

@@ -15,6 +15,8 @@ interface Props {
     slug: string;
     price: number;
     image?: string;
+    /** Adresse de retrait propre au produit (vide = Vern-sur-Seiche). */
+    lieuRetrait?: string;
   };
   /** Methods available. Default = both (kits). Pass ["click-collect"] only for traiteur. */
   methods?: DeliveryMethod[];
@@ -48,7 +50,7 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
 
   // Lieu de retrait propre au produit (ex. Asian food box chez TALLAT).
   const sousTitre = (m: DeliveryMethod) =>
-    m === "click-collect" ? phraseRetrait(lieuRetrait(product.slug)) : METHOD_LABELS[m].sub;
+    m === "click-collect" ? phraseRetrait(lieuRetrait(product)) : METHOD_LABELS[m].sub;
 
   const prix = prixUnitaire(product.price, METHOD_LABELS[method].label, remiseClickCollect);
   const deduit = product.price - prix;

@@ -76,6 +76,8 @@ export default function AdminContentPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | ContentCategory>("all");
   const [selectedId, setSelectedId] = useState<string>(CONTENT_PAGES[0].id);
+  // Champs remplis par la synchronisation quotidienne des avis Google : date du dernier passage.
+  const [synchro, setSynchro] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // On part des valeurs réelles actuelles (défauts du registre), puis on
@@ -85,12 +87,15 @@ export default function AdminContentPage() {
 
     fetch("/api/content")
       .then((r) => r.json())
-      .then((data: { key: string; value: string }[]) => {
+      .then((data: { key: string; value: string; metadata?: { synchroGoogle?: string } }[]) => {
+        const dates: Record<string, string> = {};
         if (Array.isArray(data)) {
           data.forEach((c) => {
             if (c.value != null && c.key in base) base[c.key] = c.value;
+            if (c.metadata?.synchroGoogle) dates[c.key] = c.metadata.synchroGoogle;
           });
         }
+        setSynchro(dates);
         setContents(base);
         setLoading(false);
       })
@@ -327,6 +332,19 @@ export default function AdminContentPage() {
                               </label>
                               {field.help && (
                                 <p className="text-[11px] text-gray-400 mt-0.5 ml-[18px]">{field.help}</p>
+                              )}
+                              {synchro[field.key] && (
+                                <p className="text-[11px] text-emerald-700 mt-0.5 ml-[18px]">
+                                  Synchronisé avec Google le{" "}
+                                  {new Date(synchro[field.key]).toLocaleString("fr-FR", {
+                                    timeZone: "Europe/Paris",
+                                    day: "numeric",
+                                    month: "long",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                  {" "}(mis à jour chaque matin)
+                                </p>
                               )}
                             </div>
                             {modified[field.key] && (

@@ -120,6 +120,8 @@ const productSchema = z.object({
   fulfillmentType: z.enum(["self", "dropship"]).optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
+  lieuRetrait: z.string().optional(),
+  miseEnAvantAccueil: z.boolean().optional(),
   seo: z
     .object({
       metaTitle: z.string().optional(),

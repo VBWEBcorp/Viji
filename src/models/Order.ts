@@ -71,6 +71,10 @@ export interface IOrder extends Document {
   notes?: string;
   /** E-mail de la personne à qui la commande est offerte (facultatif, saisi au paiement). */
   giftEmail?: string;
+  /** Prénom de la personne à qui la commande est offerte (facultatif). */
+  giftName?: string;
+  /** Petit message pour la personne à qui la commande est offerte (facultatif). */
+  giftMessage?: string;
   timeline: {
     action: string;
     details?: string;
@@ -176,6 +180,8 @@ const OrderSchema = new Schema<IOrder>(
     invoiceIssuedAt: { type: Date },
     notes: { type: String },
     giftEmail: { type: String },
+    giftName: { type: String },
+    giftMessage: { type: String },
     timeline: [
       {
         action: { type: String, required: true },

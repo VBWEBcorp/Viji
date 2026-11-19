@@ -3,7 +3,7 @@ import Image from "next/image";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
-import { BOX_EN_AVANT } from "@/lib/box-en-avant";
+import { FILTRE_BOX_EN_AVANT } from "@/lib/box-en-avant";
 import { ArrowRight, Star } from "lucide-react";
 import YouTubeShort from "@/components/shop/YouTubeShort";
 import HeroSection from "@/components/shop/HeroSection";
@@ -11,7 +11,8 @@ import ReviewMarquee from "@/components/shop/ReviewMarquee";
 import PressSection from "@/components/shop/PressSection";
 import PressLogoBar from "@/components/shop/PressLogoBar";
 import { getContent } from "@/lib/content";
-import { libelleAvis } from "@/lib/avis-google";
+import { avisPourAccueil, libelleAvis } from "@/lib/avis-google";
+import AvisGoogle from "@/models/AvisGoogle";
 
 // Rendu dynamique : lit le contenu (et les catégories) à chaque visite, pour que
 // les modifications faites dans l'admin Contenu apparaissent immédiatement.
@@ -31,6 +32,7 @@ const KIT_TAGLINES: Record<string, string> = {
 
 // Avis Google réels de "Entre Maman et Moi" (Viji Tinot). Textes fidèles aux avis
 // publics, tronqués à la dernière phrase complète quand l'original l'était.
+// Repli seulement : l'accueil affiche les avis synchronisés (collection avis_google).
 const REVIEWS = [
   { name: "Audrey Nico", initial: "A", when: "il y a 5 jours", body: "La cuisine de Viji est tout simplement exquise, je la recommande chaleureusement !" },
   { name: "Jérémy Porcher", initial: "J", when: "il y a un mois", body: "Je recommande ! Nous nous sommes régalés, les produits sont frais et Viji est adorable. Merci !" },
@@ -86,7 +88,7 @@ export default async function HomePage() {
   // Box mise en avant au-dessus des « Trois formules » (Viji, 19/11/2026), avec sa page /box/<slug>.
   let box: { name: string; slug: string; shortDescription: string; mention: string; image?: string; price: number } | null = null;
   try {
-    const p = await Product.findOne({ slug: { $in: BOX_EN_AVANT }, isActive: true }).lean();
+    const p = await Product.findOne(FILTRE_BOX_EN_AVANT).sort({ updatedAt: -1 }).lean();
     if (p) {
       const img = [...(p.images || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
       box = {
@@ -98,6 +100,15 @@ export default async function HomePage() {
         price: p.price,
       };
     }
+  } catch {
+    // ignore
+  }
+
+  // Avis Google synchronisés chaque jour depuis sa fiche ; repli sur les avis en dur.
+  let avis = REVIEWS;
+  try {
+    const synchro = avisPourAccueil(await AvisGoogle.find().lean());
+    if (synchro.length > 0) avis = synchro;
   } catch {
     // ignore
   }
@@ -479,7 +490,7 @@ export default async function HomePage() {
         </div>
 
         {/* Marquee plein écran */}
-        <ReviewMarquee reviews={REVIEWS} />
+        <ReviewMarquee reviews={avis} />
       </section>
 
       {/* ── RÉSEAUX SOCIAUX ─────────────────────────────────────── */}

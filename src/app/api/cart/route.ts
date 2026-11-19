@@ -49,6 +49,7 @@ export async function GET() {
           price: number;
           images: { url: string; alt: string }[];
           stock: number;
+          lieuRetrait?: string;
         };
         const unitPrice = prixUnitaire(product.price, item.variant, remise);
         return {
@@ -60,6 +61,8 @@ export async function GET() {
             price: product.price,
             image: product.images?.[0]?.url,
             stock: product.stock,
+            // Adresse de retrait Click & Collect propre au produit (vide = Vern-sur-Seiche).
+            lieuRetrait: product.lieuRetrait || undefined,
           },
           variant: item.variant,
           quantity: item.quantity,

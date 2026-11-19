@@ -26,6 +26,7 @@ interface CartItem {
     slug?: string;
     price: number;
     image?: string;
+    lieuRetrait?: string;
   };
   variant?: string;
   quantity: number;
@@ -53,7 +54,10 @@ export default function CheckoutPage() {
   // envoie un email pour le configurer plus tard.
   const [password, setPassword] = useState("");
   // Commande offerte : e-mail de la personne qui reçoit le cadeau (facultatif).
+  const [estCadeau, setEstCadeau] = useState(false);
   const [giftEmail, setGiftEmail] = useState("");
+  const [giftName, setGiftName] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
 
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
@@ -135,7 +139,7 @@ export default function CheckoutPage() {
   // relais ni frais de port (le serveur applique la même règle).
   const retraitSurPlace = toutEnClickCollect(cartItems);
   const textesRetrait = lignesRetrait(
-    cartItems.map((i) => ({ name: i.product.name, variant: i.variant, lieuRetrait: lieuRetrait(i.product.slug) }))
+    cartItems.map((i) => ({ name: i.product.name, variant: i.variant, lieuRetrait: lieuRetrait(i.product) }))
   );
 
   // Mondial Relay. Le seuil de gratuité s'apprécie après remise (comme le serveur).
@@ -248,7 +252,9 @@ export default function CheckoutPage() {
               }
             : undefined,
           promoCode: promo?.code || undefined,
-          giftEmail: giftEmail.trim() || undefined,
+          giftEmail: (estCadeau && giftEmail.trim()) || undefined,
+          giftName: (estCadeau && giftName.trim()) || undefined,
+          giftMessage: (estCadeau && giftMessage.trim()) || undefined,
         }),
       });
 
@@ -507,17 +513,42 @@ export default function CheckoutPage() {
                   </Card>
                 )}
 
-                <Card eyebrow="Pour offrir" title="C'est un cadeau ?">
-                  <Field
-                    label="Email de la personne à qui vous l'offrez"
-                    type="email"
-                    placeholder="destinataire@exemple.com"
-                    value={giftEmail}
-                    onChange={setGiftEmail}
-                  />
-                  <p className="font-serif italic text-[12px] text-gray-400 mt-2">
-                    Optionnel. À remplir si vous offrez cette commande.
-                  </p>
+                <Card eyebrow="Cadeau" title="Pour offrir">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={estCadeau}
+                      onChange={(e) => setEstCadeau(e.target.checked)}
+                      className="w-4 h-4 accent-[var(--brand-gold)]"
+                    />
+                    <span className="text-[14px] text-gray-900">C&apos;est un cadeau</span>
+                  </label>
+                  {estCadeau && (
+                    <div className="space-y-5 mt-5">
+                      <Field
+                        label="E-mail de la personne à qui vous l'offrez"
+                        type="email"
+                        placeholder="destinataire@exemple.com"
+                        value={giftEmail}
+                        onChange={setGiftEmail}
+                      />
+                      <Field label="Son prénom" value={giftName} onChange={setGiftName} />
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-2">
+                          Un petit message
+                        </label>
+                        <textarea
+                          value={giftMessage}
+                          onChange={(e) => setGiftMessage(e.target.value.slice(0, 600))}
+                          rows={3}
+                          className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-gray-200 text-[14px] text-gray-900 focus:border-[var(--brand-gold)] focus:ring-0 outline-none transition placeholder:text-gray-300 resize-none"
+                        />
+                      </div>
+                      <p className="font-serif italic text-[12px] text-gray-400">
+                        Facultatif. Ces informations sont transmises à Viji avec votre commande.
+                      </p>
+                    </div>
+                  )}
                 </Card>
 
                 {retraitSurPlace ? (
@@ -554,7 +585,7 @@ export default function CheckoutPage() {
                       toast.error("Veuillez renseigner un email valide");
                       return;
                     }
-                    if (giftEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(giftEmail.trim())) {
+                    if (estCadeau && giftEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(giftEmail.trim())) {
                       toast.error("L'email de la personne à qui vous offrez n'est pas valide");
                       return;
                     }

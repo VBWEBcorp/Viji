@@ -20,6 +20,8 @@ interface OrderConfirmationProps {
   total: number;
   /** "click-collect" : retrait sur place, pas d'adresse de livraison. */
   shippingMethod?: string;
+  /** Commande offerte : infos saisies au paiement (rien n'est envoyé à la personne). */
+  cadeau?: { email?: string; prenom?: string; message?: string };
   shippingAddress: {
     name: string;
     street: string;
@@ -114,6 +116,19 @@ export function generateOrderConfirmationEmail(
         ${esc(props.shippingAddress.country)}
       </p>`
     )}`}
+
+    ${props.cadeau
+      ? `<p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">C'est un cadeau</p>
+    ${emailInfoBox(
+      `<p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0; white-space:pre-wrap;">` +
+        [
+          props.cadeau.prenom ? `Pour : <strong style="color:${C.ink};">${esc(props.cadeau.prenom)}</strong>` : "",
+          props.cadeau.email ? esc(props.cadeau.email) : "",
+          props.cadeau.message ? `Votre message : « ${esc(props.cadeau.message)} »` : "",
+        ].filter(Boolean).join("<br>") +
+        `</p>`
+    )}`
+      : ""}
 
     ${emailParagraph(
       `<span style="color:${C.muted}; font-size:14px;">Vous recevrez un nouvel email dès que votre commande sera expédiée. À très vite !</span>`

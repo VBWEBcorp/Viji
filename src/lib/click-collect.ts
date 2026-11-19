@@ -33,17 +33,15 @@ export function toutEnClickCollect(items: { variant?: string | null }[]): boolea
 }
 
 /**
- * Lieu de retrait en Click & Collect. Par défaut Vern-sur-Seiche ; certains
- * produits se retirent ailleurs (Viji, 19/11/2026 : l'Asian food box chez
- * TALLAT). Clé = slug du produit.
+ * Lieu de retrait en Click & Collect. Par défaut Vern-sur-Seiche ; un produit
+ * peut avoir le sien, réglé dans l'admin (Produits → fiche → « Adresse de
+ * retrait Click & Collect »). Viji, 19/11/2026 : l'Asian food box se retire
+ * chez TALLAT. Champ vide = adresse habituelle.
  */
 export const LIEU_RETRAIT_DEFAUT = "Vern-sur-Seiche";
-export const LIEUX_RETRAIT_PAR_PRODUIT: Record<string, string> = {
-  "asian-food-box": "TALLAT épicerie asiatique, 55 Rue du Manoir de Servigné, 35132 Rennes",
-};
 
-export function lieuRetrait(slug?: string | null): string {
-  return (slug && LIEUX_RETRAIT_PAR_PRODUIT[slug]) || LIEU_RETRAIT_DEFAUT;
+export function lieuRetrait(produit?: { lieuRetrait?: string | null } | null): string {
+  return produit?.lieuRetrait?.trim() || LIEU_RETRAIT_DEFAUT;
 }
 
 /** « Retrait à Vern-sur-Seiche » ou « Retrait chez TALLAT épicerie asiatique, … ». */

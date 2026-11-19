@@ -42,6 +42,10 @@ export interface IProduct extends Document {
   tags: string[];
   isActive: boolean;
   isFeatured: boolean;
+  /** Adresse de retrait Click & Collect propre au produit (vide = Vern-sur-Seiche). */
+  lieuRetrait?: string;
+  /** Mis en avant sur l'accueil, au-dessus des « Trois formules », avec sa page /box/<slug>. */
+  miseEnAvantAccueil?: boolean;
   /** Section dans une carte traiteur (Entrée, Plats, Boissons…). */
   section?: string;
   /** Ordre d'affichage dans la section (croissant). */
@@ -112,6 +116,8 @@ const ProductSchema = new Schema<IProduct>(
     tags: [{ type: String, trim: true }],
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
+    lieuRetrait: { type: String, trim: true },
+    miseEnAvantAccueil: { type: Boolean, default: false },
     section: { type: String, trim: true, index: true },
     sectionOrder: { type: Number, default: 0 },
     seo: {

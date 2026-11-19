@@ -84,9 +84,13 @@ function buildAdminOrderEmail(order: IOrder, customerEmail: string): string {
       emailInfoBox(
         `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0;">${livraison}</p>`
       ) +
-      (order.giftEmail
+      (order.giftEmail || order.giftName || order.giftMessage
         ? emailInfoBox(
-            `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0;"><strong style="color:${C.ink};">Commande offerte à</strong><br><a href="mailto:${esc(order.giftEmail)}" style="color:${C.gold}; text-decoration:none;">${esc(order.giftEmail)}</a></p>`
+            `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0; white-space:pre-wrap;"><strong style="color:${C.ink};">C'est un cadeau</strong>` +
+              (order.giftName ? `<br>Pour : ${esc(order.giftName)}` : "") +
+              (order.giftEmail ? `<br><a href="mailto:${esc(order.giftEmail)}" style="color:${C.gold}; text-decoration:none;">${esc(order.giftEmail)}</a>` : "") +
+              (order.giftMessage ? `<br>Message : « ${esc(order.giftMessage)} »` : "") +
+              `</p>`
           )
         : "") +
       (order.notes
@@ -165,6 +169,10 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
           giftCardAmount: order.giftCard?.amount || 0,
           total: order.total,
           shippingMethod: order.shippingMethod,
+          cadeau:
+            order.giftEmail || order.giftName || order.giftMessage
+              ? { email: order.giftEmail, prenom: order.giftName, message: order.giftMessage }
+              : undefined,
           shippingAddress: {
             name: order.shippingAddress.name,
             street: order.shippingAddress.street,

@@ -43,3 +43,23 @@ describe("commande retirée sur place", () => {
     expect(toutEnClickCollect([])).toBe(false);
   });
 });
+
+import { lieuRetrait, lignesRetrait, phraseRetrait } from "../click-collect";
+
+describe("lieu de retrait Click & Collect", () => {
+  const TALLAT = "TALLAT épicerie asiatique, 55 Rue du Manoir de Servigné, 35132 Rennes";
+  it("prend l'adresse du produit, sinon Vern-sur-Seiche", () => {
+    expect(lieuRetrait({ lieuRetrait: TALLAT })).toBe(TALLAT);
+    expect(lieuRetrait({ lieuRetrait: "  " })).toBe("Vern-sur-Seiche");
+    expect(lieuRetrait(null)).toBe("Vern-sur-Seiche");
+    expect(phraseRetrait(TALLAT)).toBe(`Retrait chez ${TALLAT}`);
+  });
+  it("affiche les deux adresses quand le panier mélange les lieux", () => {
+    const l = lignesRetrait([
+      { name: "Asian food box", variant: VARIANTE_CLICK_COLLECT, lieuRetrait: TALLAT },
+      { name: "Kit Signature", variant: VARIANTE_CLICK_COLLECT },
+      { name: "Kit Familial", variant: "Mondial Relay" },
+    ]);
+    expect(l).toEqual([`Asian food box : retrait chez ${TALLAT}`, "Kit Signature : retrait à Vern-sur-Seiche"]);
+  });
+});
