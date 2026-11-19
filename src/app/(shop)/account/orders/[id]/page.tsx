@@ -7,6 +7,7 @@ import { ArrowLeft, Package, Truck, Clock, Check, MapPin, FileDown } from "lucid
 import Link from "next/link";
 import Image from "next/image";
 import { usePageTitle } from "@/lib/use-page-title";
+import { lignesRetrait } from "@/lib/click-collect";
 
 interface OrderDetail {
   _id: string;
@@ -16,6 +17,7 @@ interface OrderDetail {
     name: string;
     image?: string;
     variant?: string;
+    lieuRetrait?: string;
     quantity: number;
     unitPrice: number;
   }[];
@@ -221,8 +223,13 @@ export default function OrderDetailPage() {
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <h3 className="text-[14px] font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <MapPin size={14} /> {order.shippingMethod === "click-collect" ? "Click & Collect, retrait à Vern-sur-Seiche" : "Adresse de livraison"}
+              <MapPin size={14} /> {order.shippingMethod === "click-collect" ? "Click & Collect" : "Adresse de livraison"}
             </h3>
+            {order.shippingMethod === "click-collect" && (
+              <div className="text-sm text-gray-900 space-y-1 mb-3">
+                {lignesRetrait(order.items).map((l) => <p key={l}>{l}</p>)}
+              </div>
+            )}
             <div className="text-sm text-gray-600 space-y-0.5">
               <p className="font-medium">{order.shippingAddress.name}</p>
               <p>{order.shippingAddress.street}</p>

@@ -15,7 +15,7 @@ import { type StripeElementsOptions } from "@stripe/stripe-js";
 import { useStripePromise } from "@/lib/stripe-client";
 import CanalFerme from "@/components/shop/CanalFerme";
 import type { EtatCanal } from "@/lib/disponibilite";
-import { toutEnClickCollect } from "@/lib/click-collect";
+import { lignesRetrait, lieuRetrait, toutEnClickCollect } from "@/lib/click-collect";
 
 // Chargé une seule fois au niveau module : Stripe.js doit rester unique sur la page.
 interface CartItem {
@@ -23,6 +23,7 @@ interface CartItem {
   product: {
     _id: string;
     name: string;
+    slug?: string;
     price: number;
     image?: string;
   };
@@ -51,6 +52,8 @@ export default function CheckoutPage() {
   // avec et il est connecté automatiquement après le paiement. Sinon on lui
   // envoie un email pour le configurer plus tard.
   const [password, setPassword] = useState("");
+  // Commande offerte : e-mail de la personne qui reçoit le cadeau (facultatif).
+  const [giftEmail, setGiftEmail] = useState("");
 
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
@@ -131,6 +134,9 @@ export default function CheckoutPage() {
   // Tout le panier en Click & Collect : retrait à Vern-sur-Seiche, ni point
   // relais ni frais de port (le serveur applique la même règle).
   const retraitSurPlace = toutEnClickCollect(cartItems);
+  const textesRetrait = lignesRetrait(
+    cartItems.map((i) => ({ name: i.product.name, variant: i.variant, lieuRetrait: lieuRetrait(i.product.slug) }))
+  );
 
   // Mondial Relay. Le seuil de gratuité s'apprécie après remise (comme le serveur).
   const shippingCost = retraitSurPlace
@@ -242,6 +248,7 @@ export default function CheckoutPage() {
               }
             : undefined,
           promoCode: promo?.code || undefined,
+          giftEmail: giftEmail.trim() || undefined,
         }),
       });
 
@@ -500,11 +507,25 @@ export default function CheckoutPage() {
                   </Card>
                 )}
 
+                <Card eyebrow="Pour offrir" title="C'est un cadeau ?">
+                  <Field
+                    label="Email de la personne à qui vous l'offrez"
+                    type="email"
+                    placeholder="destinataire@exemple.com"
+                    value={giftEmail}
+                    onChange={setGiftEmail}
+                  />
+                  <p className="font-serif italic text-[12px] text-gray-400 mt-2">
+                    Optionnel. À remplir si vous offrez cette commande.
+                  </p>
+                </Card>
+
                 {retraitSurPlace ? (
                   <Card eyebrow="Retrait" title="Click & Collect">
-                    <p className="font-serif italic text-[13px] text-gray-500">
-                      Votre commande est à retirer à Vern-sur-Seiche. Aucun point relais à choisir.
-                    </p>
+                    <div className="font-serif italic text-[13px] text-gray-500 space-y-1">
+                      {textesRetrait.map((l) => <p key={l}>{l}.</p>)}
+                      <p>Aucun point relais à choisir.</p>
+                    </div>
                   </Card>
                 ) : (
                   /* Sélecteur point relais Mondial Relay */
@@ -531,6 +552,10 @@ export default function CheckoutPage() {
                     }
                     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                       toast.error("Veuillez renseigner un email valide");
+                      return;
+                    }
+                    if (giftEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(giftEmail.trim())) {
+                      toast.error("L'email de la personne à qui vous offrez n'est pas valide");
                       return;
                     }
                     if (password && password.length < 8) {
@@ -570,7 +595,9 @@ export default function CheckoutPage() {
                 {/* Récapitulatif retrait */}
                 {retraitSurPlace && (
                   <Card eyebrow="Retrait" title="Click & Collect">
-                    <p className="text-[14px] text-gray-600">Retrait à Vern-sur-Seiche.</p>
+                    <div className="text-[14px] text-gray-600 space-y-1">
+                      {textesRetrait.map((l) => <p key={l}>{l}.</p>)}
+                    </div>
                   </Card>
                 )}
                 {pickupPoint && !retraitSurPlace && (

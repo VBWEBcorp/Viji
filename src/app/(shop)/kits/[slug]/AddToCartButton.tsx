@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ShoppingCart, Minus, Plus, Truck, Store } from "lucide-react";
-import { VARIANTE_CLICK_COLLECT, prixUnitaire } from "@/lib/click-collect";
+import { VARIANTE_CLICK_COLLECT, lieuRetrait, phraseRetrait, prixUnitaire } from "@/lib/click-collect";
 
 type DeliveryMethod = "mondial-relay" | "click-collect";
 
@@ -46,6 +46,10 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
     else toast.error("Impossible d'ajouter au panier");
   }
 
+  // Lieu de retrait propre au produit (ex. Asian food box chez TALLAT).
+  const sousTitre = (m: DeliveryMethod) =>
+    m === "click-collect" ? phraseRetrait(lieuRetrait(product.slug)) : METHOD_LABELS[m].sub;
+
   const prix = prixUnitaire(product.price, METHOD_LABELS[method].label, remiseClickCollect);
   const deduit = product.price - prix;
 
@@ -67,7 +71,8 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
           </legend>
           <div className="grid grid-cols-2 gap-2">
             {methods.map((m) => {
-              const { label, sub, Icon } = METHOD_LABELS[m];
+              const { label, Icon } = METHOD_LABELS[m];
+              const sub = sousTitre(m);
               const active = method === m;
               return (
                 <button
@@ -97,7 +102,7 @@ export default function AddToCartButton({ product, methods = ["mondial-relay", "
       {methods.length === 1 && (
         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--brand-cream)] text-[12px] text-[var(--brand-gold)]">
           <Store size={14} />
-          {METHOD_LABELS[methods[0]].label} · {METHOD_LABELS[methods[0]].sub}
+          {METHOD_LABELS[methods[0]].label} · {sousTitre(methods[0])}
         </div>
       )}
 

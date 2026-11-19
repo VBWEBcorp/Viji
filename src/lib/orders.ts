@@ -6,6 +6,7 @@ import User from "@/models/User";
 import { sendEmail } from "@/lib/resend";
 import { getNotificationEmail } from "@/lib/notify";
 import { generateOrderConfirmationEmail } from "@/components/emails/OrderConfirmation";
+import { lignesRetrait } from "@/lib/click-collect";
 import {
   emailShell,
   emailEyebrow,
@@ -49,7 +50,7 @@ function buildAdminOrderEmail(order: IOrder, customerEmail: string): string {
   const a = order.shippingAddress;
   const livraison =
     order.shippingMethod === "click-collect"
-      ? `<strong style="color:${C.ink};">Click & Collect</strong><br>Retrait à Vern-sur-Seiche`
+      ? `<strong style="color:${C.ink};">Click & Collect</strong><br>${lignesRetrait(order.items).map(esc).join("<br>")}`
       : order.shippingMethod === "pickup" && order.pickupPoint
       ? `<strong style="color:${C.ink};">Point relais</strong><br>${esc(order.pickupPoint.name)}<br>${esc(order.pickupPoint.street)}<br>${esc(order.pickupPoint.zip)} ${esc(order.pickupPoint.city)}`
       : `<strong style="color:${C.ink};">Livraison à domicile</strong><br>${esc(a.name)}<br>${esc(a.street)}<br>${esc(a.zip)} ${esc(a.city)}<br>${esc(a.country)}`;
@@ -83,6 +84,11 @@ function buildAdminOrderEmail(order: IOrder, customerEmail: string): string {
       emailInfoBox(
         `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0;">${livraison}</p>`
       ) +
+      (order.giftEmail
+        ? emailInfoBox(
+            `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0;"><strong style="color:${C.ink};">Commande offerte à</strong><br><a href="mailto:${esc(order.giftEmail)}" style="color:${C.gold}; text-decoration:none;">${esc(order.giftEmail)}</a></p>`
+          )
+        : "") +
       (order.notes
         ? emailInfoBox(
             `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:${C.body}; margin:0; white-space:pre-wrap;">${esc(order.notes)}</p>`
@@ -150,6 +156,8 @@ export async function fulfillPaidOrder(orderId: string): Promise<void> {
             name: i.name,
             quantity: i.quantity,
             unitPrice: i.unitPrice,
+            variant: i.variant,
+            lieuRetrait: i.lieuRetrait,
           })),
           subtotal: order.subtotal,
           shippingCost: order.shippingCost,

@@ -7,6 +7,7 @@ import { ArrowLeft, Truck, Package, FileDown } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Card } from "@/components/admin/ui";
+import { lignesRetrait } from "@/lib/click-collect";
 
 interface Order {
   _id: string;
@@ -16,6 +17,7 @@ interface Order {
     product: { name: string; slug: string; images?: { url: string }[] };
     name: string;
     variant?: string;
+    lieuRetrait?: string;
     quantity: number;
     unitPrice: number;
   }[];
@@ -41,6 +43,7 @@ interface Order {
     trackingUrl?: string;
   };
   notes?: string;
+  giftEmail?: string;
   createdAt: string;
 }
 
@@ -252,7 +255,17 @@ export default function AdminOrderDetailPage() {
 
           {/* Adresse */}
           <Card className="p-5 sm:p-6">
-            <h2 className="font-serif text-lg text-gray-900 mb-3">{order.shippingMethod === "click-collect" ? "Click & Collect, retrait à Vern-sur-Seiche" : "Adresse de livraison"}</h2>
+            <h2 className="font-serif text-lg text-gray-900 mb-3">{order.shippingMethod === "click-collect" ? "Click & Collect" : "Adresse de livraison"}</h2>
+            {order.shippingMethod === "click-collect" && (
+              <div className="text-sm text-gray-900 space-y-1 mb-3">
+                {lignesRetrait(order.items).map((l) => <p key={l}>{l}</p>)}
+              </div>
+            )}
+            {order.giftEmail && (
+              <p className="text-sm text-gray-900 mb-3">
+                Commande offerte à : <a href={`mailto:${order.giftEmail}`} className="text-[var(--brand-gold)]">{order.giftEmail}</a>
+              </p>
+            )}
             <div className="text-sm text-gray-600 space-y-1">
               <p>{order.shippingAddress.name}</p>
               <p>{order.shippingAddress.street}</p>

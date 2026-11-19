@@ -7,6 +7,8 @@ export interface IOrderItem {
   variant?: string;
   quantity: number;
   unitPrice: number; // centimes
+  /** Click & Collect : lieu de retrait de cet article (absent = Vern-sur-Seiche). */
+  lieuRetrait?: string;
 }
 
 export interface IOrderAddress {
@@ -67,6 +69,8 @@ export interface IOrder extends Document {
   invoiceNumber?: string;
   invoiceIssuedAt?: Date;
   notes?: string;
+  /** E-mail de la personne à qui la commande est offerte (facultatif, saisi au paiement). */
+  giftEmail?: string;
   timeline: {
     action: string;
     details?: string;
@@ -85,6 +89,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
     variant: { type: String },
     quantity: { type: Number, required: true, min: 1 },
     unitPrice: { type: Number, required: true, min: 0 },
+    lieuRetrait: { type: String },
   },
   { _id: false }
 );
@@ -170,6 +175,7 @@ const OrderSchema = new Schema<IOrder>(
     invoiceNumber: { type: String, index: true },
     invoiceIssuedAt: { type: Date },
     notes: { type: String },
+    giftEmail: { type: String },
     timeline: [
       {
         action: { type: String, required: true },

@@ -7,11 +7,12 @@ import {
   esc,
   EMAIL_COLORS as C,
 } from "@/lib/email-layout";
+import { lignesRetrait } from "@/lib/click-collect";
 
 interface OrderConfirmationProps {
   orderNumber: string;
   customerName: string;
-  items: { name: string; quantity: number; unitPrice: number }[];
+  items: { name: string; quantity: number; unitPrice: number; variant?: string; lieuRetrait?: string }[];
   subtotal: number;
   shippingCost: number;
   discount: number;
@@ -101,7 +102,7 @@ export function generateOrderConfirmationEmail(
     ${emailInfoBox(
       `<p style="font-family:${SANS}; font-size:14px; line-height:1.6; color:${C.body}; margin:0;">
         <strong style="color:${C.ink};">Click & Collect</strong><br>
-        Retrait à Vern-sur-Seiche.
+        ${lignesRetrait(props.items).map((l) => esc(l)).join("<br>")}.
       </p>`
     )}`
       : `<p style="font-family:${SANS}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${C.muted}; margin:28px 0 0;">Adresse de livraison</p>

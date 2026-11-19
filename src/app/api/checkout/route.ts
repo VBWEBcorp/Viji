@@ -6,7 +6,7 @@ import User from "@/models/User";
 import PromoCode from "@/models/PromoCode";
 import { calculeRemise } from "@/lib/promo";
 import SiteSettings from "@/models/SiteSettings";
-import { prixUnitaire, remiseClickCollect, toutEnClickCollect } from "@/lib/click-collect";
+import { estClickCollect, lieuRetrait, prixUnitaire, remiseClickCollect, toutEnClickCollect } from "@/lib/click-collect";
 import { getStripe, assertStripeLiveInProduction } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/resend";
@@ -79,6 +79,8 @@ const checkoutSchema = z.object({
   shippingMethodId: z.number().optional(),
   shippingCost: z.number().min(0).default(0),
   promoCode: z.string().optional(),
+  // E-mail de la personne à qui la commande est offerte (facultatif).
+  giftEmail: z.union([z.string().trim().email("E-mail du destinataire du cadeau invalide"), z.literal("")]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -200,6 +202,9 @@ export async function POST(req: NextRequest) {
         variant: item.variant,
         quantity: item.quantity,
         unitPrice,
+        lieuRetrait: estClickCollect(item.variant)
+          ? lieuRetrait((product as unknown as { slug?: string }).slug)
+          : undefined,
       });
     }
 
@@ -305,6 +310,7 @@ export async function POST(req: NextRequest) {
       shippingMethod,
       pickupPoint: shippingMethod === "pickup" ? validated.pickupPoint : undefined,
       paymentMethod: validated.paymentMethod,
+      giftEmail: validated.giftEmail ? validated.giftEmail.toLowerCase() : undefined,
       paymentStatus: "pending",
       fulfillmentStatus: "pending",
     });
